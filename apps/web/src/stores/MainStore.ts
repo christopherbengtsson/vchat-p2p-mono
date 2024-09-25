@@ -6,6 +6,7 @@ import type {
 } from '@mono/common-dto';
 import { AuthStore } from './AuthStore';
 import { AppState } from './model/AppState';
+import { ErrorState } from './model/ErrorState';
 import { WebRtcStore } from './WebRtcStore';
 
 export class MainStore {
@@ -15,6 +16,7 @@ export class MainStore {
   maybeSocket: Socket<ServerToClientEvents, ClientToServerEvents> | null = null;
 
   appState: AppState = AppState.START;
+  errorState: ErrorState | undefined = undefined;
 
   nrOfAvailableUsers = 0;
 
@@ -24,14 +26,21 @@ export class MainStore {
 
     makeAutoObservable(this, {
       // TODO: Check overrides
+      /**
+       * Like observable, but only reassignments will be tracked.
+       * The assigned values are completely ignored and will NOT be
+       * automatically converted to observable/autoAction/flow.
+       * For example, use this if you intend to store immutable data in an observable field.
+       */
       maybeSocket: observable.ref,
+
       webRtcStore: false,
     });
   }
 
   get socket() {
     if (!this.maybeSocket) {
-      this.updateState(AppState.ERROR);
+      this.setAppState(AppState.ERROR);
       throw new Error('Socket is not defined');
     }
     return this.maybeSocket;
@@ -39,7 +48,7 @@ export class MainStore {
   get id() {
     const id = this.socket.id;
     if (!id) {
-      this.updateState(AppState.ERROR);
+      this.setAppState(AppState.ERROR);
       throw new Error('Socket id is not defined');
     }
     return id;
@@ -47,8 +56,6 @@ export class MainStore {
 
   connect() {
     const socket = io('http://192.168.1.2:8000/video-chat', {
-      // transports: ["websocket"],
-      // autoConnect: false,
       extraHeaders: {
         authorization: `Bearer ${this.authStore.session?.access_token}`,
       },
@@ -61,14 +68,14 @@ export class MainStore {
   }
   disconnect() {
     this.maybeSocket?.disconnect();
-    this.updateState(AppState.START);
+    this.setAppState(AppState.START);
   }
   findMatch() {
-    this.updateState(AppState.IN_QUEUE);
+    this.setAppState(AppState.IN_QUEUE);
     this.socket.emit('find-match', this.id);
   }
   cancelMatch() {
-    this.updateState(AppState.START);
+    this.setAppState(AppState.START);
     this.socket.emit('cancel-match', this.id);
   }
   joinRoom(roomId: string) {
@@ -98,14 +105,24 @@ export class MainStore {
     }
   }
 
-  private updateState(state: AppState) {
+  private setAppState(state: AppState) {
     runInAction(() => {
       this.appState = state;
     });
   }
+  private setErrorState(state: ErrorState | undefined) {
+    runInAction(() => {
+      this.errorState = state;
+    });
+  }
+
   private setupListeners() {
-    this.socket.on('connect', () => this.onConnect());
+    this.socket.on('connect', () => console.log('connected'));
     this.socket.on('disconnect', (reason) => this.onDisconnect(reason));
+    this.socket.on('connect_error', (_err) => {
+      this.setErrorState(ErrorState.CONNECT_ERROR);
+      this.socket.once('connect', () => this.setErrorState(undefined));
+    });
 
     this.socket.on('connections-count', (count: number) => {
       runInAction(() => {
@@ -117,9 +134,6 @@ export class MainStore {
     this.socket.on('user-disconnected', () => this.onUserLeft());
     this.socket.on('partner-disconnected', () => this.onUserLeft());
   }
-  private onConnect() {
-    console.log('connected');
-  }
   private onDisconnect(reason: Socket.DisconnectReason) {
     console.log('disconnected');
 
@@ -128,16 +142,17 @@ export class MainStore {
       // the disconnection was initiated by the server, you need to manually reconnect
       // this.maybeSocket?.active = false
       console.log('Disconnected by server');
+      this.setErrorState(ErrorState.SERVER_DISCONNECTED);
     }
 
-    this.updateState(AppState.START);
+    this.setAppState(AppState.START);
   }
   private async onMatchFound(
     roomId: string,
     partnerId: string,
     createOffer: boolean,
   ) {
-    this.updateState(AppState.MATCH_FOUND);
+    this.setAppState(AppState.MATCH_FOUND);
 
     this.webRtcStore.setRoomAndUserId(roomId, partnerId);
     this.webRtcStore.initializePeerConnection();
@@ -151,7 +166,7 @@ export class MainStore {
     }
 
     setTimeout(() => {
-      this.updateState(AppState.IN_CALL);
+      this.setAppState(AppState.IN_CALL);
     }, 1500);
   }
   private async onUserLeft() {

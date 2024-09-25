@@ -1,8 +1,9 @@
 import clsx from 'clsx';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { ErrorToast } from '@/components/ErrorToast';
+import { Routes } from './routes/Routes';
 import { MainStore } from './stores/MainStore';
 import { MainStoreProvider } from './stores/MainStoreProvider';
-import { Routes } from './routes/Routes';
 
 const DYNAMIC_DARK_MODE = window.matchMedia(
   '(prefers-color-scheme:dark)',
@@ -23,6 +24,7 @@ export function Application() {
           )}
         >
           <Routes />
+          <ErrorToast />
         </main>
       </MainStoreProvider>
     </ErrorBoundary>

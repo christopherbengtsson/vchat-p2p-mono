@@ -12,7 +12,11 @@ export const StartPage = observer(function StartPage() {
 
   return (
     <div className="w-full max-w-sm flex flex-col items-center gap-4">
-      <Button className="w-full" onClick={connectOrFindMatch}>
+      <Button
+        className="w-full"
+        onClick={connectOrFindMatch}
+        disabled={mainStore.errorState !== undefined}
+      >
         Find match
       </Button>
 

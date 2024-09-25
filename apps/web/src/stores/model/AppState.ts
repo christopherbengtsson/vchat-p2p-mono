@@ -6,5 +6,6 @@ export enum AppState {
   MATCH_FOUND,
   IN_CALL,
 
+  CONNECTION__ERROR,
   ERROR,
 }
