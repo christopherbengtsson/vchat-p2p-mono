@@ -1,10 +1,10 @@
-import { observer } from 'mobx-react';
 import { useEffect, useRef } from 'react';
-import { useMainStore } from '../stores/MainStoreContext';
-import { Video } from '@/components/Video';
-import { ToggleMuteButton } from '@/components/ToggleMuteButton';
+import { observer } from 'mobx-react';
 import { EndCallButton } from '@/components/EndCallButton';
 import { ToggleCameraButton } from '@/components/ToggleCameraButton';
+import { ToggleMuteButton } from '@/components/ToggleMuteButton';
+import { Video } from '@/components/Video';
+import { useMainStore } from '../stores/MainStoreContext';
 
 export const CallPage = observer(function CallPage() {
   const mainStore = useMainStore();

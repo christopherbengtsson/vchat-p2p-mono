@@ -1,7 +1,7 @@
+import { type AddressInfo } from 'node:net';
+import { createServer } from 'node:http';
 import { io as ioc, type Socket as ClientSocket } from 'socket.io-client';
 import { Server, type Socket as ServerSocket } from 'socket.io';
-import { createServer } from 'node:http';
-import { type AddressInfo } from 'node:net';
 import logger from '../utils/logger.js';
 import { wrapSocketHandler } from '../utils/wrapSocketHandler.js';
 import { setupMatchmaking } from '../socket/matchmaking.js';

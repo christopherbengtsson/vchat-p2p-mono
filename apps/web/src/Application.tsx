@@ -1,8 +1,8 @@
 import clsx from 'clsx';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { MainStore } from './stores/MainStore';
 import { MainStoreProvider } from './stores/MainStoreProvider';
 import { Routes } from './routes/Routes';
-import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 const DYNAMIC_DARK_MODE = window.matchMedia(
   '(prefers-color-scheme:dark)',

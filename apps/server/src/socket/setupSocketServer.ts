@@ -1,19 +1,19 @@
 import type { Server } from 'http';
-import helmet from 'helmet';
-import { Server as SocketServer } from 'socket.io';
 import { instrument } from '@socket.io/admin-ui';
+import type { NextFunction } from 'express';
+import helmet from 'helmet';
 import { RateLimiterMemory } from 'rate-limiter-flexible';
-import { setupMatchmaking } from './matchmaking.js';
-import { setupChat } from './chat.js';
-import { setupWebRTC } from './webRtc.js';
-import { setupRoomManagement } from './roomManagement.js';
+import { Server as SocketServer } from 'socket.io';
+import { MODE } from '../constants.js';
+import { validateJwtMiddleware } from '../middleware/authMiddleware.js';
+import type { IncomingMessage } from '../models/IncomingMessage.js';
 import logger from '../utils/logger.js';
 import { wrapSocketHandler } from '../utils/wrapSocketHandler.js';
-import { validateJwtMiddleware } from '../middleware/authMiddleware.js';
-import { MODE } from '../constants.js';
+import { setupChat } from './chat.js';
+import { setupMatchmaking } from './matchmaking.js';
 import { nspEmitters } from './nspEmitters.js';
-import type { IncomingMessage } from '../models/IncomingMessage.js';
-import type { NextFunction } from 'express';
+import { setupRoomManagement } from './roomManagement.js';
+import { setupWebRTC } from './webRtc.js';
 
 export function setupSocketServer(httpServer: Server) {
   console.log('setupSocket');

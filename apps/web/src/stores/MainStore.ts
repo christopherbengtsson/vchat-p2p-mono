@@ -1,12 +1,12 @@
 import { makeAutoObservable, observable, runInAction } from 'mobx';
 import { type Socket, io } from 'socket.io-client';
-import { WebRtcStore } from './WebRtcStore';
 import type {
   ClientToServerEvents,
   ServerToClientEvents,
 } from '@mono/common-dto';
-import { AppState } from './model/AppState';
 import { AuthStore } from './AuthStore';
+import { AppState } from './model/AppState';
+import { WebRtcStore } from './WebRtcStore';
 
 export class MainStore {
   authStore: AuthStore;

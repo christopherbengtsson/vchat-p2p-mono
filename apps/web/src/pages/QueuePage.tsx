@@ -1,9 +1,9 @@
 import { observer } from 'mobx-react';
 import { MdTravelExplore } from 'react-icons/md';
-import { useMainStore } from '../stores/MainStoreContext';
-import { AppState } from '../stores/model/AppState';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
+import { useMainStore } from '../stores/MainStoreContext';
+import { AppState } from '../stores/model/AppState';
 
 export const QueuePage = observer(function QueuePage() {
   const mainStore = useMainStore();

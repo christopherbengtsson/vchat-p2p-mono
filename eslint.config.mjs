@@ -4,6 +4,7 @@ import globals from 'globals';
 import reactHooks from 'eslint-plugin-react-hooks';
 import reactRefresh from 'eslint-plugin-react-refresh';
 import tseslint from 'typescript-eslint';
+import importPlugin from 'eslint-plugin-import';
 import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended';
 
 export default tseslint.config(
@@ -13,13 +14,14 @@ export default tseslint.config(
   /* Top level general config */
   {
     files: ['**/*.{ts,tsx}'],
+    ignores: ['**/*.config.{ts,js}'],
     extends: [
       eslint.configs.recommended,
       ...tseslint.configs.strict,
       ...tseslint.configs.stylistic,
+      importPlugin.flatConfigs.recommended,
       eslintPluginPrettierRecommended,
     ],
-    plugins: {},
     rules: {
       '@typescript-eslint/no-unused-vars': [
         'error',
@@ -33,6 +35,23 @@ export default tseslint.config(
           ignoreRestSiblings: true,
         },
       ],
+
+      'import/order': [
+        'error',
+        {
+          pathGroups: [
+            {
+              pattern: '@/**',
+              group: 'external',
+              position: 'after',
+            },
+          ],
+        },
+      ],
+      'import/no-named-as-default': 'off',
+      'import/no-named-as-default-member': 'off',
+      'import/no-unresolved': 'off',
+      'import/namespace': 'off',
     },
   },
 
