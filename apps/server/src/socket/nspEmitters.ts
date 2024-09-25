@@ -1,4 +1,4 @@
-import type { ClientToServerEvents, ServerToClientEvents } from 'common';
+import type { ClientToServerEvents, ServerToClientEvents } from 'common-dto';
 import type { Namespace } from 'socket.io';
 
 export const nspEmitters = (
