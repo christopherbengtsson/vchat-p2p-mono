@@ -222,10 +222,6 @@ importers:
         version: 5.4.7(@types/node@22.6.1)
 
   packages/common:
-    dependencies:
-      socket.io-client:
-        specifier: ^4.8.0
-        version: 4.8.0
     devDependencies:
       typescript:
         specifier: ^5.5.3
