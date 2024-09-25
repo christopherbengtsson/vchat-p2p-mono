@@ -6,7 +6,10 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint .",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "web": "pnpm run --filter web",
+    "server": "pnpm run --filter server",
+    "common-dto": "pnpm --filter common-dto"
   },
   "keywords": [],
   "author": "",

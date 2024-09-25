@@ -9,8 +9,7 @@
     "build": "tsc -p tsconfig.build.json",
     "start": "node dist/index.js",
     "test": "vitest",
-    "typecheck": "tsc --noEmit",
-    "server": "pnpm --filter server"
+    "typecheck": "tsc --noEmit"
   },
   "keywords": [],
   "author": "",
@@ -25,7 +24,7 @@
     "pino": "^9.4.0",
     "rate-limiter-flexible": "^5.0.3",
     "socket.io": "^4.8.0",
-    "common-dto": "workspace:*"
+    "@mono/common-dto": "workspace:*"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",

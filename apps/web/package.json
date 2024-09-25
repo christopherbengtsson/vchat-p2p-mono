@@ -1,5 +1,5 @@
 {
-  "name": "chat-p2p",
+  "name": "web",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -7,8 +7,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview",
-    "web": "pnpm --filter web"
+    "preview": "vite preview"
   },
   "dependencies": {
     "@radix-ui/react-avatar": "^1.1.0",
@@ -28,7 +27,7 @@
     "tailwind-merge": "^2.5.2",
     "tailwindcss-animate": "^1.0.7",
     "uuid": "^10.0.0",
-    "common-dto": "workspace:*"
+    "@mono/common-dto": "workspace:*"
   },
   "devDependencies": {
     "@eslint/js": "^9.9.0",

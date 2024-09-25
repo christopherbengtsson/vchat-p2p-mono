@@ -1,12 +1,11 @@
 {
-  "name": "common-dto",
+  "name": "@mono/common-dto",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "types": "./dist/index.d.ts",
   "scripts": {
-    "build": "tsc",
-    "common-dto": "pnpm --filter common-dto"
+    "build": "tsc"
   },
   "devDependencies": {
     "typescript": "^5.5.3"
