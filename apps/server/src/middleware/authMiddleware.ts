@@ -1,4 +1,4 @@
-import { verify } from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
 import logger from '../utils/logger.js';
 import type { IncomingMessage } from '../models/IncomingMessage.js';
 
@@ -28,7 +28,7 @@ export const validateJwtMiddleware = (
 
   const token = header.substring(7);
 
-  verify(token, JWT_SECRET, (err, decoded) => {
+  jwt.verify(token, JWT_SECRET, (err, decoded) => {
     if (err) {
       if (err.name === 'TokenExpiredError') {
         // TODO: Emit to socket to refresh token??

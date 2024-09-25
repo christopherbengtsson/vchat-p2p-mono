@@ -10,10 +10,15 @@ const waitingQueue = InMemoryDB.waitingQueue;
  * For example, we could use it to emit events to all connected clients or to manage room-wide operations.
  * This would allow for more sophisticated matchmaking algorithms or features in the future.
  */
-export function setupMatchmaking(socket: VChatSocket, wrapHandler: Function) {
+export function setupMatchmaking(
+  socket: VChatSocket,
+  wrapHandler: <T extends (...args: string[]) => void>(
+    handler: T,
+  ) => (...args: Parameters<T>) => void,
+) {
   socket.on(
     'find-match',
-    wrapHandler((userId: string) => {
+    wrapHandler((userId) => {
       if (waitingQueue.queueCount > 0) {
         const partnerId = waitingQueue.getFirstInQueue;
 
@@ -40,7 +45,7 @@ export function setupMatchmaking(socket: VChatSocket, wrapHandler: Function) {
 
   socket.on(
     'skip-user',
-    wrapHandler((roomId: string, userId: string) => {
+    wrapHandler((roomId, userId) => {
       console.log('skip-user', roomId, userId);
       socket.leave(roomId);
       socket.to(roomId).emit('user-skipped');

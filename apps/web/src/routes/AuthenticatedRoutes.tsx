@@ -1,10 +1,10 @@
-import { useEffect } from "react";
-import { observer } from "mobx-react";
-import { useMainStore } from "../stores/MainStoreContext";
-import { AppState } from "../stores/model/AppState";
-import { StartPage } from "../pages/StartPage";
-import { QueuePage } from "../pages/QueuePage";
-import { CallPage } from "../pages/CallPage";
+import { useEffect } from 'react';
+import { observer } from 'mobx-react';
+import { useMainStore } from '../stores/MainStoreContext';
+import { AppState } from '../stores/model/AppState';
+import { StartPage } from '../pages/StartPage';
+import { QueuePage } from '../pages/QueuePage';
+import { CallPage } from '../pages/CallPage';
 
 export const AuthenticatedRoutes = observer(function AuthenticatedRoutes() {
   const mainstore = useMainStore();
@@ -13,7 +13,7 @@ export const AuthenticatedRoutes = observer(function AuthenticatedRoutes() {
     mainstore.connect();
 
     return () => {
-      console.log("Disconnecting...");
+      console.log('Disconnecting...');
       mainstore.disconnect();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps

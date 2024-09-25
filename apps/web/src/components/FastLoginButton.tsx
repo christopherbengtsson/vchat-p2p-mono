@@ -1,10 +1,10 @@
-import { Loader2, Zap } from "lucide-react";
-import { Button } from "./ui/button";
+import { Loader2, Zap } from 'lucide-react';
+import { Button } from './ui/button';
 
-type Props = {
+interface Props {
   loading: boolean;
   onClick: VoidFunction;
-};
+}
 
 export function FastLoginButton({ loading, onClick }: Props) {
   return (
@@ -14,7 +14,7 @@ export function FastLoginButton({ loading, onClick }: Props) {
       ) : (
         <Zap className="mr-2 h-4 w-4" />
       )}
-      {loading ? "Logging in..." : "Fast login"}
+      {loading ? 'Logging in...' : 'Fast login'}
     </Button>
   );
 }

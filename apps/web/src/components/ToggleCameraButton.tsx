@@ -1,11 +1,11 @@
-import { MdVideocam, MdVideocamOff } from "react-icons/md";
-import { Button } from "@/components/ui/button";
+import { MdVideocam, MdVideocamOff } from 'react-icons/md';
+import { Button } from '@/components/ui/button';
 
-type Props = {
+interface Props {
   localStream: MediaStream | null;
   videoEnabled: boolean;
   onToggle: VoidFunction;
-};
+}
 
 export function ToggleCameraButton({
   localStream,

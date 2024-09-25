@@ -1,9 +1,9 @@
-import { MdCallEnd } from "react-icons/md";
-import { Button } from "@/components/ui/button";
+import { MdCallEnd } from 'react-icons/md';
+import { Button } from '@/components/ui/button';
 
-type Props = {
+interface Props {
   onClick: VoidFunction;
-};
+}
 
 export function EndCallButton({ onClick }: Props) {
   return (

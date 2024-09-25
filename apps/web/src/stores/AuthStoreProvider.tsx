@@ -1,6 +1,6 @@
-import { ReactNode } from "react";
-import { AuthStoreContext } from "./AuthStoreContext";
-import { AuthStore } from "./AuthStore";
+import { ReactNode } from 'react';
+import { AuthStoreContext } from './AuthStoreContext';
+import { AuthStore } from './AuthStore';
 
 export function AuthStoreProvider({
   store,

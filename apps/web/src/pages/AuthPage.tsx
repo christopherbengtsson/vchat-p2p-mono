@@ -1,8 +1,8 @@
-import { observer } from "mobx-react";
-import { useState } from "react";
-import { Card } from "@/components/ui/card";
-import { FastLoginButton } from "@/components/FastLoginButton";
-import { useMainStore } from "../stores/MainStoreContext";
+import { observer } from 'mobx-react';
+import { useState } from 'react';
+import { Card } from '@/components/ui/card';
+import { FastLoginButton } from '@/components/FastLoginButton';
+import { useMainStore } from '../stores/MainStoreContext';
 
 export const AuthPage = observer(function AuthPage() {
   const mainStore = useMainStore();

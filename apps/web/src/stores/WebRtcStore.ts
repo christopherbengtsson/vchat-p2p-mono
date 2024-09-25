@@ -1,10 +1,10 @@
-import { makeAutoObservable, runInAction } from "mobx";
-import { ChatSocket } from "./model/SocketModel";
+import { makeAutoObservable, runInAction } from 'mobx';
+import { ChatSocket } from './model/SocketModel';
 
 const configuration = {
   iceServers: [
     {
-      urls: ["stun:stun1.l.google.com:19302", "stun:stun2.l.google.com:19302"],
+      urls: ['stun:stun1.l.google.com:19302', 'stun:stun2.l.google.com:19302'],
     },
   ],
   iceCandidatePoolSize: 10,
@@ -16,14 +16,14 @@ export class WebRtcStore {
   remoteStream: MediaStream | null = null;
   maybeSocket: ChatSocket | null = null;
 
-  roomId: string = "";
-  userId: string = "";
+  roomId = '';
+  userId = '';
 
-  localVideoEnabled: boolean = true;
-  localAudioEnabled: boolean = true;
+  localVideoEnabled = true;
+  localAudioEnabled = true;
 
-  remoteVideoEnabled: boolean = true;
-  remoteAudioEnabled: boolean = true;
+  remoteVideoEnabled = true;
+  remoteAudioEnabled = true;
 
   constructor() {
     makeAutoObservable(this); // TODO: Add overrides
@@ -31,7 +31,7 @@ export class WebRtcStore {
 
   get socket() {
     if (!this.maybeSocket) {
-      throw new Error("Socket is not initialized");
+      throw new Error('Socket is not initialized');
     }
     return this.maybeSocket;
   }
@@ -42,16 +42,16 @@ export class WebRtcStore {
   }
 
   private setupSocketListeners() {
-    this.socket.on("offer", (...data) => this.handleOffer(...data));
-    this.socket.on("answer", (...data) => this.handleAnswer(...data));
-    this.socket.on("ice-candidate", (...data) =>
-      this.handleIceCandidate(...data)
+    this.socket.on('offer', (...data) => this.handleOffer(...data));
+    this.socket.on('answer', (...data) => this.handleAnswer(...data));
+    this.socket.on('ice-candidate', (...data) =>
+      this.handleIceCandidate(...data),
     );
-    this.socket.on("video-toggle", (...data) =>
-      this.handleRemoteVideoToggle(...data)
+    this.socket.on('video-toggle', (...data) =>
+      this.handleRemoteVideoToggle(...data),
     );
-    this.socket.on("audio-toggle", (...data) =>
-      this.handleRemoteAudioToggle(...data)
+    this.socket.on('audio-toggle', (...data) =>
+      this.handleRemoteAudioToggle(...data),
     );
   }
 
@@ -87,88 +87,90 @@ export class WebRtcStore {
 
       this.localStream.getTracks().forEach((track) => {
         if (!this.peerConnection) {
-          throw new Error("PeerConnection not initialized");
+          throw new Error('PeerConnection not initialized');
         }
-        this.peerConnection.addTrack(track, this.localStream!);
+        if (this.localStream) {
+          this.peerConnection.addTrack(track, this.localStream);
+        }
       });
     } catch (error) {
-      console.error("Error accessing media devices:", error);
+      console.error('Error accessing media devices:', error);
       throw error;
     }
   }
   async createOffer() {
-    console.log("creating offer..");
+    console.log('creating offer..');
     if (!this.peerConnection) {
-      throw new Error("PeerConnection not initialized");
+      throw new Error('PeerConnection not initialized');
     }
     try {
       const offer = await this.peerConnection.createOffer();
       await this.peerConnection.setLocalDescription(offer);
-      this.socket.emit("offer", offer, this.roomId, this.userId);
+      this.socket.emit('offer', offer, this.roomId, this.userId);
     } catch (error) {
-      console.error("Error creating offer:", error);
+      console.error('Error creating offer:', error);
       throw error;
     }
   }
 
   private handleOffer = async (
     offer: RTCSessionDescriptionInit,
-    _userId: string
+    _userId: string,
   ) => {
-    console.log("Received offer from user:", _userId);
+    console.log('Received offer from user:', _userId);
     if (!this.peerConnection) {
-      throw new Error("PeerConnection not initialized");
+      throw new Error('PeerConnection not initialized');
     }
     try {
       await this.peerConnection.setRemoteDescription(
-        new RTCSessionDescription(offer)
+        new RTCSessionDescription(offer),
       );
       const answer = await this.peerConnection.createAnswer();
       await this.peerConnection.setLocalDescription(answer);
-      this.socket.emit("answer", answer, this.roomId, this.userId);
+      this.socket.emit('answer', answer, this.roomId, this.userId);
     } catch (error) {
-      console.error("Error handling offer:", error);
+      console.error('Error handling offer:', error);
       throw error;
     }
   };
   private handleAnswer = async (
     answer: RTCSessionDescriptionInit,
-    _userId: string
+    _userId: string,
   ) => {
-    console.log("Received answer from user:", _userId);
+    console.log('Received answer from user:', _userId);
     if (!this.peerConnection) {
-      throw new Error("PeerConnection not initialized");
+      throw new Error('PeerConnection not initialized');
     }
     try {
       await this.peerConnection.setRemoteDescription(
-        new RTCSessionDescription(answer)
+        new RTCSessionDescription(answer),
       );
     } catch (error) {
-      console.error("Error handling answer:", error);
+      console.error('Error handling answer:', error);
       throw error;
     }
   };
   private handleIceCandidate = (
     candidate: RTCIceCandidateInit,
-    _userId: string
+    _userId: string,
   ) => {
     if (!this.peerConnection) {
-      throw new Error("PeerConnection not initialized");
+      throw new Error('PeerConnection not initialized');
     }
     try {
       this.peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
     } catch (error) {
-      console.error("Error handling ICE candidate:", error);
+      console.error('Error handling ICE candidate:', error);
       throw error;
     }
   };
   private handleLocalIceCandidate = (event: RTCPeerConnectionIceEvent) => {
     if (event.candidate) {
       this.socket.emit(
-        "ice-candidate",
+        'ice-candidate',
         event.candidate.toJSON(),
         this.roomId,
-        this.userId
+        this.userId,
       );
     }
   };

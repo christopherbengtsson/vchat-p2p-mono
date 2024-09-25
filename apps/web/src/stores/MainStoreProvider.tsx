@@ -1,6 +1,6 @@
-import { ReactNode } from "react";
-import { MainStoreContext } from "./MainStoreContext";
-import { MainStore } from "./MainStore";
+import { ReactNode } from 'react';
+import { MainStoreContext } from './MainStoreContext';
+import { MainStore } from './MainStore';
 
 export function MainStoreProvider({
   store,

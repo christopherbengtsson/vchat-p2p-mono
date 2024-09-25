@@ -70,7 +70,8 @@
 }
 
 .bg-noice {
-  background: repeating-radial-gradient(
+  background:
+    repeating-radial-gradient(
         hsl(var(--background)) 0 0.0001%,
         hsl(var(--muted-foreground)) 0 0.0002%
       )
@@ -86,6 +87,8 @@
 
 @keyframes noice {
   100% {
-    background-position: 50% 0, 60% 50%;
+    background-position:
+      50% 0,
+      60% 50%;
   }
 }

@@ -1,7 +1,7 @@
-import { observer } from "mobx-react";
-import { useCallback } from "react";
-import { Button } from "@/components/ui/button";
-import { useMainStore } from "../stores/MainStoreContext";
+import { observer } from 'mobx-react';
+import { useCallback } from 'react';
+import { Button } from '@/components/ui/button';
+import { useMainStore } from '../stores/MainStoreContext';
 
 export const StartPage = observer(function StartPage() {
   const mainStore = useMainStore();

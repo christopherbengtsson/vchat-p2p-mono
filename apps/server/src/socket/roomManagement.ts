@@ -3,11 +3,13 @@ import type { VChatSocket } from '../models/VChatSocket.js';
 
 export function setupRoomManagement(
   socket: VChatSocket,
-  wrapHandler: Function,
+  wrapHandler: <T extends unknown[], R extends Promise<void> | void>(
+    handler: (...args: T) => R,
+  ) => (...args: T) => void,
 ) {
   socket.on(
     'join-room',
-    wrapHandler((roomId: string, userId: string) => {
+    wrapHandler((roomId, userId) => {
       socket.join(roomId);
       socket.to(roomId).emit('user-connected', userId); // TODO: user-joined
 
@@ -17,7 +19,7 @@ export function setupRoomManagement(
 
   socket.on(
     'leave-room',
-    wrapHandler((roomId: string, userId: string) => {
+    wrapHandler((roomId, userId) => {
       socket.leave(roomId);
       socket.to(roomId).emit('user-disconnected', userId); // TODO: user-left
 
@@ -27,7 +29,7 @@ export function setupRoomManagement(
 
   socket.on(
     'audio-toggle',
-    wrapHandler((enabled: boolean, roomId: string) => {
+    wrapHandler((enabled, roomId) => {
       logger.debug({ enabled, roomId }, 'Recevied audio toggle');
       socket.to(roomId).emit('audio-toggle', enabled);
     }),
@@ -35,7 +37,7 @@ export function setupRoomManagement(
 
   socket.on(
     'video-toggle',
-    wrapHandler((enabled: boolean, roomId: string) => {
+    wrapHandler((enabled, roomId) => {
       logger.debug({ enabled, roomId }, 'Recevied video toggle');
       socket.to(roomId).emit('video-toggle', enabled);
     }),

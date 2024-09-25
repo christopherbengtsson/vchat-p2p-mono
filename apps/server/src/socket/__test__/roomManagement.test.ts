@@ -1,9 +1,9 @@
-import { describe, it, expect, vi } from "vitest";
-import { setupRoomManagement } from "../roomManagement.js";
-import { wrapSocketHandler } from "../../utils/wrapSocketHandler.js";
+import { describe, it, expect, vi } from 'vitest';
+import { setupRoomManagement } from '../roomManagement.js';
+import { wrapSocketHandler } from '../../utils/wrapSocketHandler.js';
 
-describe("Room Management", () => {
-  it("should handle join-room event", () => {
+describe('Room Management', () => {
+  it('should handle join-room event', () => {
     const emitMock = vi.fn();
     const socket = {
       join: vi.fn(),
@@ -14,16 +14,16 @@ describe("Room Management", () => {
     setupRoomManagement(socket as any, wrapSocketHandler);
 
     const joinRoomHandler = socket.on.mock.calls.find(
-      (call) => call[0] === "join-room"
+      (call) => call[0] === 'join-room',
     )![1];
-    joinRoomHandler("room1", "user1");
+    joinRoomHandler('room1', 'user1');
 
-    expect(socket.join).toHaveBeenCalledWith("room1");
-    expect(socket.to).toHaveBeenCalledWith("room1");
-    expect(emitMock).toHaveBeenCalledWith("user-connected", "user1");
+    expect(socket.join).toHaveBeenCalledWith('room1');
+    expect(socket.to).toHaveBeenCalledWith('room1');
+    expect(emitMock).toHaveBeenCalledWith('user-connected', 'user1');
   });
 
-  it("should handle leave-room event", () => {
+  it('should handle leave-room event', () => {
     const emitMock = vi.fn();
     const socket = {
       leave: vi.fn(),
@@ -34,12 +34,12 @@ describe("Room Management", () => {
     setupRoomManagement(socket as any, wrapSocketHandler);
 
     const leaveRoomHandler = socket.on.mock.calls.find(
-      (call) => call[0] === "leave-room"
+      (call) => call[0] === 'leave-room',
     )![1];
-    leaveRoomHandler("room1", "user1");
+    leaveRoomHandler('room1', 'user1');
 
-    expect(socket.leave).toHaveBeenCalledWith("room1");
-    expect(socket.to).toHaveBeenCalledWith("room1");
-    expect(emitMock).toHaveBeenCalledWith("user-disconnected", "user1");
+    expect(socket.leave).toHaveBeenCalledWith('room1');
+    expect(socket.to).toHaveBeenCalledWith('room1');
+    expect(emitMock).toHaveBeenCalledWith('user-disconnected', 'user1');
   });
 });

@@ -13,7 +13,7 @@ export class MainStore {
 
   appState: AppState = AppState.START;
 
-  nrOfAvailableUsers: number = 0;
+  nrOfAvailableUsers = 0;
 
   constructor() {
     this.authStore = new AuthStore();

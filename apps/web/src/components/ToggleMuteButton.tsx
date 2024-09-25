@@ -1,11 +1,11 @@
-import { MdMic, MdMicOff } from "react-icons/md";
-import { Button } from "@/components/ui/button";
+import { MdMic, MdMicOff } from 'react-icons/md';
+import { Button } from '@/components/ui/button';
 
-type Props = {
+interface Props {
   localStream: MediaStream | null;
   audioEnabled: boolean;
   onToggle: VoidFunction;
-};
+}
 
 export function ToggleMuteButton({
   localStream,

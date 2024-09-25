@@ -1,1 +1,1 @@
-export type NodeEnv = "development" | "production" | undefined;
+export type NodeEnv = 'development' | 'production' | undefined;

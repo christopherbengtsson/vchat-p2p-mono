@@ -1,5 +1,5 @@
 class WaitingQueue {
-  private waitingQueue: Set<string> = new Set();
+  private waitingQueue = new Set<string>();
 
   addToQueue(id: string) {
     this.waitingQueue.add(id);
@@ -13,7 +13,7 @@ class WaitingQueue {
     return this.waitingQueue.size;
   }
 
-  get getFirstInQueue(): string {
+  get getFirstInQueue(): string | undefined {
     return this.waitingQueue.values().next().value;
   }
 }
