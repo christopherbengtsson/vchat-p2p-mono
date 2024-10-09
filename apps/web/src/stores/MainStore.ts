@@ -14,6 +14,7 @@ export class MainStore {
   webRtcStore: WebRtcStore;
 
   maybeSocket: Socket<ServerToClientEvents, ClientToServerEvents> | null = null;
+  isSocketConnected = false;
 
   appState: AppState = AppState.START;
   errorState: ErrorState | undefined = undefined;
@@ -55,7 +56,7 @@ export class MainStore {
   }
 
   connect() {
-    const socket = io('http://192.168.1.2:8000/video-chat', {
+    const socket = io('http://localhost:8000/video-chat', {
       extraHeaders: {
         authorization: `Bearer ${this.authStore.session?.access_token}`,
       },
@@ -117,11 +118,22 @@ export class MainStore {
   }
 
   private setupListeners() {
-    this.socket.on('connect', () => console.log('connected'));
+    this.socket.on('connect', () => {
+      runInAction(() => {
+        this.isSocketConnected = true;
+      });
+      console.log('connected');
+    });
+
     this.socket.on('disconnect', (reason) => this.onDisconnect(reason));
     this.socket.on('connect_error', (_err) => {
       this.setErrorState(ErrorState.CONNECT_ERROR);
-      this.socket.once('connect', () => this.setErrorState(undefined));
+      this.socket.once('connect', () => {
+        runInAction(() => {
+          this.isSocketConnected = true;
+        });
+        this.setErrorState(undefined);
+      });
     });
 
     this.socket.on('connections-count', (count: number) => {
@@ -135,6 +147,9 @@ export class MainStore {
     this.socket.on('partner-disconnected', () => this.onUserLeft());
   }
   private onDisconnect(reason: Socket.DisconnectReason) {
+    runInAction(() => {
+      this.isSocketConnected = false;
+    });
     console.log('disconnected');
 
     if (reason === 'io server disconnect') {
@@ -150,20 +165,13 @@ export class MainStore {
   private async onMatchFound(
     roomId: string,
     partnerId: string,
-    createOffer: boolean,
+    polite: boolean,
   ) {
     this.setAppState(AppState.MATCH_FOUND);
+    console.log('Match found', 'partnerId', partnerId, 'polite', polite);
 
-    this.webRtcStore.setRoomAndUserId(roomId, partnerId);
-    this.webRtcStore.initializePeerConnection();
-
-    await this.webRtcStore.startLocalStream();
-
-    if (createOffer) {
-      this.webRtcStore.createOffer();
-    } else {
-      this.joinRoom(roomId);
-    }
+    this.joinRoom(roomId);
+    await this.webRtcStore.start(roomId, partnerId, polite);
 
     setTimeout(() => {
       this.setAppState(AppState.IN_CALL);

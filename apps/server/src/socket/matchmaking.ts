@@ -28,7 +28,6 @@ export function setupMatchmaking(
 
         const roomId = `${userId}-${partnerId}`;
 
-        socket.join(roomId);
         socket.to(partnerId).emit('match-found', roomId, userId, false); // Inform parter
         socket.emit('match-found', roomId, partnerId, true); // Inform current user
 
@@ -36,7 +35,7 @@ export function setupMatchmaking(
       } else {
         waitingQueue.addToQueue(socket.id);
         logger.debug(
-          { numbersInQueue: waitingQueue.queueCount },
+          { numbersInQueue: waitingQueue.queueCount, userId },
           'User added to waiting queue',
         );
       }

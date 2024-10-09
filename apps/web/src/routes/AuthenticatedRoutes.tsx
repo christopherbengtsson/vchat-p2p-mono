@@ -15,6 +15,7 @@ export const AuthenticatedRoutes = observer(function AuthenticatedRoutes() {
     return () => {
       console.log('Disconnecting...');
       mainstore.disconnect();
+      mainstore.webRtcStore.cleanup();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

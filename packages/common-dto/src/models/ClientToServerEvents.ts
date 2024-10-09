@@ -1,3 +1,5 @@
+import { PeerMessage } from './PeerMessage.js';
+
 export interface ClientToServerEvents {
   'send-message': (roomId: string, message: string) => void;
 
@@ -11,19 +13,5 @@ export interface ClientToServerEvents {
   'audio-toggle': (enabled: boolean, roomId: string) => void;
   'video-toggle': (enabled: boolean, roomId: string) => void;
 
-  offer: (
-    offer: RTCSessionDescriptionInit,
-    roomId: string,
-    userId: string,
-  ) => void;
-  answer: (
-    answer: RTCSessionDescriptionInit,
-    roomId: string,
-    userId: string,
-  ) => void;
-  'ice-candidate': (
-    candidate: RTCIceCandidateInit,
-    roomId: string,
-    userId: string,
-  ) => void;
+  'peer-message': (data: PeerMessage, roomId: string, userId: string) => void;
 }

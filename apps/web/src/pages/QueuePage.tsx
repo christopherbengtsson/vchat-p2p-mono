@@ -35,7 +35,7 @@ export const QueuePage = observer(function QueuePage() {
       </div>
 
       <p className="text-primary-foreground">
-        Match with {mainStore.webRtcStore.userId}
+        Match with {mainStore.webRtcStore.partnerId}
       </p>
     </div>
   );

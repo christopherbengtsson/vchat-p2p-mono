@@ -8,8 +8,8 @@
     "lint": "eslint .",
     "format:all": "prettier --write .",
     "format:staged": "prettier $(git diff --cached --name-only --diff-filter=ACMR | sed 's| |\\ |g') --write --ignore-unknown",
-    "web": "pnpm run --filter web",
-    "server": "pnpm run --filter server",
+    "web": "pnpm --filter web",
+    "server": "pnpm --filter server",
     "common-dto": "pnpm --filter common-dto",
     "prepare": "husky"
   },

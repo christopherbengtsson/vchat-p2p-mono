@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import clsx from 'clsx';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { ErrorToast } from '@/components/ErrorToast';
@@ -9,9 +10,9 @@ const DYNAMIC_DARK_MODE = window.matchMedia(
   '(prefers-color-scheme:dark)',
 ).matches;
 
-const store = new MainStore();
-
 export function Application() {
+  const [store] = useState(new MainStore());
+
   return (
     <ErrorBoundary>
       <MainStoreProvider store={store}>

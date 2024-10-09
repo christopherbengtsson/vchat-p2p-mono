@@ -1,5 +1,6 @@
-import { observer } from 'mobx-react';
 import { useCallback } from 'react';
+import { observer } from 'mobx-react';
+import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useMainStore } from '../stores/MainStoreContext';
 
@@ -15,14 +16,21 @@ export const StartPage = observer(function StartPage() {
       <Button
         className="w-full"
         onClick={connectOrFindMatch}
-        disabled={mainStore.errorState !== undefined}
+        disabled={
+          mainStore.errorState !== undefined || !mainStore.isSocketConnected
+        }
       >
-        Find match
+        {!mainStore.isSocketConnected && (
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+        )}
+        {!mainStore.isSocketConnected ? 'Connecting...' : 'Find match'}
       </Button>
 
-      <p className="text-primary-foreground">
-        Currently {mainStore.nrOfAvailableUsers} more users online
-      </p>
+      {mainStore.isSocketConnected && (
+        <p className="text-primary-foreground">
+          Currently {mainStore.nrOfAvailableUsers} more users online
+        </p>
+      )}
     </div>
   );
 });

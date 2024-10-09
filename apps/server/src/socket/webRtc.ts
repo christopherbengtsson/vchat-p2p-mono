@@ -8,26 +8,10 @@ export function setupWebRTC(
   ) => (...args: T) => void,
 ) {
   socket.on(
-    'offer',
-    wrapHandler((offer, roomId, userId) => {
-      logger.debug({ roomId, userId }, 'Received offer');
-      socket.to(roomId).emit('offer', offer, userId);
-    }),
-  );
-
-  socket.on(
-    'answer',
-    wrapHandler((answer, roomId, userId) => {
-      logger.debug({ roomId, userId }, 'Received answer');
-      socket.to(roomId).emit('answer', answer, userId);
-    }),
-  );
-
-  socket.on(
-    'ice-candidate',
-    wrapHandler((candidate, roomId, userId) => {
-      logger.debug({ roomId, userId }, 'Received ICE candidate');
-      socket.to(roomId).emit('ice-candidate', candidate, userId);
+    'peer-message',
+    wrapHandler((offer, roomId, partnerId) => {
+      logger.debug({ roomId, userId: partnerId }, 'Peer message received');
+      socket.to(roomId).emit('peer-message', offer, partnerId);
     }),
   );
 }
