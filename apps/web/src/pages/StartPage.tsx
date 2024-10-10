@@ -1,4 +1,5 @@
 import { useCallback } from 'react';
+import { Link } from 'react-router-dom';
 import { observer } from 'mobx-react';
 import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -14,16 +15,20 @@ export const StartPage = observer(function StartPage() {
   return (
     <div className="w-full max-w-sm flex flex-col items-center gap-4">
       <Button
+        asChild={mainStore.isSocketConnected ? true : undefined}
         className="w-full"
         onClick={connectOrFindMatch}
         disabled={
           mainStore.errorState !== undefined || !mainStore.isSocketConnected
         }
       >
-        {!mainStore.isSocketConnected && (
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+        {!mainStore.isSocketConnected ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Connecting...
+          </>
+        ) : (
+          <Link to="/call">Find match</Link>
         )}
-        {!mainStore.isSocketConnected ? 'Connecting...' : 'Find match'}
       </Button>
 
       {mainStore.isSocketConnected && (

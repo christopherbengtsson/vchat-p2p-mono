@@ -1,9 +1,9 @@
 import { useEffect } from 'react';
 import { observer } from 'mobx-react';
+import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import { useMainStore } from '../stores/MainStoreContext';
-import { AppState } from '../stores/model/AppState';
 import { StartPage } from '../pages/StartPage';
-import { QueuePage } from '../pages/QueuePage';
+import { MainVideoPage } from '../pages/MainVideoPage';
 import { CallPage } from '../pages/CallPage';
 
 export const AuthenticatedRoutes = observer(function AuthenticatedRoutes() {
@@ -15,23 +15,27 @@ export const AuthenticatedRoutes = observer(function AuthenticatedRoutes() {
     return () => {
       console.log('Disconnecting...');
       mainstore.disconnect();
-      mainstore.webRtcStore.cleanup();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  switch (mainstore.appState) {
-    case AppState.START:
-      return <StartPage />;
+  const router = createBrowserRouter([
+    {
+      path: '/',
+      element: <MainVideoPage />,
+      errorElement: <div>Root error</div>,
+      children: [
+        {
+          index: true,
+          element: <StartPage />,
+        },
+        {
+          path: 'call',
+          element: <CallPage />,
+        },
+      ],
+    },
+  ]);
 
-    case AppState.IN_QUEUE:
-    case AppState.MATCH_FOUND:
-      return <QueuePage />;
-
-    case AppState.IN_CALL:
-      return <CallPage />;
-
-    default:
-      throw new Error(`Unknown app state: ${mainstore.appState}`);
-  }
+  return <RouterProvider router={router} />;
 });

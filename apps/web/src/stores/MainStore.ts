@@ -4,14 +4,15 @@ import type {
   ClientToServerEvents,
   ServerToClientEvents,
 } from '@mono/common-dto';
+import { MediaStreamService } from '../services/MediaStreamService';
+import { WebRTCService } from '../services/WebRTCService';
 import { AuthStore } from './AuthStore';
 import { AppState } from './model/AppState';
 import { ErrorState } from './model/ErrorState';
-import { WebRtcStore } from './WebRtcStore';
 
 export class MainStore {
   authStore: AuthStore;
-  webRtcStore: WebRtcStore;
+  webRTC: WebRTCService | undefined;
 
   maybeSocket: Socket<ServerToClientEvents, ClientToServerEvents> | null = null;
   isSocketConnected = false;
@@ -19,11 +20,23 @@ export class MainStore {
   appState: AppState = AppState.START;
   errorState: ErrorState | undefined = undefined;
 
+  inCall = false;
+
+  mainMediaStream: MediaStream | null = null;
+  secondaryMediaStream: MediaStream | null = null;
+
+  localVideoEnabled = true;
+  localAudioEnabled = true;
+  remoteVideoEnabled = true;
+  remoteAudioEnabled = true;
+
   nrOfAvailableUsers = 0;
+  partnerId: string | undefined;
+  roomId: string | undefined;
 
   constructor() {
     this.authStore = new AuthStore();
-    this.webRtcStore = new WebRtcStore();
+    void this.initLocalVideo();
 
     makeAutoObservable(this, {
       // TODO: Check overrides
@@ -34,8 +47,6 @@ export class MainStore {
        * For example, use this if you intend to store immutable data in an observable field.
        */
       maybeSocket: observable.ref,
-
-      webRtcStore: false,
     });
   }
 
@@ -63,13 +74,13 @@ export class MainStore {
     });
 
     this.maybeSocket = socket;
-    this.webRtcStore.init(socket);
 
     this.setupListeners();
   }
   disconnect() {
     this.maybeSocket?.disconnect();
     this.setAppState(AppState.START);
+    this.cleanupAfterCall();
   }
   findMatch() {
     this.setAppState(AppState.IN_QUEUE);
@@ -83,27 +94,49 @@ export class MainStore {
     this.socket.emit('join-room', roomId, this.id);
   }
   leaveRoom() {
-    this.webRtcStore.cleanup();
-    this.socket.emit('leave-room', this.webRtcStore.roomId, this.id);
+    if (this.roomId) {
+      this.socket.emit('leave-room', this.roomId, this.id);
+    }
+
+    this.cleanupAfterCall();
     this.findMatch();
   }
-  toggleVideo() {
-    const toggle = !this.webRtcStore.localVideoEnabled;
-
-    this.socket.emit('video-toggle', toggle, this.webRtcStore.roomId);
-    this.webRtcStore.localVideoEnabled = toggle;
-    if (this.webRtcStore.localStream) {
-      this.webRtcStore.localStream.getVideoTracks()[0].enabled = toggle;
+  async toggleVideo() {
+    if (!this.roomId || !this.webRTC) {
+      return;
     }
+
+    const toggle = !this.localVideoEnabled;
+
+    this.webRTC.toggleVideo(toggle);
+
+    this.socket.emit('video-toggle', toggle, this.roomId);
+
+    runInAction(() => {
+      this.localVideoEnabled = toggle;
+    });
   }
-  toggleAudio() {
-    const toggle = !this.webRtcStore.localAudioEnabled;
 
-    this.socket.emit('audio-toggle', toggle, this.webRtcStore.roomId);
-    this.webRtcStore.localAudioEnabled = toggle;
-    if (this.webRtcStore.localStream) {
-      this.webRtcStore.localStream.getAudioTracks()[0].enabled = toggle;
+  toggleAudio() {
+    if (!this.roomId || !this.webRTC) {
+      return;
     }
+
+    const toggle = !this.localAudioEnabled;
+
+    this.webRTC.toggleAudio(toggle);
+    this.socket.emit('audio-toggle', toggle, this.roomId);
+
+    runInAction(() => {
+      this.localAudioEnabled = toggle;
+    });
+  }
+
+  private async initLocalVideo() {
+    const stream = await MediaStreamService.requestAudioAndVideoStream();
+    runInAction(() => {
+      this.mainMediaStream = stream;
+    });
   }
 
   private setAppState(state: AppState) {
@@ -145,6 +178,13 @@ export class MainStore {
     this.socket.on('match-found', (...data) => this.onMatchFound(...data));
     this.socket.on('user-disconnected', () => this.onUserLeft());
     this.socket.on('partner-disconnected', () => this.onUserLeft());
+
+    this.socket.on('video-toggle', (enabled) =>
+      runInAction(() => (this.remoteVideoEnabled = enabled)),
+    );
+    this.socket.on('audio-toggle', (enabled) =>
+      runInAction(() => (this.remoteAudioEnabled = enabled)),
+    );
   }
   private onDisconnect(reason: Socket.DisconnectReason) {
     runInAction(() => {
@@ -158,6 +198,7 @@ export class MainStore {
       // this.maybeSocket?.active = false
       console.log('Disconnected by server');
       this.setErrorState(ErrorState.SERVER_DISCONNECTED);
+      this.cleanupAfterCall();
     }
 
     this.setAppState(AppState.START);
@@ -165,21 +206,68 @@ export class MainStore {
   private async onMatchFound(
     roomId: string,
     partnerId: string,
-    polite: boolean,
+    isPolite: boolean,
   ) {
+    if (!this.mainMediaStream) {
+      throw new Error('No local media stream found');
+    }
+    console.log('match found', partnerId);
     this.setAppState(AppState.MATCH_FOUND);
-    console.log('Match found', 'partnerId', partnerId, 'polite', polite);
-
     this.joinRoom(roomId);
-    await this.webRtcStore.start(roomId, partnerId, polite);
+    this.roomId = roomId;
+    this.partnerId = partnerId;
+
+    this.webRTC = new WebRTCService(
+      this.socket,
+      this.mainMediaStream,
+      // () => this.handleLocalOnTrack(),
+      // () => this.handleLocalOnTrack(),
+      roomId,
+      partnerId,
+      isPolite,
+    );
+
+    // runInAction(() => {
+    //   this.localVideoEnabled =
+    //     this.webRTC?.localStream?.getVideoTracks()?.at(0)?.enabled ?? false;
+    //   this.localAudioEnabled =
+    //     this.webRTC?.localStream?.getAudioTracks()?.at(0)?.enabled ?? false;
+
+    //   this.remoteVideoEnabled =
+    //     this.webRTC?.remoteStream?.getVideoTracks()?.at(0)?.enabled ?? false;
+    //   this.remoteAudioEnabled =
+    //     this.webRTC?.remoteStream?.getAudioTracks()?.at(0)?.enabled ?? false;
+    // });
 
     setTimeout(() => {
+      runInAction(() => {
+        this.mainMediaStream = this.webRTC?.remoteStream ?? null;
+        this.secondaryMediaStream = this.webRTC?.localStream ?? null;
+
+        this.inCall = true;
+      });
+
       this.setAppState(AppState.IN_CALL);
     }, 1500);
   }
   private async onUserLeft() {
-    console.log('onUserLeft');
-    this.webRtcStore.cleanup();
+    console.log('user left');
+    this.cleanupAfterCall();
+    this.setAppState(AppState.IN_QUEUE);
     this.findMatch();
+  }
+
+  private cleanupAfterCall() {
+    console.log('Cleaning up after call...');
+    runInAction(() => {
+      this.mainMediaStream = this.webRTC?.localStream ?? null;
+    });
+
+    this.webRTC?.toggleVideo(true);
+    this.webRTC?.cleanup();
+    this.webRTC = undefined;
+    this.roomId = undefined;
+    this.partnerId = undefined;
+    this.inCall = false;
   }
 }

@@ -16,6 +16,10 @@ class WaitingQueue {
   get getFirstInQueue(): string | undefined {
     return this.waitingQueue.values().next().value;
   }
+
+  get queue() {
+    return Array.from(this.waitingQueue);
+  }
 }
 
 const getWaitingQueue = () => new WaitingQueue();

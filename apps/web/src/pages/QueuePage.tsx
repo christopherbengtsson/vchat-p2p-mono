@@ -1,4 +1,5 @@
 import { observer } from 'mobx-react';
+import { useNavigate } from 'react-router-dom';
 import { MdTravelExplore } from 'react-icons/md';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -7,13 +8,19 @@ import { AppState } from '../stores/model/AppState';
 
 export const QueuePage = observer(function QueuePage() {
   const mainStore = useMainStore();
+  const navigate = useNavigate();
+
+  const handleCancel = () => {
+    mainStore.cancelMatch();
+    navigate(-1);
+  };
 
   if (mainStore.appState === AppState.IN_QUEUE) {
     return (
       <div className="flex flex-col justify-center items-center gap-16 ">
         <MdTravelExplore className="text-white rounded-full text-[10em] animate-loading-pulse" />
 
-        <Button variant="link" onClick={() => mainStore.cancelMatch()}>
+        <Button variant="link" onClick={handleCancel}>
           Cancel
         </Button>
       </div>
@@ -35,7 +42,7 @@ export const QueuePage = observer(function QueuePage() {
       </div>
 
       <p className="text-primary-foreground">
-        Match with {mainStore.webRtcStore.partnerId}
+        Match with {mainStore.partnerId}
       </p>
     </div>
   );

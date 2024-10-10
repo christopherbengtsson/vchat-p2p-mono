@@ -19,11 +19,15 @@ export function setupMatchmaking(
   socket.on(
     'find-match',
     wrapHandler((userId) => {
-      if (waitingQueue.queueCount > 0) {
-        const partnerId = waitingQueue.getFirstInQueue;
+      const partnerId = waitingQueue.getFirstInQueue;
 
+      if (waitingQueue.queueCount > 0 && partnerId !== userId) {
         if (!partnerId || !userId) {
-          throw new Error('No partnerId or userId, cannot create room');
+          logger.error(
+            { partnerId, userId },
+            'No partnerId or userId, cannot create room',
+          );
+          return;
         }
 
         const roomId = `${userId}-${partnerId}`;

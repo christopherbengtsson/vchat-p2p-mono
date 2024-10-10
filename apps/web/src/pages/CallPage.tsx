@@ -1,62 +1,22 @@
-import { useEffect, useRef } from 'react';
+import { Navigate } from 'react-router-dom';
 import { observer } from 'mobx-react';
-import { EndCallButton } from '@/components/EndCallButton';
-import { ToggleCameraButton } from '@/components/ToggleCameraButton';
-import { ToggleMuteButton } from '@/components/ToggleMuteButton';
-import { Video } from '@/components/Video';
 import { useMainStore } from '../stores/MainStoreContext';
+import { AppState } from '../stores/model/AppState';
+import { QueuePage } from './QueuePage';
+import { InCallPage } from './InCallPage';
 
 export const CallPage = observer(function CallPage() {
   const mainStore = useMainStore();
-  const localVideoRef = useRef<HTMLVideoElement>(null);
-  const remoteVideoRef = useRef<HTMLVideoElement>(null);
 
-  useEffect(() => {
-    if (localVideoRef.current) {
-      localVideoRef.current.srcObject = mainStore.webRtcStore.localStream;
-    }
-    if (remoteVideoRef.current) {
-      remoteVideoRef.current.srcObject = mainStore.webRtcStore.remoteStream;
-    }
-  }, [mainStore.webRtcStore.localStream, mainStore.webRtcStore.remoteStream]);
+  switch (mainStore.appState) {
+    case AppState.IN_QUEUE:
+    case AppState.MATCH_FOUND:
+      return <QueuePage />;
 
-  const toggleVideo = () => {
-    mainStore.toggleVideo();
-  };
-  const toggleAudio = () => {
-    mainStore.toggleAudio();
-  };
+    case AppState.IN_CALL:
+      return <InCallPage />;
 
-  return (
-    <div className="relative w-full h-screen bg-main">
-      <div className="absolute inset-0">
-        <Video
-          videoRef={remoteVideoRef}
-          videoEnabled={mainStore.webRtcStore.remoteVideoEnabled}
-        />
-      </div>
-
-      <div className="absolute top-4 right-4 w-1/3 h-1/4 rounded-lg overflow-hidden shadow-lg">
-        <Video
-          videoRef={localVideoRef}
-          videoEnabled={mainStore.webRtcStore.localVideoEnabled}
-          isLocal
-        />
-      </div>
-
-      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex space-x-4">
-        <ToggleCameraButton
-          localStream={mainStore.webRtcStore.localStream}
-          videoEnabled={mainStore.webRtcStore.localVideoEnabled}
-          onToggle={toggleVideo}
-        />
-        <ToggleMuteButton
-          localStream={mainStore.webRtcStore.localStream}
-          audioEnabled={mainStore.webRtcStore.localAudioEnabled}
-          onToggle={toggleAudio}
-        />
-        <EndCallButton onClick={() => mainStore.leaveRoom()} />
-      </div>
-    </div>
-  );
+    default:
+      return <Navigate to="/" replace />;
+  }
 });
