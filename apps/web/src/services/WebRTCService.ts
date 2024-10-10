@@ -16,6 +16,7 @@ export class WebRTCService {
   localStream: MediaStream;
 
   private socket: ChatSocket;
+  private onRemoteStream: VoidFunction;
   private isPolite: boolean;
   private roomId: string;
   private partnerId: string;
@@ -26,12 +27,14 @@ export class WebRTCService {
   constructor(
     socket: ChatSocket,
     mainStream: MediaStream,
+    onRemoteStream: VoidFunction,
     roomId: string,
     partnerId: string,
     isPolite: boolean,
   ) {
     this.socket = socket;
     this.localStream = mainStream;
+    this.onRemoteStream = onRemoteStream;
     this.roomId = roomId;
     this.partnerId = partnerId;
     this.isPolite = isPolite;
@@ -43,19 +46,6 @@ export class WebRTCService {
     for (const track of this.localStream.getTracks()) {
       this.peerConnection.addTrack(track, this.localStream);
     }
-  }
-
-  get localVideoEnabled() {
-    return this.localStream.getVideoTracks()[0].enabled;
-  }
-  get localAudioEnabled() {
-    return this.localStream.getAudioTracks()[0].enabled;
-  }
-  get remoteVideoEnabled() {
-    return this.remoteStream?.getVideoTracks()[0].enabled;
-  }
-  get remoteAudioEnabled() {
-    return this.remoteStream?.getAudioTracks()[0].enabled;
   }
 
   private setupPeerListeners() {
@@ -104,6 +94,7 @@ export class WebRTCService {
         }
 
         this.remoteStream = streams[0];
+        this.onRemoteStream();
       };
     };
   }

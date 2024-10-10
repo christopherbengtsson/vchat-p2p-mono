@@ -217,30 +217,27 @@ export class MainStore {
     this.roomId = roomId;
     this.partnerId = partnerId;
 
+    const onRemoteStream = () => {
+      runInAction(() => {
+        this.remoteVideoEnabled =
+          this.webRTC?.remoteStream?.getVideoTracks()?.at(0)?.enabled ?? false;
+        this.remoteAudioEnabled =
+          this.webRTC?.remoteStream?.getAudioTracks()?.at(0)?.enabled ?? false;
+      });
+    };
+
     this.webRTC = new WebRTCService(
       this.socket,
       this.mainMediaStream,
-      // () => this.handleLocalOnTrack(),
-      // () => this.handleLocalOnTrack(),
+      onRemoteStream,
       roomId,
       partnerId,
       isPolite,
     );
 
-    // runInAction(() => {
-    //   this.localVideoEnabled =
-    //     this.webRTC?.localStream?.getVideoTracks()?.at(0)?.enabled ?? false;
-    //   this.localAudioEnabled =
-    //     this.webRTC?.localStream?.getAudioTracks()?.at(0)?.enabled ?? false;
-
-    //   this.remoteVideoEnabled =
-    //     this.webRTC?.remoteStream?.getVideoTracks()?.at(0)?.enabled ?? false;
-    //   this.remoteAudioEnabled =
-    //     this.webRTC?.remoteStream?.getAudioTracks()?.at(0)?.enabled ?? false;
-    // });
-
     setTimeout(() => {
       runInAction(() => {
+        // Swap videos
         this.mainMediaStream = this.webRTC?.remoteStream ?? null;
         this.secondaryMediaStream = this.webRTC?.localStream ?? null;
 
@@ -250,6 +247,7 @@ export class MainStore {
       this.setAppState(AppState.IN_CALL);
     }, 1500);
   }
+
   private async onUserLeft() {
     console.log('user left');
     this.cleanupAfterCall();
@@ -263,7 +261,7 @@ export class MainStore {
       this.mainMediaStream = this.webRTC?.localStream ?? null;
     });
 
-    this.webRTC?.toggleVideo(true);
+    // this.webRTC?.toggleVideo(true);
     this.webRTC?.cleanup();
     this.webRTC = undefined;
     this.roomId = undefined;
