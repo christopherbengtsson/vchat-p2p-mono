@@ -2,21 +2,23 @@ import { useEffect, useRef } from 'react';
 import { Outlet } from 'react-router-dom';
 import { observer } from 'mobx-react';
 import clsx from 'clsx';
-import { useMainStore } from '../stores/MainStoreContext';
+import { useRootStore } from '../stores/RootStoreContext';
 
 const DYNAMIC_DARK_MODE = window.matchMedia(
   '(prefers-color-scheme:dark)',
 ).matches;
 
 export const MainVideoPage = observer(function StartPage() {
+  const { mediaStore, callStore } = useRootStore();
   const videoRef = useRef<HTMLVideoElement>(null);
-  const mainStore = useMainStore();
 
   useEffect(() => {
     if (videoRef.current) {
-      videoRef.current.srcObject = mainStore.mainMediaStream;
+      videoRef.current.srcObject = callStore.inCall
+        ? callStore.remoteStream
+        : mediaStore.maybeStream;
     }
-  }, [mainStore.mainMediaStream]);
+  }, [callStore.inCall, callStore.remoteStream, mediaStore.maybeStream]);
 
   return (
     <div
@@ -32,9 +34,11 @@ export const MainVideoPage = observer(function StartPage() {
         className="absolute top-0 left-0 w-full h-full object-cover"
         autoPlay
         playsInline
-        muted={!mainStore.inCall}
+        muted={!callStore.inCall}
       />
-      <div className="absolute top-0 left-0 w-full h-full bg-black opacity-90" />
+      {!callStore.inCall && (
+        <div className="absolute top-0 left-0 w-full h-full bg-black opacity-90" />
+      )}
 
       <main className="relative z-10 bg-transparent w-full h-screen flex items-center justify-center px-4">
         <Outlet />

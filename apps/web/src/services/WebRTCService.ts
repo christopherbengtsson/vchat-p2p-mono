@@ -1,5 +1,5 @@
 import { PeerMessage } from '@mono/common-dto';
-import { ChatSocket } from '../stores/model/SocketModel';
+import { RootStore } from '../stores/RootStore';
 
 const configuration = {
   iceServers: [
@@ -11,40 +11,22 @@ const configuration = {
 };
 
 export class WebRTCService {
-  peerConnection: RTCPeerConnection;
-  remoteStream: MediaStream | null = null;
-  localStream: MediaStream;
+  private rootStore: RootStore;
 
-  private socket: ChatSocket;
-  private onRemoteStream: VoidFunction;
-  private isPolite: boolean;
-  private roomId: string;
-  private partnerId: string;
+  private peerConnection: RTCPeerConnection;
 
   private makingOffer = false;
   private ignoreOffer = false;
 
-  constructor(
-    socket: ChatSocket,
-    mainStream: MediaStream,
-    onRemoteStream: VoidFunction,
-    roomId: string,
-    partnerId: string,
-    isPolite: boolean,
-  ) {
-    this.socket = socket;
-    this.localStream = mainStream;
-    this.onRemoteStream = onRemoteStream;
-    this.roomId = roomId;
-    this.partnerId = partnerId;
-    this.isPolite = isPolite;
+  constructor(rootStore: RootStore) {
+    this.rootStore = rootStore;
 
     this.peerConnection = new RTCPeerConnection(configuration);
     this.setupPeerListeners();
     this.setupSocketListeners();
 
-    for (const track of this.localStream.getTracks()) {
-      this.peerConnection.addTrack(track, this.localStream);
+    for (const track of this.rootStore.mediaStore.stream.getTracks()) {
+      this.peerConnection.addTrack(track, this.rootStore.mediaStore.stream);
     }
   }
 
@@ -55,11 +37,11 @@ export class WebRTCService {
 
         await this.peerConnection.setLocalDescription();
 
-        this.socket.emit(
+        this.rootStore.socketStore.socket.emit(
           'peer-message',
           { description: this.peerConnection.localDescription },
-          this.roomId,
-          this.partnerId,
+          this.rootStore.callStore.roomId,
+          this.rootStore.callStore.partnerId,
         );
       } catch (err) {
         console.error(err);
@@ -70,37 +52,36 @@ export class WebRTCService {
 
     this.peerConnection.oniceconnectionstatechange = () => {
       if (this.peerConnection.iceConnectionState === 'failed') {
-        console.log('iceConnectionState failed');
         this.peerConnection.restartIce();
       }
     };
 
     this.peerConnection.onicecandidate = ({ candidate }) => {
       if (candidate) {
-        this.socket.emit(
+        this.rootStore.socketStore.socket.emit(
           'peer-message',
           { candidate },
-          this.roomId,
-          this.partnerId,
+          this.rootStore.callStore.roomId,
+          this.rootStore.callStore.partnerId,
         );
       }
     };
 
     this.peerConnection.ontrack = ({ track, streams }) => {
-      console.log('ontrack');
       track.onunmute = () => {
-        if (this.remoteStream) {
+        if (this.rootStore.callStore.remoteStream) {
           return;
         }
 
-        this.remoteStream = streams[0];
-        this.onRemoteStream();
+        this.rootStore.callStore.remoteStream = streams[0];
       };
     };
   }
 
   private setupSocketListeners() {
-    this.socket.on('peer-message', (...data) => this.handleOffer(...data));
+    this.rootStore.socketStore.socket.on('peer-message', (...data) =>
+      this.handleOffer(...data),
+    );
   }
 
   private handleOffer = async (peerMessage: PeerMessage, _userId: string) => {
@@ -118,18 +99,18 @@ export class WebRTCService {
           description.type === 'offer' &&
           (this.makingOffer || this.peerConnection.signalingState !== 'stable');
 
-        this.ignoreOffer = !this.isPolite && offerCollision;
+        this.ignoreOffer = !this.rootStore.callStore.isPolite && offerCollision;
         if (this.ignoreOffer) return;
 
         await this.peerConnection.setRemoteDescription(description); // SRD rolls back as needed
 
         if (description.type == 'offer') {
           await this.peerConnection.setLocalDescription();
-          this.socket.emit(
+          this.rootStore.socketStore.socket.emit(
             'peer-message',
             { description: this.peerConnection.localDescription },
-            this.roomId,
-            this.partnerId,
+            this.rootStore.callStore.roomId,
+            this.rootStore.callStore.partnerId,
           );
         }
       } else if (
@@ -137,11 +118,7 @@ export class WebRTCService {
         !!peerMessage.candidate
       ) {
         try {
-          console.log('addIceCandidate', peerMessage.candidate);
-          await this.peerConnection.addIceCandidate(
-            peerMessage.candidate ?? undefined,
-          );
-          console.log('addIceCandidate success');
+          await this.peerConnection.addIceCandidate(peerMessage.candidate);
         } catch (err) {
           if (!this.ignoreOffer) throw err; // Suppress ignored offer's candidates
         }
@@ -150,14 +127,6 @@ export class WebRTCService {
       console.warn(error);
     }
   };
-
-  toggleVideo(toggle: boolean) {
-    this.localStream.getVideoTracks()[0].enabled = toggle;
-  }
-
-  toggleAudio(toggle: boolean) {
-    this.localStream.getAudioTracks()[0].enabled = toggle;
-  }
 
   cleanup() {
     this.peerConnection.close();

@@ -1,7 +1,7 @@
 import { act, render, screen } from '@testing-library/react';
 import { MainStore } from '../../stores/MainStore';
 import { ErrorToast } from '../ErrorToast';
-import { MainStoreContext } from '../../stores/MainStoreContext';
+import { MainStoreContext } from '../../stores/RootStoreContext';
 import { ErrorState } from '../../stores/model/ErrorState';
 
 describe('<ErrorToast />', () => {

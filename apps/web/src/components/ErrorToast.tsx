@@ -3,7 +3,7 @@ import { observer } from 'mobx-react';
 import { Check, CircleX } from 'lucide-react';
 import { Toaster } from '@/components/ui/toaster';
 import { useToast } from '@/hooks/use-toast';
-import { useMainStore } from '../stores/MainStoreContext';
+import { useRootStore } from '../stores/RootStoreContext';
 import { ErrorState } from '../stores/model/ErrorState';
 
 const getToastData = (errorState: ErrorState, restore?: boolean) => {
@@ -27,7 +27,7 @@ const getToastData = (errorState: ErrorState, restore?: boolean) => {
 };
 
 export const ErrorToast = observer(function ErrorToast() {
-  const mainStore = useMainStore();
+  const { mainStore } = useRootStore();
   const { toast } = useToast();
 
   const [toastShown, setToastShown] = useState(false);

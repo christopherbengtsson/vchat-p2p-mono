@@ -1,9 +1,9 @@
-import { makeAutoObservable, runInAction } from 'mobx';
+import { makeAutoObservable } from 'mobx';
 import type { Session } from '@supabase/supabase-js';
 import { SupabaseClient } from '../supabase/client';
 
 export class AuthStore {
-  session: Session | null = null;
+  private _session: Session | null = null;
 
   constructor() {
     makeAutoObservable(this);
@@ -18,10 +18,15 @@ export class AuthStore {
     });
   }
 
+  get session() {
+    return this._session;
+  }
+  set session(session: Session | null) {
+    this._session = session;
+  }
+
   private setSession(session: Session | null) {
-    runInAction(() => {
-      this.session = session;
-    });
+    this.session = session;
   }
 
   async loginAnonymously() {

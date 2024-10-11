@@ -1,12 +1,12 @@
 import { observer } from 'mobx-react';
 import { AuthPage } from '../pages/AuthPage';
-import { useMainStore } from '../stores/MainStoreContext';
+import { useRootStore } from '../stores/RootStoreContext';
 import { AuthenticatedRoutes } from './AuthenticatedRoutes';
 
 export const Routes = observer(function Routes() {
-  const mainStore = useMainStore();
+  const { authStore } = useRootStore();
 
-  if (mainStore.authStore.session) {
+  if (authStore.session) {
     return <AuthenticatedRoutes />;
   }
 

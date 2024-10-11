@@ -3,10 +3,10 @@ import { Link } from 'react-router-dom';
 import { observer } from 'mobx-react';
 import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useMainStore } from '../stores/MainStoreContext';
+import { useRootStore } from '../stores/RootStoreContext';
 
 export const StartPage = observer(function StartPage() {
-  const mainStore = useMainStore();
+  const { mainStore, socketStore } = useRootStore();
 
   const connectOrFindMatch = useCallback(async () => {
     mainStore.findMatch();
@@ -15,14 +15,12 @@ export const StartPage = observer(function StartPage() {
   return (
     <div className="w-full max-w-sm flex flex-col items-center gap-4">
       <Button
-        asChild={mainStore.isSocketConnected ? true : undefined}
+        asChild={socketStore.connected ? true : undefined}
         className="w-full"
         onClick={connectOrFindMatch}
-        disabled={
-          mainStore.errorState !== undefined || !mainStore.isSocketConnected
-        }
+        disabled={mainStore.errorState !== undefined || !socketStore.connected}
       >
-        {!mainStore.isSocketConnected ? (
+        {!socketStore.connected ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Connecting...
           </>
@@ -31,7 +29,7 @@ export const StartPage = observer(function StartPage() {
         )}
       </Button>
 
-      {mainStore.isSocketConnected && (
+      {socketStore.connected && (
         <p className="text-primary-foreground">
           Currently {mainStore.nrOfAvailableUsers} more users online
         </p>

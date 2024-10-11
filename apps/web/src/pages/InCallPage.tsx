@@ -1,61 +1,66 @@
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { observer } from 'mobx-react';
 import { EndCallButton } from '@/components/EndCallButton';
 import { ToggleCameraButton } from '@/components/ToggleCameraButton';
 import { ToggleMuteButton } from '@/components/ToggleMuteButton';
 import { Video } from '@/components/Video';
-import { useMainStore } from '../stores/MainStoreContext';
+import { useRootStore } from '../stores/RootStoreContext';
 
 export const InCallPage = observer(function InCallPage() {
-  const mainStore = useMainStore();
+  const { mediaStore, callStore } = useRootStore();
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
     if (localVideoRef.current) {
-      localVideoRef.current.srcObject = mainStore.secondaryMediaStream;
+      localVideoRef.current.srcObject = mediaStore.stream;
     }
     if (remoteVideoRef.current) {
-      remoteVideoRef.current.srcObject = mainStore.mainMediaStream;
+      remoteVideoRef.current.srcObject = callStore.remoteStream;
     }
-  }, [mainStore.mainMediaStream, mainStore.secondaryMediaStream]);
+  }, [callStore.remoteStream, mediaStore.stream]);
 
-  const toggleVideo = () => {
-    mainStore.toggleVideo();
-  };
-  const toggleAudio = () => {
-    mainStore.toggleAudio();
-  };
+  const toggleVideo = useCallback(() => {
+    const toggle = !mediaStore.videoEnabled;
+    callStore.emitVideoToggle(toggle);
+    mediaStore.videoEnabled = toggle;
+  }, [callStore, mediaStore]);
+
+  const toggleAudio = useCallback(() => {
+    const toggle = !mediaStore.audioEnabled;
+    callStore.emitAudioToggle(toggle);
+    mediaStore.audioEnabled = toggle;
+  }, [callStore, mediaStore]);
 
   return (
     <div className="relative w-full h-screen bg-main">
       <div className="absolute inset-0">
         <Video
           videoRef={remoteVideoRef}
-          videoEnabled={mainStore.remoteVideoEnabled}
+          videoEnabled={callStore.remoteVideoEnabled}
         />
       </div>
 
       <div className="absolute top-4 right-4 w-1/3 h-1/4 rounded-lg overflow-hidden shadow-lg">
         <Video
           videoRef={localVideoRef}
-          videoEnabled={mainStore.localVideoEnabled}
+          videoEnabled={mediaStore.videoEnabled}
           isLocal
         />
       </div>
 
       <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex space-x-4">
         <ToggleCameraButton
-          localStream={mainStore.secondaryMediaStream}
-          videoEnabled={mainStore.localVideoEnabled}
+          localStream={mediaStore.stream}
+          videoEnabled={mediaStore.stream.getVideoTracks()[0].enabled}
           onToggle={toggleVideo}
         />
         <ToggleMuteButton
-          localStream={mainStore.secondaryMediaStream}
-          audioEnabled={mainStore.localAudioEnabled}
+          localStream={mediaStore.stream}
+          audioEnabled={mediaStore.audioEnabled}
           onToggle={toggleAudio}
         />
-        <EndCallButton onClick={() => mainStore.leaveRoom()} />
+        <EndCallButton onClick={() => callStore.endCall()} />
       </div>
     </div>
   );

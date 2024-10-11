@@ -1,99 +1,109 @@
 import { makeAutoObservable } from 'mobx';
-import { io, type Socket } from 'socket.io-client';
+import { io } from 'socket.io-client';
+import { ChatSocket } from './model/SocketModel';
+import type { RootStore } from './RootStore';
+import { AppState } from './model/AppState';
+import { ErrorState } from './model/ErrorState';
 
-// Events sent from the client to the server
-interface ClientToServerEvents {
-  'send-message': (roomId: string, message: string) => void;
-  'find-match': (userId: string) => void;
-  'skip-user': (roomId: string, userId: string) => void;
-  'join-room': (roomId: string, userId: string) => void;
-  'leave-room': (roomId: string, userId: string) => void;
-  offer: (
-    offer: RTCSessionDescriptionInit,
-    roomId: string,
-    userId: string,
-  ) => void;
-  answer: (
-    answer: RTCSessionDescriptionInit,
-    roomId: string,
-    userId: string,
-  ) => void;
-  'ice-candidate': (
-    candidate: RTCIceCandidateInit,
-    roomId: string,
-    userId: string,
-  ) => void;
-}
-
-// Events sent from the server to the client
-interface ServerToClientEvents {
-  'receive-message': (message: string) => void;
-  'match-found': (
-    roomId: string,
-    partnerId: string,
-    createOffer: boolean,
-  ) => void;
-  'user-skipped': () => void;
-  'user-connected': (userId: string) => void;
-  'user-disconnected': (userId: string) => void;
-  offer: (offer: RTCSessionDescriptionInit, userId: string) => void;
-  answer: (answer: RTCSessionDescriptionInit, userId: string) => void;
-  'ice-candidate': (candidate: RTCIceCandidateInit, userId: string) => void;
-}
-
-export type ChatSocket = Socket<ServerToClientEvents, ClientToServerEvents>;
 export class SocketStore {
-  socketIO: Socket<ServerToClientEvents, ClientToServerEvents>;
+  private rootStore: RootStore;
 
-  constructor(token: string) {
-    this.socketIO = io('http://localhost:8000/video-chat', {
-      autoConnect: false,
-      extraHeaders: {
-        authorization: `bearer ${token}`,
-      },
-    });
+  private _socket: ChatSocket | null = null;
+  private _connected = false;
 
-    makeAutoObservable(this, {
-      socketIO: false,
-    });
+  constructor(rootStore: RootStore) {
+    this.rootStore = rootStore;
 
-    this.setupListeners();
+    makeAutoObservable(this);
+  }
+  get connected() {
+    return this._connected;
+  }
+  set connected(value: boolean) {
+    this._connected = value;
   }
 
   get socket() {
-    return this.socketIO;
-  }
-  get connected() {
-    return this.socketIO.connected;
+    if (!this._socket) {
+      this.rootStore.mainStore.appState = AppState.ERROR;
+      throw new Error('Socket not defined');
+    }
+    return this._socket;
   }
   get id() {
-    const id = this.socketIO.id;
+    const id = this.socket.id;
     if (!id) {
-      throw new Error('Socket id is not defined');
+      this.rootStore.mainStore.appState = AppState.ERROR;
+      throw new Error('Socket id not defined');
     }
     return id;
   }
 
   connect() {
-    this.socketIO?.connect();
+    this._socket = io('http://localhost:8000/video-chat', {
+      extraHeaders: {
+        authorization: `Bearer ${this.rootStore.authStore.session?.access_token}`,
+      },
+    });
+
+    this._socket.on('connect', () => {
+      this.connected = true;
+    });
+
+    this._socket.on('disconnect', (reason) => {
+      this.connected = false;
+
+      console.log('disconnected');
+      if (reason === 'io server disconnect') {
+        // TODO: Handle reconnect?
+        // the disconnection was initiated by the server, you need to manually reconnect
+        // this.maybeSocket?.active = false
+        console.log('Disconnected by server');
+        this.rootStore.mainStore.errorState = ErrorState.SERVER_DISCONNECTED;
+        this.rootStore.callStore.cleanupAfterCall();
+      }
+
+      this.rootStore.mainStore.appState = AppState.START;
+    });
+
+    this.socket.on('connect_error', (_err) => {
+      this.rootStore.mainStore.errorState = ErrorState.CONNECT_ERROR;
+      this.socket.once('connect', () => {
+        this.connected = true;
+        this.rootStore.mainStore.errorState = undefined;
+      });
+    });
+
+    this.socket.on('connections-count', (count: number) => {
+      this.rootStore.mainStore.nrOfAvailableUsers = count === 1 ? 0 : count - 1;
+    });
+
+    this.socket.on('match-found', (...data) => {
+      this.rootStore.mainStore.onMatchFound(...data);
+    });
+
+    this.socket.on('user-left', () => {
+      this.rootStore.callStore.cleanupAfterCall();
+      this.rootStore.mainStore.findMatch(true);
+    });
+
+    this.socket.on('partner-disconnected', () => {
+      this.rootStore.callStore.cleanupAfterCall();
+      this.rootStore.mainStore.findMatch();
+    });
+
+    this.socket.on('video-toggle', (enabled) => {
+      this.rootStore.callStore.remoteVideoEnabled = enabled;
+    });
+
+    this.socket.on('audio-toggle', (enabled) => {
+      this.rootStore.callStore.remoteAudioEnabled = enabled;
+    });
   }
 
   disconnect() {
-    this.socketIO?.disconnect();
-  }
-
-  findMatch() {
-    this.socketIO.emit('find-match', this.id);
-  }
-
-  private setupListeners() {
-    this.socketIO.on('connect', this.onConnect);
-    this.socketIO.on('disconnect', this.onDisconnect);
-  }
-  private onConnect() {
-    console.log('connected');
-  }
-  private onDisconnect() {
-    console.log('disconnected');
+    this._socket?.disconnect();
+    this.rootStore.mainStore.appState = AppState.START;
+    this.rootStore.callStore.cleanupAfterCall();
   }
 }

@@ -3,11 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { MdTravelExplore } from 'react-icons/md';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { useMainStore } from '../stores/MainStoreContext';
+import { useRootStore } from '../stores/RootStoreContext';
 import { AppState } from '../stores/model/AppState';
 
 export const QueuePage = observer(function QueuePage() {
-  const mainStore = useMainStore();
+  const { mainStore, callStore } = useRootStore();
   const navigate = useNavigate();
 
   const handleCancel = () => {
@@ -42,7 +42,7 @@ export const QueuePage = observer(function QueuePage() {
       </div>
 
       <p className="text-primary-foreground">
-        Match with {mainStore.partnerId}
+        Match with {callStore.partnerId}
       </p>
     </div>
   );

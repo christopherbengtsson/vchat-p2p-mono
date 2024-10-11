@@ -2,15 +2,15 @@ import { observer } from 'mobx-react';
 import { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { FastLoginButton } from '@/components/FastLoginButton';
-import { useMainStore } from '../stores/MainStoreContext';
+import { useRootStore } from '../stores/RootStoreContext';
 
 export const AuthPage = observer(function AuthPage() {
-  const mainStore = useMainStore();
+  const { authStore } = useRootStore();
   const [loading, setLoading] = useState(false);
 
   const loginAnonymously = async () => {
     setLoading(true);
-    await mainStore.authStore.loginAnonymously();
+    await authStore.loginAnonymously();
     setLoading(false);
   };
 

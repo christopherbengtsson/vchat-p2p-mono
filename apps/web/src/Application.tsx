@@ -2,18 +2,18 @@ import { useState } from 'react';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { ErrorToast } from '@/components/ErrorToast';
 import { Routes } from './routes/Routes';
-import { MainStore } from './stores/MainStore';
-import { MainStoreProvider } from './stores/MainStoreProvider';
+import { RootStore } from './stores/RootStore';
+import { RootStoreProvider } from './stores/RootStoreProvider';
 
 export function Application() {
-  const [store] = useState(new MainStore());
+  const [store] = useState(new RootStore());
 
   return (
     <ErrorBoundary>
-      <MainStoreProvider store={store}>
+      <RootStoreProvider store={store}>
         <Routes />
         <ErrorToast />
-      </MainStoreProvider>
+      </RootStoreProvider>
     </ErrorBoundary>
   );
 }

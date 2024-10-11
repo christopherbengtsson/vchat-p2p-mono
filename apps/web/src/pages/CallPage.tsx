@@ -1,12 +1,12 @@
 import { Navigate } from 'react-router-dom';
 import { observer } from 'mobx-react';
-import { useMainStore } from '../stores/MainStoreContext';
+import { useRootStore } from '../stores/RootStoreContext';
 import { AppState } from '../stores/model/AppState';
 import { QueuePage } from './QueuePage';
 import { InCallPage } from './InCallPage';
 
 export const CallPage = observer(function CallPage() {
-  const mainStore = useMainStore();
+  const { mainStore } = useRootStore();
 
   switch (mainStore.appState) {
     case AppState.IN_QUEUE:

@@ -11,7 +11,7 @@ export function setupRoomManagement(
     'join-room',
     wrapHandler((roomId, userId) => {
       socket.join(roomId);
-      socket.to(roomId).emit('user-connected', userId); // TODO: user-joined
+      socket.to(roomId).emit('user-joined', userId);
 
       logger.debug({ roomId, userId }, 'User joined room');
     }),
@@ -21,7 +21,7 @@ export function setupRoomManagement(
     'leave-room',
     wrapHandler((roomId, userId) => {
       socket.leave(roomId);
-      socket.to(roomId).emit('user-disconnected', userId); // TODO: user-left
+      socket.to(roomId).emit('user-left', userId);
 
       logger.debug({ roomId, userId }, 'User left room');
     }),

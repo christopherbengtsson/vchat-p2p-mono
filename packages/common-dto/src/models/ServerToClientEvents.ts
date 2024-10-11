@@ -9,8 +9,8 @@ export interface ServerToClientEvents {
   ) => void;
   'find-match': (userId: string) => void;
   'user-skipped': VoidFunction;
-  'user-connected': (userId: string) => void;
-  'user-disconnected': (userId: string) => void;
+  'user-joined': (userId: string) => void;
+  'user-left': (userId: string) => void;
   'partner-disconnected': VoidFunction;
   'connections-count': (count: number) => void;
 

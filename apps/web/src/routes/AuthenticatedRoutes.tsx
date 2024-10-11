@@ -1,20 +1,19 @@
 import { useEffect } from 'react';
 import { observer } from 'mobx-react';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-import { useMainStore } from '../stores/MainStoreContext';
+import { useRootStore } from '../stores/RootStoreContext';
 import { StartPage } from '../pages/StartPage';
 import { MainVideoPage } from '../pages/MainVideoPage';
 import { CallPage } from '../pages/CallPage';
 
 export const AuthenticatedRoutes = observer(function AuthenticatedRoutes() {
-  const mainstore = useMainStore();
+  const { socketStore } = useRootStore();
 
   useEffect(() => {
-    mainstore.connect();
+    socketStore.connect();
 
     return () => {
-      console.log('Disconnecting...');
-      mainstore.disconnect();
+      socketStore.disconnect();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
