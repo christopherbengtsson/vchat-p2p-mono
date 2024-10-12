@@ -7,7 +7,12 @@ interface Props {
 
 export function EndCallButton({ onClick }: Props) {
   return (
-    <Button variant="destructive" size="icon" onClick={onClick}>
+    <Button
+      aria-label="End call"
+      variant="destructive"
+      size="icon"
+      onClick={onClick}
+    >
       <MdCallEnd className="h-6 w-6" />
     </Button>
   );

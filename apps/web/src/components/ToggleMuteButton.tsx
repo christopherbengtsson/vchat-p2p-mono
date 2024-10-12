@@ -14,6 +14,7 @@ export function ToggleMuteButton({
 }: Props) {
   return (
     <Button
+      aria-label={`Turn microphone ${audioEnabled ? 'off' : 'on'}`}
       variant="secondary"
       size="icon"
       onClick={onToggle}

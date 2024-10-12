@@ -14,6 +14,7 @@ export function ToggleCameraButton({
 }: Props) {
   return (
     <Button
+      aria-label={`Turn camera ${videoEnabled ? 'off' : 'on'}`}
       variant="secondary"
       size="icon"
       onClick={onToggle}
