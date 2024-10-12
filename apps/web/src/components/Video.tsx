@@ -1,4 +1,3 @@
-import { observer } from 'mobx-react';
 import { BsCameraVideoOff } from 'react-icons/bs';
 
 interface Props {
@@ -7,11 +6,7 @@ interface Props {
   videoEnabled: boolean;
 }
 
-export const Video = observer(function Video({
-  videoRef,
-  isLocal,
-  videoEnabled,
-}: Props) {
+export function Video({ videoRef, isLocal, videoEnabled }: Props) {
   return (
     <div className="relative w-full h-full">
       <video
@@ -32,4 +27,4 @@ export const Video = observer(function Video({
       )}
     </div>
   );
-});
+}

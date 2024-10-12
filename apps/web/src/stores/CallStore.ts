@@ -78,13 +78,17 @@ export class CallStore {
   }
 
   initNewCall(roomId: string, partnerId: string, isPolite: boolean) {
-    this.joinRoom(roomId);
-
     this.roomId = roomId;
     this.partnerId = partnerId;
     this.isPolite = isPolite;
 
     this.webRtcService = new WebRTCService(this.rootStore);
+
+    this.rootStore.socketStore.socket.emit(
+      'join-room',
+      roomId,
+      this.rootStore.socketStore.id,
+    );
 
     this.rootStore.mainStore.appState = AppState.MATCH_FOUND;
 
@@ -122,13 +126,5 @@ export class CallStore {
     this.roomId = undefined;
     this.partnerId = undefined;
     this.inCall = false;
-  }
-
-  private joinRoom(roomId: string) {
-    this.rootStore.socketStore.socket.emit(
-      'join-room',
-      roomId,
-      this.rootStore.socketStore.id,
-    );
   }
 }
