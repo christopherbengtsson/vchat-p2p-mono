@@ -1,14 +1,37 @@
+import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import { observer } from 'mobx-react';
 import { AuthPage } from '../pages/AuthPage';
-import { useRootStore } from '../stores/RootStoreContext';
+import { Layout } from '../pages/LayoutPage';
+import { StartPage } from '../pages/StartPage';
+import { CallPage } from '../pages/CallPage';
 import { AuthenticatedRoutes } from './AuthenticatedRoutes';
 
 export const Routes = observer(function Routes() {
-  const { authStore } = useRootStore();
+  const router = createBrowserRouter([
+    {
+      element: <Layout />,
+      errorElement: <div>Root error</div>,
+      children: [
+        {
+          path: 'auth',
+          element: <AuthPage />,
+        },
+        {
+          element: <AuthenticatedRoutes />,
+          children: [
+            {
+              index: true,
+              element: <StartPage />,
+            },
+            {
+              path: 'call',
+              element: <CallPage />,
+            },
+          ],
+        },
+      ],
+    },
+  ]);
 
-  if (authStore.session) {
-    return <AuthenticatedRoutes />;
-  }
-
-  return <AuthPage />;
+  return <RouterProvider router={router} />;
 });

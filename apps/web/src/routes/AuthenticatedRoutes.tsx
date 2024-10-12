@@ -1,40 +1,22 @@
 import { useEffect } from 'react';
 import { observer } from 'mobx-react';
-import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import { Navigate, Outlet } from 'react-router-dom';
 import { useRootStore } from '../stores/RootStoreContext';
-import { StartPage } from '../pages/StartPage';
-import { MainVideoPage } from '../pages/MainVideoPage';
-import { CallPage } from '../pages/CallPage';
 
 export const AuthenticatedRoutes = observer(function AuthenticatedRoutes() {
-  const { socketStore } = useRootStore();
+  const { authStore, socketStore } = useRootStore();
 
   useEffect(() => {
-    socketStore.connect();
+    if (authStore.session && !socketStore.connected) {
+      socketStore.connect();
+    }
 
-    return () => {
-      socketStore.disconnect();
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    return () => socketStore.disconnect();
+  }, [authStore.session, socketStore]);
 
-  const router = createBrowserRouter([
-    {
-      path: '/',
-      element: <MainVideoPage />,
-      errorElement: <div>Root error</div>,
-      children: [
-        {
-          index: true,
-          element: <StartPage />,
-        },
-        {
-          path: 'call',
-          element: <CallPage />,
-        },
-      ],
-    },
-  ]);
+  if (!authStore.session) {
+    return <Navigate replace to="/auth" />;
+  }
 
-  return <RouterProvider router={router} />;
+  return <Outlet />;
 });

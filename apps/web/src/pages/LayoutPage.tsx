@@ -8,7 +8,7 @@ const DYNAMIC_DARK_MODE = window.matchMedia(
   '(prefers-color-scheme:dark)',
 ).matches;
 
-export const MainVideoPage = observer(function StartPage() {
+export const Layout = observer(function StartPage() {
   const { mediaStore, callStore } = useRootStore();
   const videoRef = useRef<HTMLVideoElement>(null);
 
