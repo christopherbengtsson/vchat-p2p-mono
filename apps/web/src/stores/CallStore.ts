@@ -117,6 +117,7 @@ export class CallStore {
   cleanupAfterCall() {
     this.webRtcService?.cleanup();
     this.webRtcService = undefined;
+    this.remoteStream = null;
 
     this.roomId = undefined;
     this.partnerId = undefined;

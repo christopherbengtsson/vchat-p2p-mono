@@ -1,3 +1,4 @@
+import { v4 as uuid } from 'uuid';
 import logger from '../utils/logger.js';
 import { InMemoryDB } from '../db/InMemoryDB.js';
 import type { VChatSocket } from '../models/VChatSocket.js';
@@ -30,7 +31,7 @@ export function setupMatchmaking(
           return;
         }
 
-        const roomId = `${userId}-${partnerId}`;
+        const roomId = uuid();
 
         socket.to(partnerId).emit('match-found', roomId, userId, false); // Inform parter
         socket.emit('match-found', roomId, partnerId, true); // Inform current user

@@ -56,11 +56,11 @@ export class WebRTCService {
       }
     };
 
-    this.peerConnection.onicecandidate = ({ candidate }) => {
-      if (candidate) {
+    this.peerConnection.onicecandidate = (ev) => {
+      if (ev.candidate) {
         this.rootStore.socketStore.socket.emit(
           'peer-message',
-          { candidate },
+          { candidate: ev.candidate },
           this.rootStore.callStore.roomId,
           this.rootStore.callStore.partnerId,
         );
@@ -130,5 +130,6 @@ export class WebRTCService {
 
   cleanup() {
     this.peerConnection.close();
+    this.rootStore.socketStore.socket.off('peer-message');
   }
 }
