@@ -90,10 +90,10 @@ export class CallStore {
       this.rootStore.socketStore.id,
     );
 
-    this.rootStore.mainStore.appState = AppState.MATCH_FOUND;
+    this.rootStore.uiStore.appState = AppState.MATCH_FOUND;
 
     setTimeout(() => {
-      this.rootStore.mainStore.appState = AppState.IN_CALL;
+      this.rootStore.uiStore.appState = AppState.IN_CALL;
       this.inCall = true;
     }, 1500);
   }
@@ -113,7 +113,7 @@ export class CallStore {
       this.rootStore.socketStore.id,
     );
 
-    this.rootStore.mainStore.findMatch();
+    this.rootStore.uiStore.findMatch();
 
     this.cleanupAfterCall();
   }

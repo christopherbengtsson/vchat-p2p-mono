@@ -54,7 +54,7 @@ export class MediaStore {
       this.audioEnabled = stream.getAudioTracks()[0].enabled;
     } catch (error) {
       console.error(error);
-      this._rootStore.mainStore.errorState = ErrorState.MEDIA_STREAM_ERROR;
+      this._rootStore.uiStore.errorState = ErrorState.MEDIA_STREAM_ERROR;
     }
   }
 }

@@ -5,7 +5,7 @@ import type { RootStore } from './RootStore';
 import type { SocketStore } from './SocketStore';
 import type { CallStore } from './CallStore';
 
-export class MainStore {
+export class UiStore {
   private socketStore: SocketStore;
   private callStore: CallStore;
 
@@ -20,15 +20,7 @@ export class MainStore {
     this.socketStore = socketStore;
     this.callStore = callStore;
 
-    makeAutoObservable(this, {
-      // TODO: Check overrides
-      /**
-       * Like observable, but only reassignments will be tracked.
-       * The assigned values are completely ignored and will NOT be
-       * automatically converted to observable/autoAction/flow.
-       * For example, use this if you intend to store immutable data in an observable field.
-       */
-    });
+    makeAutoObservable(this);
   }
 
   get appState() {

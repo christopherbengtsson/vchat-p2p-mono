@@ -27,18 +27,18 @@ const getToastData = (errorState: ErrorState, restore?: boolean) => {
 };
 
 export const ErrorToast = observer(function ErrorToast() {
-  const { mainStore } = useRootStore();
+  const { uiStore } = useRootStore();
   const { toast } = useToast();
 
   const [toastShown, setToastShown] = useState(false);
   const [previousError, setPreviousError] = useState<ErrorState>();
 
   useEffect((): void => {
-    if (mainStore.errorState) {
+    if (uiStore.errorState) {
       setToastShown(true);
-      setPreviousError(mainStore.errorState);
+      setPreviousError(uiStore.errorState);
       toast({
-        ...getToastData(mainStore.errorState),
+        ...getToastData(uiStore.errorState),
         variant: 'destructive',
         action: <CircleX />,
       });
@@ -52,7 +52,7 @@ export const ErrorToast = observer(function ErrorToast() {
     } else {
       setPreviousError(undefined);
     }
-  }, [mainStore.errorState, previousError, toast, toastShown]);
+  }, [uiStore.errorState, previousError, toast, toastShown]);
 
   return <Toaster />;
 });

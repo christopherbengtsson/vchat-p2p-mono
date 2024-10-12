@@ -7,15 +7,15 @@ import { useRootStore } from '../stores/RootStoreContext';
 import { AppState } from '../stores/model/AppState';
 
 export const QueuePage = observer(function QueuePage() {
-  const { mainStore, callStore } = useRootStore();
+  const { uiStore, callStore } = useRootStore();
   const navigate = useNavigate();
 
   const handleCancel = () => {
-    mainStore.cancelMatch();
+    uiStore.cancelMatch();
     navigate(-1);
   };
 
-  if (mainStore.appState === AppState.IN_QUEUE) {
+  if (uiStore.appState === AppState.IN_QUEUE) {
     return (
       <div className="flex flex-col justify-center items-center gap-16 ">
         <MdTravelExplore className="text-white rounded-full text-[10em] animate-loading-pulse" />

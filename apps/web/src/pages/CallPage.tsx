@@ -6,9 +6,9 @@ import { QueuePage } from './QueuePage';
 import { InCallPage } from './InCallPage';
 
 export const CallPage = observer(function CallPage() {
-  const { mainStore } = useRootStore();
+  const { uiStore } = useRootStore();
 
-  switch (mainStore.appState) {
+  switch (uiStore.appState) {
     case AppState.IN_QUEUE:
     case AppState.MATCH_FOUND:
       return <QueuePage />;

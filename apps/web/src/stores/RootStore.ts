@@ -1,6 +1,6 @@
 import { AuthStore } from './AuthStore';
 import { SocketStore } from './SocketStore';
-import { MainStore } from './MainStore';
+import { UiStore } from './UiStore';
 import { CallStore } from './CallStore';
 import { MediaStore } from './MediaStore';
 
@@ -8,7 +8,7 @@ export class RootStore {
   authStore: AuthStore;
   socketStore: SocketStore;
   mediaStore: MediaStore;
-  mainStore: MainStore;
+  uiStore: UiStore;
   callStore: CallStore;
 
   constructor() {
@@ -16,6 +16,6 @@ export class RootStore {
     this.socketStore = new SocketStore(this);
     this.mediaStore = new MediaStore(this);
     this.callStore = new CallStore(this);
-    this.mainStore = new MainStore(this);
+    this.uiStore = new UiStore(this);
   }
 }

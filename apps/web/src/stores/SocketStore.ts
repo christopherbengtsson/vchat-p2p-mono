@@ -25,7 +25,7 @@ export class SocketStore {
 
   get socket() {
     if (!this._socket) {
-      this.rootStore.mainStore.appState = AppState.ERROR;
+      this.rootStore.uiStore.appState = AppState.ERROR;
       throw new Error('Socket not defined');
     }
     return this._socket;
@@ -33,7 +33,7 @@ export class SocketStore {
   get id() {
     const id = this.socket.id;
     if (!id) {
-      this.rootStore.mainStore.appState = AppState.ERROR;
+      this.rootStore.uiStore.appState = AppState.ERROR;
       throw new Error('Socket id not defined');
     }
     return id;
@@ -59,37 +59,37 @@ export class SocketStore {
         // the disconnection was initiated by the server, you need to manually reconnect
         // this.maybeSocket?.active = false
         console.log('Disconnected by server');
-        this.rootStore.mainStore.errorState = ErrorState.SERVER_DISCONNECTED;
+        this.rootStore.uiStore.errorState = ErrorState.SERVER_DISCONNECTED;
         this.rootStore.callStore.cleanupAfterCall();
       }
 
-      this.rootStore.mainStore.appState = AppState.START;
+      this.rootStore.uiStore.appState = AppState.START;
     });
 
     this.socket.on('connect_error', (_err) => {
-      this.rootStore.mainStore.errorState = ErrorState.CONNECT_ERROR;
+      this.rootStore.uiStore.errorState = ErrorState.CONNECT_ERROR;
       this.socket.once('connect', () => {
         this.connected = true;
-        this.rootStore.mainStore.errorState = undefined;
+        this.rootStore.uiStore.errorState = undefined;
       });
     });
 
     this.socket.on('connections-count', (count: number) => {
-      this.rootStore.mainStore.nrOfAvailableUsers = count === 1 ? 0 : count - 1;
+      this.rootStore.uiStore.nrOfAvailableUsers = count === 1 ? 0 : count - 1;
     });
 
     this.socket.on('match-found', (...data) => {
-      this.rootStore.mainStore.onMatchFound(...data);
+      this.rootStore.uiStore.onMatchFound(...data);
     });
 
     this.socket.on('user-left', () => {
       this.rootStore.callStore.cleanupAfterCall();
-      this.rootStore.mainStore.findMatch(true);
+      this.rootStore.uiStore.findMatch(true);
     });
 
     this.socket.on('partner-disconnected', () => {
       this.rootStore.callStore.cleanupAfterCall();
-      this.rootStore.mainStore.findMatch();
+      this.rootStore.uiStore.findMatch();
     });
 
     this.socket.on('video-toggle', (enabled) => {
@@ -103,7 +103,7 @@ export class SocketStore {
 
   disconnect() {
     this._socket?.disconnect();
-    this.rootStore.mainStore.appState = AppState.START;
+    this.rootStore.uiStore.appState = AppState.START;
     this.rootStore.callStore.cleanupAfterCall();
   }
 }

@@ -1,8 +1,8 @@
 import { act, render, screen } from '@testing-library/react';
-import { MainStore } from '../../stores/MainStore';
 import { ErrorToast } from '../ErrorToast';
-import { MainStoreContext } from '../../stores/RootStoreContext';
 import { ErrorState } from '../../stores/model/ErrorState';
+import { RootStore } from '../../stores/RootStore';
+import { RootStoreContext } from '../../stores/RootStoreContext';
 
 describe('<ErrorToast />', () => {
   // TODO: Disable rule for tests
@@ -10,15 +10,16 @@ describe('<ErrorToast />', () => {
   vi.spyOn(console, 'warn').mockImplementation(() => {});
 
   it('shows a "restored" toast where it should', async () => {
-    const store = new MainStore();
-    store.errorState = ErrorState.CONNECT_ERROR;
+    const store = new RootStore();
+    const { uiStore } = store;
+    uiStore.errorState = ErrorState.CONNECT_ERROR;
 
     render(<ErrorToast />, {
       wrapper: ({ children }) => {
         return (
-          <MainStoreContext.Provider value={store}>
+          <RootStoreContext.Provider value={store}>
             {children}
-          </MainStoreContext.Provider>
+          </RootStoreContext.Provider>
         );
       },
     });
@@ -26,13 +27,13 @@ describe('<ErrorToast />', () => {
     expect(await screen.findByText('Connection error')).toBeInTheDocument();
 
     act(() => {
-      store.errorState = undefined;
+      uiStore.errorState = undefined;
     });
 
     expect(await screen.findByText('Connection restored')).toBeInTheDocument();
 
     act(() => {
-      store.errorState = ErrorState.SERVER_DISCONNECTED;
+      uiStore.errorState = ErrorState.SERVER_DISCONNECTED;
     });
 
     expect(
@@ -40,13 +41,13 @@ describe('<ErrorToast />', () => {
     ).toBeInTheDocument();
 
     act(() => {
-      store.errorState = undefined;
+      uiStore.errorState = undefined;
     });
 
     // TODO: Check if toast is hidden?
 
     act(() => {
-      store.errorState = 'Something' as ErrorState;
+      uiStore.errorState = 'Something' as ErrorState;
     });
 
     expect(await screen.findByText('Unknown error')).toBeInTheDocument();

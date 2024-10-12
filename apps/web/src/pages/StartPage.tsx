@@ -6,11 +6,11 @@ import { Button } from '@/components/ui/button';
 import { useRootStore } from '../stores/RootStoreContext';
 
 export const StartPage = observer(function StartPage() {
-  const { mainStore, socketStore } = useRootStore();
+  const { uiStore, socketStore } = useRootStore();
 
   const connectOrFindMatch = useCallback(async () => {
-    mainStore.findMatch();
-  }, [mainStore]);
+    uiStore.findMatch();
+  }, [uiStore]);
 
   return (
     <div className="w-full max-w-sm flex flex-col items-center gap-4">
@@ -18,7 +18,7 @@ export const StartPage = observer(function StartPage() {
         asChild={socketStore.connected ? true : undefined}
         className="w-full"
         onClick={connectOrFindMatch}
-        disabled={mainStore.errorState !== undefined || !socketStore.connected}
+        disabled={uiStore.errorState !== undefined || !socketStore.connected}
       >
         {!socketStore.connected ? (
           <>
@@ -31,7 +31,7 @@ export const StartPage = observer(function StartPage() {
 
       {socketStore.connected && (
         <p className="text-primary-foreground">
-          Currently {mainStore.nrOfAvailableUsers} more users online
+          Currently {uiStore.nrOfAvailableUsers} more users online
         </p>
       )}
     </div>
