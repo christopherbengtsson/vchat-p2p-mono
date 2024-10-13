@@ -7,12 +7,12 @@ export const AuthenticatedRoutes = observer(function AuthenticatedRoutes() {
   const { authStore, socketStore } = useRootStore();
 
   useEffect(() => {
-    if (authStore.session && !socketStore.connected) {
+    if (authStore.authenticated && !socketStore.connected) {
       socketStore.connect();
     }
 
     return () => socketStore.disconnect();
-  }, [authStore.session, socketStore]);
+  }, [authStore.authenticated, socketStore]);
 
   if (!authStore.session) {
     return <Navigate replace to="/auth" />;
