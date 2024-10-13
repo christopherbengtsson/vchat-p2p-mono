@@ -40,7 +40,7 @@ export class SocketStore {
   }
 
   connect() {
-    this._socket = io('http://localhost:8000/video-chat', {
+    this._socket = io('/video-chat', {
       extraHeaders: {
         authorization: `Bearer ${this.rootStore.authStore.session?.access_token}`,
       },
