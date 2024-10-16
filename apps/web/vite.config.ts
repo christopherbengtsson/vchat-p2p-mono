@@ -14,13 +14,6 @@ export default defineConfig({
   server: {
     port: 3000,
     host: true,
-    proxy: {
-      '/socket.io': {
-        target: 'ws://localhost:8000',
-        ws: true,
-        rewriteWsOrigin: true,
-      },
-    },
   },
   test: {
     globals: true,

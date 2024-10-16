@@ -19,8 +19,7 @@ export function setupSocketServer(httpServer: Server) {
   console.log('setupSocket');
   const io = new SocketServer(httpServer, {
     cors: {
-      origin: process.env.CORS_ORIGINS?.split(','),
-      methods: ['GET', 'POST'],
+      origin: ['https://admin.socket.io', 'http://localhost:3000'],
       credentials: true,
     },
   });
