@@ -1,8 +1,4 @@
 {
   "extends": "./tsconfig.json",
-  "exclude": ["**/*.test.ts", "**/__tests__/*"],
-  "compilerOptions": {
-    "types": [],
-    "strict": false
-  }
+  "exclude": ["**/*.test.ts", "**/__tests__/*"]
 }
