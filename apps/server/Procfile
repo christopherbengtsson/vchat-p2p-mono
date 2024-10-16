@@ -1,1 +1,1 @@
-web: pnpm install --ignore-scripts; pnpm run build; pnpm run start;
+web: pnpm install --frozen-lockfile --ignore-scripts; pnpm run build; pnpm run start;
