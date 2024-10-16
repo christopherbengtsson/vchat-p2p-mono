@@ -20,6 +20,7 @@ export function setupSocketServer(httpServer: Server) {
   const io = new SocketServer(httpServer, {
     cors: {
       origin: ['https://admin.socket.io', 'http://localhost:3000'],
+      methods: ['GET', 'POST'],
       credentials: true,
     },
   });
