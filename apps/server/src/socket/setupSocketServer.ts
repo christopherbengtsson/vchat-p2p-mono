@@ -1,12 +1,15 @@
 import type { Server } from 'http';
-import { instrument } from '@socket.io/admin-ui';
 import type { NextFunction } from 'express';
 import helmet from 'helmet';
-import { RateLimiterMemory } from 'rate-limiter-flexible';
+import { instrument } from '@socket.io/admin-ui';
+import { createAdapter } from '@socket.io/redis-streams-adapter';
 import { Server as SocketServer } from 'socket.io';
+import type { Redis } from 'ioredis';
+import { RateLimiterMemory } from 'rate-limiter-flexible';
 import { MODE } from '../constants.js';
 import { validateJwtMiddleware } from '../middleware/authMiddleware.js';
 import type { IncomingMessage } from '../models/IncomingMessage.js';
+import { RedisQueue } from '../services/RedisQueue.js';
 import logger from '../utils/logger.js';
 import { wrapSocketHandler } from '../utils/wrapSocketHandler.js';
 import { setupChat } from './chat.js';
@@ -15,15 +18,19 @@ import { nspEmitters } from './nspEmitters.js';
 import { setupRoomManagement } from './roomManagement.js';
 import { setupWebRTC } from './webRtc.js';
 
-export function setupSocketServer(httpServer: Server) {
-  console.log('setupSocket');
+export function setupSocketServer(httpServer: Server, redisClient: Redis) {
   const io = new SocketServer(httpServer, {
+    adapter: createAdapter(redisClient),
     cors: {
       origin: (process.env.CORS_ORIGINS ?? '').split(','),
       methods: ['GET', 'POST'],
       credentials: true,
     },
   });
+  io.engine.on('connection_error', (error) => {
+    logger.error(error, 'Socket.io connection error');
+  });
+
   io.engine.use(helmet());
 
   const adminNamespace = io.of('/admin');
@@ -57,6 +64,8 @@ export function setupSocketServer(httpServer: Server) {
       });
   });
 
+  const redisQueue = new RedisQueue(redisClient);
+
   const videoChat = io.of('/video-chat');
   const videoChatEmitters = nspEmitters(videoChat);
 
@@ -73,7 +82,7 @@ export function setupSocketServer(httpServer: Server) {
       'User connected to video-chat namespace',
     );
 
-    setupMatchmaking(socket, wrapSocketHandler);
+    setupMatchmaking(socket, redisQueue, wrapSocketHandler);
     setupChat(socket, wrapSocketHandler);
     setupWebRTC(socket, wrapSocketHandler);
     setupRoomManagement(socket, wrapSocketHandler);

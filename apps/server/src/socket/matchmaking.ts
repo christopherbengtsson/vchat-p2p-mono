@@ -1,9 +1,8 @@
 import { v4 as uuid } from 'uuid';
 import logger from '../utils/logger.js';
-import { InMemoryDB } from '../db/InMemoryDB.js';
 import type { VChatSocket } from '../models/VChatSocket.js';
+import type { RedisQueue } from '../services/RedisQueue.js';
 
-const waitingQueue = InMemoryDB.waitingQueue;
 /**
  * TODO:
  * We could utilize the `videoChat`-param namespace to implement broader matchmaking features,
@@ -13,16 +12,20 @@ const waitingQueue = InMemoryDB.waitingQueue;
  */
 export function setupMatchmaking(
   socket: VChatSocket,
+  redisQueue: RedisQueue,
   wrapHandler: <T extends (...args: string[]) => void>(
     handler: T,
   ) => (...args: Parameters<T>) => void,
 ) {
   socket.on(
     'find-match',
-    wrapHandler((userId) => {
-      const partnerId = waitingQueue.getFirstInQueue;
+    wrapHandler(async (userId) => {
+      const [partnerId, queueCount] = await Promise.all([
+        redisQueue.getFirstInQueue(),
+        redisQueue.getQueueCount(),
+      ]);
 
-      if (waitingQueue.queueCount > 0 && partnerId !== userId) {
+      if (queueCount > 0 && partnerId !== userId) {
         if (!partnerId || !userId) {
           logger.error(
             { partnerId, userId },
@@ -35,14 +38,8 @@ export function setupMatchmaking(
 
         socket.to(partnerId).emit('match-found', roomId, userId, false); // Inform parter
         socket.emit('match-found', roomId, partnerId, true); // Inform current user
-
-        logger.debug({ roomId, userId, partnerId }, 'Match found');
       } else {
-        waitingQueue.addToQueue(socket.id);
-        logger.debug(
-          { numbersInQueue: waitingQueue.queueCount, userId },
-          'User added to waiting queue',
-        );
+        await redisQueue.addToQueue(socket.id);
       }
     }),
   );
@@ -61,24 +58,15 @@ export function setupMatchmaking(
 
   socket.on(
     'cancel-match',
-    wrapHandler(() => {
-      waitingQueue.removeFromQueue(socket.id);
-      logger.debug(
-        { userId: socket.id, numbersInQueue: waitingQueue.queueCount },
-        'Cancel matching. User removed from matchmaking queue',
-      );
+    wrapHandler(async () => {
+      await redisQueue.removeFromQueue(socket.id);
     }),
   );
 
   socket.on(
     'disconnect',
-    wrapHandler(() => {
-      waitingQueue.removeFromQueue(socket.id);
-
-      logger.debug(
-        { userId: socket.id, numbersInQueue: waitingQueue.queueCount },
-        'Disconnected. User removed from matchmaking queue',
-      );
+    wrapHandler(async () => {
+      await redisQueue.removeFromQueue(socket.id);
     }),
   );
 }

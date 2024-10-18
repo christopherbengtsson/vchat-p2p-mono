@@ -2,11 +2,14 @@ import 'dotenv/config';
 import { createServer } from './server.js';
 import { setupSocketServer } from './socket/setupSocketServer.js';
 import logger from './utils/logger.js';
+import redisClient from './redis/client.js';
 
 const PORT = process.env.PORT || 8000;
 
-const server = createServer();
-setupSocketServer(server);
+await redisClient.connect();
+
+const httpServer = createServer();
+setupSocketServer(httpServer, redisClient);
 
 process.on('uncaughtException', (error) => {
   logger.error({ error }, 'Uncaught Exception');
@@ -17,6 +20,6 @@ process.on('unhandledRejection', (reason, promise) => {
   logger.error({ reason, promise }, 'Unhandled Rejection');
 });
 
-server.listen(Number(PORT), '0.0.0.0', () => {
+httpServer.listen(Number(PORT), '0.0.0.0', () => {
   logger.info(`Server is running on port ${PORT}`);
 });
