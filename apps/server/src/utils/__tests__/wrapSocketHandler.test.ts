@@ -1,4 +1,3 @@
-import { describe, it, expect, vi } from 'vitest';
 import { wrapSocketHandler } from '../wrapSocketHandler.js';
 import logger from '../logger.js';
 
@@ -15,27 +14,29 @@ describe('wrapSocketHandler', () => {
   });
 
   it('should catch and log synchronous errors', () => {
+    const expectedError = new Error('Sync error');
     const mockHandler = vi.fn(() => {
-      throw new Error('Sync error');
+      throw expectedError;
     });
     const wrappedHandler = wrapSocketHandler(mockHandler);
 
     wrappedHandler();
 
     expect(logger.error).toHaveBeenCalledWith(
-      expect.objectContaining({ error: expect.any(Error) }),
+      expect.objectContaining({ error: expectedError }),
       'Socket handler error',
     );
   });
 
-  it('should catch and log asynchronous errors', () => {
-    const mockHandler = vi.fn(() => Promise.reject(new Error('Async error')));
+  it('should catch and log asynchronous errors', async () => {
+    const expectedError = new Error('Async error');
+    const mockHandler = vi.fn(() => Promise.reject(expectedError));
     const wrappedHandler = wrapSocketHandler(mockHandler);
 
-    wrappedHandler();
+    await wrappedHandler();
 
     expect(logger.error).toHaveBeenCalledWith(
-      expect.objectContaining({ error: expect.any(Error) }),
+      expect.objectContaining({ error: expectedError }),
       'Socket handler error',
     );
   });
