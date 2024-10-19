@@ -87,14 +87,8 @@ export function setupSocketServer(httpServer: Server, redisClient: Redis) {
     setupWebRTC(socket, wrapSocketHandler);
     setupRoomManagement(socket, wrapSocketHandler);
 
-    socket.on('disconnecting', () => {
-      void redisQueue.removeFromQueue(socket.id).catch((error) => {
-        logger.error(
-          { error },
-          'Error removing disconnecting socket from queue',
-        );
-      });
-
+    socket.on('disconnecting', async () => {
+      await redisQueue.removeFromQueue(socket.id);
       Array.from(socket.rooms.values()).forEach((roomId) => {
         socket.to(roomId).emit('partner-disconnected', socket.id);
       });

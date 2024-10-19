@@ -10,22 +10,25 @@ export class RedisQueue {
   }
 
   async addToQueue(id: SocketId) {
-    await this.redisClient.rpush(this.queueKey, id);
+    const score = Date.now();
+    await this.redisClient.zadd(this.queueKey, score, id);
   }
 
   async removeFromQueue(id: SocketId) {
-    await this.redisClient.lrem(this.queueKey, 0, id);
+    await this.redisClient.zrem(this.queueKey, id);
   }
 
   async getQueueCount() {
-    return await this.redisClient.llen(this.queueKey);
+    return await this.redisClient.zcard(this.queueKey);
   }
 
   async getFirstInQueue(): Promise<SocketId | null> {
-    return await this.redisClient.lindex(this.queueKey, 0);
+    const result = await this.redisClient.zrange(this.queueKey, 0, 0);
+    return result.length > 0 ? result[0] : null;
   }
 
+  // Only for debug purposes
   async getQueue(): Promise<SocketId[]> {
-    return await this.redisClient.lrange(this.queueKey, 0, -1);
+    return await this.redisClient.zrange(this.queueKey, 0, -1);
   }
 }

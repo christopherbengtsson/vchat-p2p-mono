@@ -16,10 +16,12 @@ describe('RedisQueue', () => {
   });
 
   beforeEach(async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
     await redisClient.flushall();
   });
 
   afterAll(async () => {
+    vi.useRealTimers();
     await redisServer.stop();
   });
 
@@ -57,6 +59,23 @@ describe('RedisQueue', () => {
       await redisQueue.addToQueue('id2');
       const queue = await redisQueue.getQueue();
       expect(queue).toEqual(['id1', 'id2']);
+    });
+
+    it('should be put last in queue if already present', async () => {
+      const redisQueue = new RedisQueue(redisClient);
+      await redisQueue.addToQueue('id1');
+      vi.advanceTimersByTime(1);
+      await redisQueue.addToQueue('id2');
+      vi.advanceTimersByTime(1);
+      await redisQueue.addToQueue('id3');
+      vi.advanceTimersByTime(1);
+
+      const first = await redisQueue.getFirstInQueue();
+      expect(first).toEqual('id1');
+
+      await redisQueue.addToQueue('id1');
+      const firstStill = await redisQueue.getFirstInQueue();
+      expect(firstStill).toEqual('id2');
     });
   });
 
