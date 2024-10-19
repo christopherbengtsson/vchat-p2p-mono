@@ -3,3 +3,4 @@ notes.md
 .DS_Store
 .vscode
 dump.rdb
+.vercel
