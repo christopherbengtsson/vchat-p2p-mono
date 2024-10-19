@@ -69,6 +69,10 @@
   }
 }
 
+.p-inherit {
+  padding: inherit;
+}
+
 .bg-noice {
   background:
     repeating-radial-gradient(

@@ -40,4 +40,8 @@ export class AuthStore {
   async loginAnonymously() {
     await SupabaseClient.instance.auth.signInAnonymously();
   }
+
+  async logout() {
+    await SupabaseClient.instance.auth.signOut();
+  }
 }

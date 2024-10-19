@@ -40,7 +40,7 @@ export const Layout = observer(function StartPage() {
         <div className="absolute top-0 left-0 w-full h-full bg-black opacity-90" />
       )}
 
-      <main className="relative z-10 bg-transparent w-full h-screen flex items-center justify-center px-4">
+      <main className="relative z-10 bg-transparent w-full h-screen flex items-center justify-center p-4">
         <Outlet />
       </main>
     </div>

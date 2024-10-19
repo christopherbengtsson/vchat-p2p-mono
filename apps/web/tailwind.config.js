@@ -64,6 +64,9 @@ module.exports = {
         md: 'calc(var(--radius) - 2px)',
         sm: 'calc(var(--radius) - 4px)',
       },
+      padding: {
+        inherit: 'inherit',
+      },
       keyframes: {
         'accordion-down': {
           from: {
