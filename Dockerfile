@@ -17,5 +17,5 @@ RUN pnpm deploy --filter server --prod /prod/server
 FROM base AS server
 COPY --from=builder /prod/server /app
 WORKDIR /app
-EXPOSE 8001
+EXPOSE 8000
 CMD [ "pnpm", "start" ]

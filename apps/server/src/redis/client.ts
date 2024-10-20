@@ -2,13 +2,15 @@ import { Redis } from 'ioredis';
 import logger from '../utils/logger.js';
 
 const host = process.env.REDIS_URL;
-const port = process.env.REDIS_PORT ?? 6379;
+const port = process.env.REDIS_PORT
+  ? Number(process.env.REDIS_PORT)
+  : undefined;
 const username = process.env.REDIS_USERNAME;
 const password = process.env.REDIS_PASSWORD;
 
 const redisClient = new Redis({
   host,
-  port: Number(port),
+  port,
   username,
   password,
   lazyConnect: true,
