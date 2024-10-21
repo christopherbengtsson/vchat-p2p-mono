@@ -28,7 +28,7 @@ export function setupSocketServer(httpServer: Server, redisClient: Redis) {
     },
   });
   io.engine.on('connection_error', (error) => {
-    logger.error(error, 'Socket.io connection error');
+    logger.fatal(error, 'Socket.io connection error');
   });
 
   io.engine.use(helmet());

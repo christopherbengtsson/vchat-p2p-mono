@@ -4,12 +4,22 @@ services:
   backend:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: server.Dockerfile
       target: server
     ports:
       - '8000'
-    env_file:
-      - .env
+    environment:
+      - NODE_ENV=${NODE_ENV}
+      - REDIS_URL=${REDIS_URL}
+      - SUPABASE_DB_PWD=${SUPABASE_DB_PWD}
+      - SUPABASE_ANON_PUB=$SUPABASE_ANON_PUB}
+      - SUPABASE_SERVICE_ROLE=${SUPABASE_SERVICE_ROLE}
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_JWT_SECRET=${SUPABASE_JWT_SECRET}
+      - PINO_LOG_LEVEL=${PINO_LOG_LEVEL}
+      - CORS_ORIGINS=${CORS_ORIGINS}
+      - ADMIN_UI_USERNAME=${ADMIN_UI_USERNAME}
+      - ADMIN_UI_PASSWORD=${ADMIN_UI_PASSWORD}
     depends_on:
       redis:
         condition: service_healthy
@@ -25,6 +35,9 @@ services:
         limits:
           cpus: '0.75'
           memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
 
   nginx:
     image: nginx:latest
@@ -45,6 +58,9 @@ services:
         limits:
           cpus: '0.25'
           memory: 256M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
 
   redis:
     image: redis:7.0-alpine
@@ -68,6 +84,9 @@ services:
         limits:
           cpus: '0.25'
           memory: 256M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
 
 volumes:
   redis_data:

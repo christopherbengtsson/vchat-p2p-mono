@@ -12,12 +12,12 @@ const httpServer = createServer();
 setupSocketServer(httpServer, redisClient);
 
 process.on('uncaughtException', (error) => {
-  logger.error({ error }, 'Uncaught Exception');
+  logger.fatal({ error }, 'Uncaught Exception');
   process.exit(1);
 });
 
 process.on('unhandledRejection', (reason, promise) => {
-  logger.error({ reason, promise }, 'Unhandled Rejection');
+  logger.fatal({ reason, promise }, 'Unhandled Rejection');
 });
 
 httpServer.listen(Number(PORT), '0.0.0.0', () => {
