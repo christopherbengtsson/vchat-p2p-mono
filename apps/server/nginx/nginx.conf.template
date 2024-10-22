@@ -37,6 +37,6 @@ http {
 
   upstream backend {
     ip_hash;
-    server http://backend:8000;
+    server backend:8000;
   }
 }
