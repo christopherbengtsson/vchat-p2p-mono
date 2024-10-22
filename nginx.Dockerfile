@@ -8,7 +8,7 @@ COPY docker-entrypoint.sh /docker-entrypoint.sh
 RUN chmod +x /docker-entrypoint.sh
 
 # Copy the nginx configuration template
-COPY nginx.conf.template /etc/nginx/nginx.conf.template
+COPY apps/server/nginx/nginx.conf.template /etc/nginx/nginx.conf.template
 
 ENTRYPOINT ["/docker-entrypoint.sh"]
 CMD ["nginx", "-g", "daemon off;"]
