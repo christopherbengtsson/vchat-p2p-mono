@@ -48,6 +48,7 @@ services:
     environment:
       SSL_CERTIFICATE: ${SSL_CERTIFICATE}
       SSL_CERTIFICATE_KEY: ${SSL_CERTIFICATE_KEY}
+      FULL_DOMAIN: ${FULL_DOMAIN}
     entrypoint: ["/docker-entrypoint.sh"]
     depends_on:
       - backend
