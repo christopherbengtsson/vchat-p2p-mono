@@ -2,10 +2,7 @@ version: '3'
 
 services:
   backend:
-    build:
-      context: .
-      dockerfile: server.Dockerfile
-      target: server
+    image: bengostar/vchat-service:latest
     ports:
       - '8000'
     environment:
@@ -37,9 +34,7 @@ services:
           memory: 1G
 
   nginx:
-    build:
-      context: .
-      dockerfile: nginx.Dockerfile
+    image: bengostar/nginx:latest
     ports:
       - '443:443'
     volumes:
