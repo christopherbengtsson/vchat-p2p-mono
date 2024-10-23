@@ -38,13 +38,11 @@ services:
     ports:
       - '443:443'
     volumes:
-      - ./apps/server/nginx/nginx.conf.template:/etc/nginx/nginx.conf.template:ro
       - /etc/letsencrypt:/etc/letsencrypt:ro
     environment:
       SSL_CERTIFICATE: ${SSL_CERTIFICATE}
       SSL_CERTIFICATE_KEY: ${SSL_CERTIFICATE_KEY}
       FULL_DOMAIN: ${FULL_DOMAIN}
-    entrypoint: ["/docker-entrypoint.sh"]
     depends_on:
       - backend
     restart: unless-stopped

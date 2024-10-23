@@ -55,11 +55,12 @@ export function setupSocketServer(httpServer: Server, redisClient: Redis) {
   });
   io.use((socket, next) => {
     rateLimiter
-      .consume(socket.id)
+      .consume(socket.id) // TODO: or socket.handshake.address?
       .then(() => {
         next();
       })
       .catch(() => {
+        logger.warn('[io rate limiter]: Too many requests');
         next(new Error('Too many requests'));
       });
   });
