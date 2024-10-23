@@ -41,6 +41,7 @@ export class SocketStore {
 
   connect() {
     this._socket = io(`${import.meta.env.VITE_SERVER_URL}/video-chat`, {
+      secure: import.meta.env.PROD,
       withCredentials: true,
       extraHeaders: {
         authorization: `Bearer ${this.rootStore.authStore.session?.access_token}`,
