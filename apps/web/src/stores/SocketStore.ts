@@ -40,12 +40,17 @@ export class SocketStore {
   }
 
   connect() {
+    console.log('Connecting to socket. Prod:', import.meta.env.PROD);
     this._socket = io(`${import.meta.env.VITE_SERVER_URL}/video-chat`, {
       secure: import.meta.env.PROD,
       withCredentials: true,
       extraHeaders: {
         authorization: `Bearer ${this.rootStore.authStore.session?.access_token}`,
       },
+    });
+
+    this._socket.on('connect_error', (err) => {
+      console.log('connect_error', err);
     });
 
     this._socket.on('connect', () => {
