@@ -43,7 +43,7 @@ export class SocketStore {
     console.log('Connecting to socket. Prod:', import.meta.env.PROD);
     this._socket = io(`${import.meta.env.VITE_SERVER_URL}/video-chat`, {
       path: '/ws/',
-      transports: ['websocket'],
+      // transports: ['websocket'],
       withCredentials: true,
       extraHeaders: {
         authorization: `Bearer ${this.rootStore.authStore.session?.access_token}`,
