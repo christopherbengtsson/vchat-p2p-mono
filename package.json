@@ -11,7 +11,8 @@
     "web": "pnpm --filter web",
     "server": "pnpm --filter server",
     "common-dto": "pnpm --filter common-dto",
-    "prepare": "husky"
+    "prepare": "husky",
+    "deploy:nginx": "docker build -f nginx.Dockerfile -t bengostar/nginx:latest .; docker push bengostar/nginx:latest"
   },
   "keywords": [],
   "author": "",

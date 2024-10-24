@@ -36,6 +36,7 @@ services:
   nginx:
     image: bengostar/nginx:latest
     ports:
+      - '80:80'
       - '443:443'
     volumes:
       - /etc/letsencrypt:/etc/letsencrypt:ro
@@ -45,7 +46,7 @@ services:
       FULL_DOMAIN: ${FULL_DOMAIN}
     depends_on:
       - backend
-    restart: unless-stopped
+    restart: always
     logging:
       driver: 'json-file'
       options:
