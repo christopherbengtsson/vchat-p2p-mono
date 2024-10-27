@@ -20,7 +20,6 @@ import { setupWebRTC } from './webRtc.js';
 
 export function setupSocketServer(httpServer: Server, redisClient: Redis) {
   const io = new SocketServer(httpServer, {
-    path: '/ws',
     adapter: createAdapter(redisClient),
     cors: {
       origin: (process.env.CORS_ORIGINS ?? '').split(','),

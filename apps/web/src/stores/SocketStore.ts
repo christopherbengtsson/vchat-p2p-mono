@@ -40,18 +40,25 @@ export class SocketStore {
   }
 
   connect() {
-    console.log('Connecting to socket. Prod:', import.meta.env.PROD);
     this._socket = io(`${import.meta.env.VITE_SERVER_URL}/video-chat`, {
-      path: '/ws',
-      // transports: ['websocket'],
       withCredentials: true,
       extraHeaders: {
         authorization: `Bearer ${this.rootStore.authStore.session?.access_token}`,
       },
     });
 
-    this._socket.on('connect_error', (err) => {
-      console.log('connect_error', err);
+    this._socket.io.engine.on('error', (error) => {
+      console.error('engine error', error);
+    });
+    this._socket.io.engine.on('upgradeError', (error) => {
+      console.warn('engine upgradeError', error);
+    });
+
+    this._socket.io.on('reconnect_error', (error) => {
+      console.error('io reconnect_error', error);
+    });
+    this._socket.io.on('error', (error) => {
+      console.error('io error', error);
     });
 
     this._socket.on('connect', () => {

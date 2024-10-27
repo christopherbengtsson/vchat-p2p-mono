@@ -12,7 +12,10 @@
     "server": "pnpm --filter server",
     "common-dto": "pnpm --filter common-dto",
     "prepare": "husky",
-    "deploy:nginx": "docker build -f nginx.Dockerfile -t bengostar/nginx:latest .; docker push bengostar/nginx:latest"
+    "server:run:docker": "docker-compose -f docker-compose.local.yml up",
+    "server:close:docker": "docker-compose -f docker-compose.local.yml down",
+    "deploy:nginx": "docker build -f nginx.Dockerfile -t bengostar/nginx:latest .; docker push bengostar/nginx:latest",
+    "deploy:server": "docker build -f server.Dockerfile -t bengostar/vchat-service:latest .; docker push bengostar/vchat-service:latest"
   },
   "keywords": [],
   "author": "",
