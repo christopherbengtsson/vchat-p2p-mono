@@ -20,6 +20,6 @@ process.on('unhandledRejection', (reason, promise) => {
   logger.fatal({ reason, promise }, 'Unhandled Rejection');
 });
 
-httpServer.listen(Number(PORT), '0.0.0.0', () => {
+httpServer.listen(Number(PORT), () => {
   logger.info(`Server is running on port ${PORT}`);
 });
