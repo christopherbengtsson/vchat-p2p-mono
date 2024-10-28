@@ -11,6 +11,6 @@
 {$CADDY_DOMAIN:localhost} {
         reverse_proxy {
                 to {$CADDY_PROXY_ADDRESS}
-                lb_policy ip_hash
+                lb_policy cookie
         }
 }
