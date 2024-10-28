@@ -1,1 +1,0 @@
-web: pnpm install --frozen-lockfile --ignore-scripts; pnpm run server build; pnpm run server start

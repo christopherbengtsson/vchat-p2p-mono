@@ -1,0 +1,16 @@
+{
+        email {$CADDY_EMAIL}
+
+        # For testing:
+        #ca https://acme-staging-v02.api.letsencrypt.org/directory
+
+        # Enable debug mode
+        debug
+}
+
+{$CADDY_DOMAIN:localhost} {
+        reverse_proxy {
+                to {$CADDY_PROXY_ADDRESS}
+                lb_policy ip_hash
+        }
+}

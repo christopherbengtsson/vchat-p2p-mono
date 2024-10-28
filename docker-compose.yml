@@ -1,6 +1,22 @@
-version: '3'
-
 services:
+  redis:
+    image: redis:7.0-alpine
+    volumes:
+      - redis_data:/data
+    ports:
+      - '6379:6379'
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    logging:
+      driver: 'json-file'
+      options:
+        max-size: '10m'
+        max-file: '3'
+
   backend:
     image: bengostar/vchat-service:latest
     ports:
@@ -26,60 +42,25 @@ services:
       options:
         max-size: '10m'
         max-file: '3'
-    deploy:
-      replicas: 2
-      resources:
-        limits:
-          cpus: '0.75'
-          memory: 1G
 
-  nginx:
-    image: bengostar/nginx:latest
+  caddy:
+    image: caddy:latest
+    restart: unless-stopped
     ports:
       - '80:80'
       - '443:443'
-    volumes:
-      - /etc/letsencrypt:/etc/letsencrypt:ro
+      - '443:443/udp'
     environment:
-      SSL_CERTIFICATE: ${SSL_CERTIFICATE}
-      SSL_CERTIFICATE_KEY: ${SSL_CERTIFICATE_KEY}
-      FULL_DOMAIN: ${FULL_DOMAIN}
-    depends_on:
-      - backend
-    restart: always
-    logging:
-      driver: 'json-file'
-      options:
-        max-size: '10m'
-        max-file: '3'
-    deploy:
-      resources:
-        limits:
-          cpus: '0.25'
-          memory: 256M
-
-  redis:
-    image: redis:7.0-alpine
+      - CADDY_EMAIL=${CADDY_EMAIL}
+      - CADDY_DOMAIN=${CADDY_DOMAIN}
+      - CADDY_PROXY_ADDRESS=backend:8000
     volumes:
-      - redis_data:/data
-    ports:
-      - '6379:6379'
-    restart: unless-stopped
-    healthcheck:
-      test: ['CMD', 'redis-cli', 'ping']
-      interval: 10s
-      timeout: 5s
-      retries: 3
-    logging:
-      driver: 'json-file'
-      options:
-        max-size: '10m'
-        max-file: '3'
-    deploy:
-      resources:
-        limits:
-          cpus: '0.25'
-          memory: 256M
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
 
 volumes:
   redis_data:
+  caddy_data:
+    external: true
+  caddy_config:
