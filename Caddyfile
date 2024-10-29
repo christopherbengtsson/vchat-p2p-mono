@@ -1,7 +1,7 @@
 {
         email {$CADDY_EMAIL}
 
-        # For testing:
+        # For testing to avoid rate limits
         #ca https://acme-staging-v02.api.letsencrypt.org/directory
 
         # Enable debug mode

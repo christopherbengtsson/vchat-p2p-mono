@@ -12,8 +12,8 @@ export function createServer(): http.Server {
   app.use(json());
   app.use(urlencoded({ extended: true }));
 
-  app.get('/', (_req, res) => {
-    res.status(200).json({ msg: 'Server is up and running' });
+  app.get('/health', (_req, res) => {
+    res.status(200).send('Ok');
   });
 
   app.get('/metrics', async (_req, res) => {
