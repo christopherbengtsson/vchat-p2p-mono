@@ -1,7 +1,8 @@
 import type { Server } from 'http';
+import { hostname } from 'node:os';
 import type { NextFunction } from 'express';
 import helmet from 'helmet';
-import { instrument } from '@socket.io/admin-ui';
+import { instrument, RedisStore } from '@socket.io/admin-ui';
 import { createAdapter } from '@socket.io/redis-streams-adapter';
 import { Server as SocketServer } from 'socket.io';
 import type { Redis } from 'ioredis';
@@ -44,6 +45,8 @@ export function setupSocketServer(httpServer: Server, redisClient: Redis) {
           }
         : false,
     mode: MODE,
+    store: new RedisStore(redisClient),
+    serverId: `${hostname()}#${process.pid}`,
   });
   adminNamespace.use((_socket, next) => {
     next();

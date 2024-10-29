@@ -1,8 +1,11 @@
 import 'dotenv/config';
+import { collectDefaultMetrics } from 'prom-client';
 import { createServer } from './server.js';
 import { setupSocketServer } from './socket/setupSocketServer.js';
 import logger from './utils/logger.js';
 import redisClient from './redis/client.js';
+
+collectDefaultMetrics();
 
 const PORT = process.env.PORT || 8000;
 
