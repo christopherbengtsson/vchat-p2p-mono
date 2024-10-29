@@ -59,6 +59,19 @@ services:
       - caddy_data:/data
       - caddy_config:/config
 
+  alloy:
+    image: grafana/alloy:latest
+    container_name: alloy
+    volumes:
+      - ./alloy/config.alloy:/etc/alloy/config.alloy
+    ports:
+      - '12345:12345'
+    command: >
+      run --server.http.listen-addr=0.0.0.0:12345 --storage.path=/var/lib/alloy/data /etc/alloy/config.alloy
+    depends_on:
+      - backend
+    restart: unless-stopped
+
 volumes:
   redis_data:
   caddy_data:

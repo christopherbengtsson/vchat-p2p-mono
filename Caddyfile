@@ -9,8 +9,7 @@
 }
 
 {$CADDY_DOMAIN:localhost} {
-        reverse_proxy {
-                to {$CADDY_PROXY_ADDRESS}
+        reverse_proxy /socket.io/* {$CADDY_PROXY_ADDRESS} {
                 lb_policy cookie
         }
 }
