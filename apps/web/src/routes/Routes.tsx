@@ -1,4 +1,5 @@
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import { withFaroRouterInstrumentation } from '@grafana/faro-react';
 import { observer } from 'mobx-react';
 import { AuthPage } from '../pages/AuthPage';
 import { Layout } from '../pages/LayoutPage';
@@ -33,5 +34,7 @@ export const Routes = observer(function Routes() {
     },
   ]);
 
-  return <RouterProvider router={router} />;
+  const routerWithAnalytics = withFaroRouterInstrumentation(router);
+
+  return <RouterProvider router={routerWithAnalytics} />;
 });

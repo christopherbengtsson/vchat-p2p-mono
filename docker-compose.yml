@@ -62,8 +62,16 @@ services:
   alloy:
     image: grafana/alloy:latest
     container_name: alloy
+    privileged: true
     volumes:
       - ./alloy/config.alloy:/etc/alloy/config.alloy
+      - /:/rootfs:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    devices:
+      - /dev/kmsg
     ports:
       - '12345:12345'
     command: >
