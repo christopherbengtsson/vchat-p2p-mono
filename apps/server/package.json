@@ -14,7 +14,8 @@
     "build": "tsc -p tsconfig.build.json",
     "start": "node dist/index.js",
     "test": "vitest",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test:load": "tsx --env-file=.env src/__test__/load-test.ts"
   },
   "keywords": [],
   "author": "",
