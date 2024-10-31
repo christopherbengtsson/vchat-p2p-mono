@@ -5,10 +5,17 @@
         #ca https://acme-staging-v02.api.letsencrypt.org/directory
 
         # Enable debug mode
-        debug
+        #debug
 }
 
 {$CADDY_DOMAIN:localhost} {
+        log {
+                format filter {
+                        request>remote_ip ip_mask 16 32
+                        request>client_ip ip_mask 16 32
+                }
+        }
+
         reverse_proxy /socket.io/* {$CADDY_PROXY_ADDRESS} {
                 lb_policy cookie
         }
