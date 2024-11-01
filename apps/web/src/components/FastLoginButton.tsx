@@ -1,20 +1,26 @@
 import { Loader2, Zap } from 'lucide-react';
-import { Button } from './ui/button';
+import { Button } from '@/components/ui/button';
+import { useSupabaseAuth } from '../hooks/useSupabaseAuth';
 
-interface Props {
-  loading: boolean;
-  onClick: VoidFunction;
-}
+export function FastLoginButton() {
+  const { loginAnonymouslyMutation } = useSupabaseAuth();
 
-export function FastLoginButton({ loading, onClick }: Props) {
+  const handleClick = () => {
+    loginAnonymouslyMutation.mutate();
+  };
+
   return (
-    <Button onClick={onClick} disabled={loading}>
-      {loading ? (
+    <Button
+      className="w-full"
+      onClick={handleClick}
+      disabled={loginAnonymouslyMutation.isPending}
+    >
+      {loginAnonymouslyMutation.isPending ? (
         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
       ) : (
         <Zap className="mr-2 h-4 w-4" />
       )}
-      {loading ? 'Logging in...' : 'Fast login'}
+      {loginAnonymouslyMutation.isPending ? 'Logging in...' : 'Fast login'}
     </Button>
   );
 }

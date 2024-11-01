@@ -1,21 +1,27 @@
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { observer } from 'mobx-react';
 import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useRootStore } from '../stores/RootStoreContext';
 import { SettingsMenu } from '../components/SettingsMenu';
+import { ProfileDialog } from '../components/ProfileDialog';
 
 export const StartPage = observer(function StartPage() {
   const { uiStore, socketStore } = useRootStore();
+  const [profileDialogOpen, setProfileDialogOpen] = useState(false);
 
   const connectOrFindMatch = useCallback(async () => {
     uiStore.findMatch();
   }, [uiStore]);
 
+  const handleProfileOpen = useCallback(() => {
+    setProfileDialogOpen(!profileDialogOpen);
+  }, [profileDialogOpen]);
+
   return (
     <>
-      <SettingsMenu />
+      <SettingsMenu handleProfileOpen={handleProfileOpen} />
 
       <div className="w-full max-w-sm flex flex-col items-center gap-4">
         <Button
@@ -38,6 +44,11 @@ export const StartPage = observer(function StartPage() {
             Currently {uiStore.nrOfAvailableUsers} more users online
           </p>
         )}
+
+        <ProfileDialog
+          open={profileDialogOpen}
+          handleProfileOpen={handleProfileOpen}
+        />
       </div>
     </>
   );

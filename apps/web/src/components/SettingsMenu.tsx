@@ -1,5 +1,5 @@
 import { observer } from 'mobx-react';
-import { Settings, LogOut, User } from 'lucide-react';
+import { Settings, LogOut, UserPen, UserPlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -10,12 +10,23 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useRootStore } from '../stores/RootStoreContext';
+import { useSupabaseAuth } from '../hooks/useSupabaseAuth';
 
-export const SettingsMenu = observer(function SettingsMenu() {
+interface Props {
+  handleProfileOpen: VoidFunction;
+}
+
+export const SettingsMenu = observer(function SettingsMenu({
+  handleProfileOpen,
+}: Props) {
   const { authStore } = useRootStore();
+  const {
+    logoutMutation: { mutate: logout },
+  } = useSupabaseAuth();
+  const isAnonymous = authStore.session?.user.is_anonymous;
 
   const handleLogout = async () => {
-    await authStore.logout();
+    logout();
   };
 
   return (
@@ -29,9 +40,13 @@ export const SettingsMenu = observer(function SettingsMenu() {
         <DropdownMenuContent className="w-56 mx-4">
           <DropdownMenuLabel>Settings</DropdownMenuLabel>
 
-          <DropdownMenuItem disabled>
-            <User />
-            <span>Profile</span>
+          <DropdownMenuItem disabled={!isAnonymous} onClick={handleProfileOpen}>
+            {isAnonymous ? <UserPlus /> : <UserPen />}
+            <span>
+              {authStore.session?.user.is_anonymous
+                ? 'Save account'
+                : 'Profile'}
+            </span>
           </DropdownMenuItem>
 
           <DropdownMenuSeparator />

@@ -6,6 +6,8 @@ export class AuthStore {
   private _session: Session | null = null;
   private _authenticated = false;
 
+  private _userUpgraded = false;
+
   constructor() {
     makeAutoObservable(this);
 
@@ -37,11 +39,10 @@ export class AuthStore {
     this._authenticated = authenticated;
   }
 
-  async loginAnonymously() {
-    await SupabaseClient.instance.auth.signInAnonymously();
+  get userUpgraded() {
+    return this._userUpgraded;
   }
-
-  async logout() {
-    await SupabaseClient.instance.auth.signOut();
+  set userUpgraded(userUpgraded: boolean) {
+    this._userUpgraded = userUpgraded;
   }
 }
