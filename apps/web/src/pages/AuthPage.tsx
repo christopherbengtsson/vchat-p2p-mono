@@ -23,8 +23,7 @@ export const AuthPage = observer(function AuthPage() {
       <CardHeader>
         <CardTitle>Welcome</CardTitle>
         <CardDescription>
-          Use your existing account by logging in with your email or start
-          exploring with fast login
+          Use your existing account by logging in with your email
         </CardDescription>
       </CardHeader>
       <CardContent className="p-6">

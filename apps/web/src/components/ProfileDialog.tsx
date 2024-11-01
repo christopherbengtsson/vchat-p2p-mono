@@ -5,25 +5,17 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import {
   Form,
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useRootStore } from '../stores/RootStoreContext';
 import { useSupabaseAuth } from '../hooks/useSupabaseAuth';
+import { DrawerDialog } from './DrawerDialog';
 
 const formSchema = z
   .object({
@@ -84,40 +76,27 @@ export const ProfileDialog = observer(function ProfileDialog({
   };
 
   return (
-    <Dialog modal open={open} onOpenChange={() => handleProfileOpen()}>
-      <DialogContent
-        className="sm:max-w-[425px]"
-        onInteractOutside={(ev) => {
-          const target = ev.target as HTMLElement;
-          if (!target.hasAttribute('data-state')) {
-            ev.preventDefault();
-          }
-        }}
-      >
-        <DialogHeader>
-          <DialogTitle>
-            {isAnonymous ? 'Save account' : 'Edit Profile'}
-          </DialogTitle>
-
-          <DialogDescription>
-            {isAnonymous
-              ? 'Please enter your email and choose a password to be able to login again.'
-              : 'Edit Profile'}
-          </DialogDescription>
-        </DialogHeader>
-
+    <DrawerDialog
+      open={open}
+      toggle={handleProfileOpen}
+      title={isAnonymous ? 'Save account' : 'Edit Profile'}
+      description={
+        isAnonymous
+          ? 'Please enter your email and choose a password to be able to login again.'
+          : 'Edit Profile'
+      }
+      mainContent={
         <Form {...form}>
           <form
             id="profile-form"
             onSubmit={form.handleSubmit(onSubmit)}
-            className="space-y-4"
+            className="space-y-6"
           >
             <FormField
               control={form.control}
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email</FormLabel>
                   <FormControl>
                     <Input type="email" placeholder="Email" {...field} />
                   </FormControl>
@@ -131,7 +110,6 @@ export const ProfileDialog = observer(function ProfileDialog({
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Password</FormLabel>
                   <FormControl>
                     <Input
                       type="password"
@@ -150,11 +128,10 @@ export const ProfileDialog = observer(function ProfileDialog({
               name="confirmPassword"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Confirm password</FormLabel>
                   <FormControl>
                     <Input
                       type="password"
-                      placeholder="Password"
+                      placeholder="Confirm password"
                       autoComplete="on"
                       {...field}
                     />
@@ -167,14 +144,13 @@ export const ProfileDialog = observer(function ProfileDialog({
             {error && <FormMessage>{error.message}</FormMessage>}
           </form>
         </Form>
-
-        <DialogFooter>
-          <Button type="submit" form="profile-form">
-            {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Save details
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+      }
+      footerContent={
+        <Button type="submit" form="profile-form">
+          {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          Save details
+        </Button>
+      }
+    />
   );
 });
