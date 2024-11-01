@@ -1,12 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { Outlet } from 'react-router-dom';
 import { observer } from 'mobx-react';
-import clsx from 'clsx';
 import { useRootStore } from '../stores/RootStoreContext';
-
-const DYNAMIC_DARK_MODE = window.matchMedia(
-  '(prefers-color-scheme:dark)',
-).matches;
 
 export const Layout = observer(function StartPage() {
   const { mediaStore, callStore } = useRootStore();
@@ -21,14 +16,7 @@ export const Layout = observer(function StartPage() {
   }, [callStore.inCall, callStore.remoteStream, mediaStore.maybeStream]);
 
   return (
-    <div
-      className={clsx(
-        'themes-wrapper relative w-full h-screen overflow-hidden',
-        {
-          dark: DYNAMIC_DARK_MODE,
-        },
-      )}
-    >
+    <div className="themes-wrapper relative w-full h-screen overflow-hidden">
       <video
         ref={videoRef}
         className="absolute top-0 left-0 w-full h-full object-cover"
