@@ -55,7 +55,7 @@ export function DrawerDialog({
 
           {mainContent}
 
-          <DialogFooter>{footerContent}</DialogFooter>
+          <DialogFooter className="pt-8">{footerContent}</DialogFooter>
         </DialogContent>
       </Dialog>
     );
@@ -72,7 +72,7 @@ export function DrawerDialog({
         {mainContent}
 
         {footerContent && (
-          <DrawerFooter className="pt-2">{footerContent}</DrawerFooter>
+          <DrawerFooter className="pt-8">{footerContent}</DrawerFooter>
         )}
       </DrawerContent>
     </Drawer>
