@@ -1,5 +1,5 @@
 import { act, render, screen } from '@testing-library/react';
-import { ErrorToast } from '../ErrorToast';
+import { ErrorToast } from '../error-toast/ErrorToast';
 import { ErrorState } from '../../stores/model/ErrorState';
 import { RootStore } from '../../stores/RootStore';
 import { RootStoreContext } from '../../stores/RootStoreContext';

@@ -14,7 +14,7 @@ import {
 import { Input } from '@/common/components/ui/input';
 import { Button } from '@/common/components/ui/button';
 import { useRootStore } from '@/stores/hooks/useRootStore';
-import { DrawerDialog } from '@/common/components/DrawerDialog';
+import { DrawerDialog } from '@/common/components/drawer-dialog/DrawerDialog';
 import { useUpgradeAnonymousAccount } from '../hooks/useUpgradeAnonymousAccount';
 
 const formSchema = z

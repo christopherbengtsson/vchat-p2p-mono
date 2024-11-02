@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ErrorBoundary } from '@/common/components/ErrorBoundary';
-import { ErrorToast } from '@/common/components/ErrorToast';
+import { ErrorBoundary } from '@/common/components/error-boundary/ErrorBoundary';
+import { ErrorToast } from '@/common/components/error-toast/ErrorToast';
 import { Routes } from './Routes';
 import { RootStore } from './stores/RootStore';
 import { RootStoreProvider } from './stores//context/RootStoreProvider';

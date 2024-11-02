@@ -1,7 +1,7 @@
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import { withFaroRouterInstrumentation } from '@grafana/faro-react';
 import { observer } from 'mobx-react';
-import { LayoutContainer } from './features/layout/container/LayoutContainer';
+import { LayoutContainer } from './common/layout/container/LayoutContainer';
 import { AuthenticatedRoutesContainer } from './features/auth/container/AuthenticatedRoutesContainer';
 import { AuthPage } from './features/auth/page/AuthPage';
 import { HomePage } from './features/home/page/HomePage';

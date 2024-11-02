@@ -1,6 +1,6 @@
 import { makeAutoObservable } from 'mobx';
 import type { Session } from '@supabase/supabase-js';
-import { SupabaseClient } from '../features/supabase/client';
+import { SupabaseClient } from '../common/supabase/client';
 
 export class AuthStore {
   private _session: Session | null = null;
