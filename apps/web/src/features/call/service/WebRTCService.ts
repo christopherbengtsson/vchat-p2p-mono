@@ -1,5 +1,5 @@
 import { PeerMessage } from '@mono/common-dto';
-import { RootStore } from '../stores/RootStore';
+import { RootStore } from '../../../stores/RootStore';
 
 const configuration = {
   iceServers: [

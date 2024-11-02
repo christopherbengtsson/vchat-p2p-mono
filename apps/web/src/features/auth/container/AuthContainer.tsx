@@ -1,7 +1,3 @@
-import { Navigate } from 'react-router-dom';
-import { observer } from 'mobx-react';
-import { FastLoginButton } from '@/components/FastLoginButton';
-import { EmailLoginForm } from '@/components/EmailLoginForm';
 import {
   Card,
   CardContent,
@@ -9,15 +5,10 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { useRootStore } from '../stores/RootStoreContext';
+import { FastLoginButton } from '../component/FastLoginButton';
+import { EmailLoginFormContainer } from './EmailLoginFormContainer';
 
-export const AuthPage = observer(function AuthPage() {
-  const { authStore } = useRootStore();
-
-  if (authStore.session) {
-    return <Navigate replace to="/" />;
-  }
-
+export function AuthFormContainer() {
   return (
     <Card className="w-[350px]">
       <CardHeader>
@@ -28,7 +19,7 @@ export const AuthPage = observer(function AuthPage() {
       </CardHeader>
       <CardContent className="p-6">
         <div className="w-full max-w-sm flex flex-col items-center gap-4">
-          <EmailLoginForm />
+          <EmailLoginFormContainer />
 
           <div className="relative w-full m-4">
             <div className="absolute inset-0 flex items-center">
@@ -46,4 +37,4 @@ export const AuthPage = observer(function AuthPage() {
       </CardContent>
     </Card>
   );
-});
+}

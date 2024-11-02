@@ -1,16 +1,16 @@
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import { withFaroRouterInstrumentation } from '@grafana/faro-react';
 import { observer } from 'mobx-react';
-import { AuthPage } from '../pages/AuthPage';
-import { Layout } from '../pages/LayoutPage';
-import { StartPage } from '../pages/StartPage';
-import { CallPage } from '../pages/CallPage';
-import { AuthenticatedRoutes } from './AuthenticatedRoutes';
+import { LayoutContainer } from './features/layout/container/LayoutContainer';
+import { AuthenticatedRoutesContainer } from './features/auth/container/AuthenticatedRoutesContainer';
+import { AuthPage } from './features/auth/page/AuthPage';
+import { HomePage } from './features/home/page/HomePage';
+import { RandomCallPage } from './features/call/page/RandomCallPage';
 
 export const Routes = observer(function Routes() {
   const router = createBrowserRouter([
     {
-      element: <Layout />,
+      element: <LayoutContainer />,
       errorElement: <div>Root error</div>,
       children: [
         {
@@ -18,15 +18,15 @@ export const Routes = observer(function Routes() {
           element: <AuthPage />,
         },
         {
-          element: <AuthenticatedRoutes />,
+          element: <AuthenticatedRoutesContainer />,
           children: [
             {
               index: true,
-              element: <StartPage />,
+              element: <HomePage />,
             },
             {
               path: 'call',
-              element: <CallPage />,
+              element: <RandomCallPage />,
             },
           ],
         },

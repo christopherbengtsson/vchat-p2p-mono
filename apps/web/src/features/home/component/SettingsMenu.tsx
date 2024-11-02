@@ -9,8 +9,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useRootStore } from '../stores/RootStoreContext';
-import { useSupabaseAuth } from '../hooks/useSupabaseAuth';
+import { useRootStore } from '@/stores/context/RootStoreContext';
+import { useLogout } from '../hooks/useLogout';
 
 interface Props {
   handleProfileOpen: VoidFunction;
@@ -20,13 +20,11 @@ export const SettingsMenu = observer(function SettingsMenu({
   handleProfileOpen,
 }: Props) {
   const { authStore } = useRootStore();
-  const {
-    logoutMutation: { mutate: logout },
-  } = useSupabaseAuth();
+  const { mutate } = useLogout();
   const isAnonymous = authStore.session?.user.is_anonymous;
 
   const handleLogout = async () => {
-    logout();
+    mutate();
   };
 
   return (

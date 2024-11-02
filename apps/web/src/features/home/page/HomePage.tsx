@@ -3,11 +3,11 @@ import { Link } from 'react-router-dom';
 import { observer } from 'mobx-react';
 import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useRootStore } from '../stores/RootStoreContext';
-import { SettingsMenu } from '../components/SettingsMenu';
-import { ProfileDialog } from '../components/ProfileDialog';
+import { useRootStore } from '@/stores/RootStoreContext';
+import { ProfileDialog } from '../component/ProfileDialog';
+import { SettingsMenu } from '../component/SettingsMenu';
 
-export const StartPage = observer(function StartPage() {
+export const HomePage = observer(function StartPage() {
   const { uiStore, socketStore } = useRootStore();
   const [profileDialogOpen, setProfileDialogOpen] = useState(false);
 

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { ErrorToast } from '@/components/ErrorToast';
-import { Routes } from './routes/Routes';
+import { Routes } from './Routes';
 import { RootStore } from './stores/RootStore';
 import { RootStoreProvider } from './stores/RootStoreProvider';
 

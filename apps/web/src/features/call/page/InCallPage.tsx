@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { observer } from 'mobx-react';
-import { EndCallButton } from '@/components/EndCallButton';
-import { ToggleCameraButton } from '@/components/ToggleCameraButton';
-import { ToggleMuteButton } from '@/components/ToggleMuteButton';
-import { Video } from '@/components/Video';
-import { useRootStore } from '../stores/RootStoreContext';
+import { useRootStore } from '@/stores/RootStoreContext';
+import { Video } from '../component/Video';
+import { EndCallButton } from '../component/EndCallButton';
+import { ToggleCameraButton } from '../component/ToggleCameraButton';
+import { ToggleMuteButton } from '../component/ToggleMuteButton';
 
 export const InCallPage = observer(function InCallPage() {
   const { mediaStore, callStore } = useRootStore();

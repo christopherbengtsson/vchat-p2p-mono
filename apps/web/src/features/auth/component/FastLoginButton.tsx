@@ -1,9 +1,9 @@
 import { Loader2, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useSupabaseAuth } from '../hooks/useSupabaseAuth';
+import { useLogins } from '../hooks/useLogins';
 
 export function FastLoginButton() {
-  const { loginAnonymouslyMutation } = useSupabaseAuth();
+  const { loginAnonymouslyMutation } = useLogins();
 
   const handleClick = () => {
     loginAnonymouslyMutation.mutate();

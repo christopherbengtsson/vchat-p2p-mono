@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
+import type { RootStore } from '../RootStore';
 import { RootStoreContext } from './RootStoreContext';
-import type { RootStore } from './RootStore';
 
 export function RootStoreProvider({
   store,

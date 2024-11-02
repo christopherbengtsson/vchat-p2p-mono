@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { useSupabaseAuth } from '../hooks/useSupabaseAuth';
+import { useLogins } from '../hooks/useLogins';
 
 const formSchema = z.object({
   email: z.string().email({
@@ -20,8 +20,8 @@ const formSchema = z.object({
   password: z.string().min(6),
 });
 
-export function EmailLoginForm() {
-  const { loginWithEmailMutation } = useSupabaseAuth();
+export function EmailLoginFormContainer() {
+  const { loginWithEmailMutation } = useLogins();
 
   const form = useForm<z.infer<typeof formSchema>>({
     defaultValues: {

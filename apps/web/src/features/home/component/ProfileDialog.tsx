@@ -13,9 +13,9 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { useRootStore } from '../stores/RootStoreContext';
-import { useSupabaseAuth } from '../hooks/useSupabaseAuth';
-import { DrawerDialog } from './DrawerDialog';
+import { useRootStore } from '@/stores/context/RootStoreContext';
+import { DrawerDialog } from '@/components/DrawerDialog';
+import { useUpgradeAnonymousAccount } from '../hooks/useUpgradeAnonymousAccount';
 
 const formSchema = z
   .object({
@@ -45,9 +45,7 @@ export const ProfileDialog = observer(function ProfileDialog({
   handleProfileOpen,
 }: Props) {
   const { authStore } = useRootStore();
-  const {
-    upgradeAnonymousAccountMutation: { isPending, mutate, error },
-  } = useSupabaseAuth();
+  const { isPending, mutate, error } = useUpgradeAnonymousAccount();
   const isAnonymous =
     authStore.session?.user.is_anonymous && !authStore.userUpgraded;
 
