@@ -1,4 +1,4 @@
-import { Loader2, Mail } from 'lucide-react';
+import { Mail } from 'lucide-react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -11,6 +11,7 @@ import {
 } from '@/common/components/ui/form';
 import { Input } from '@/common/components/ui/input';
 import { Button } from '@/common/components/ui/button';
+import { LoadingButton } from '@/common/components/loading-button/LoadingButton';
 import { useLogins } from '../hooks/useLogins';
 
 const formSchema = z.object({
@@ -82,9 +83,7 @@ export function EmailLoginFormContainer() {
         disabled={loginWithEmailMutation.isPending}
         className="mt-8 w-full"
       >
-        {loginWithEmailMutation.isPending && (
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-        )}
+        {loginWithEmailMutation.isPending && <LoadingButton />}
         {!loginWithEmailMutation.isPending && (
           <>
             <Mail className="mr-2 h-4 w-4" /> Login with email

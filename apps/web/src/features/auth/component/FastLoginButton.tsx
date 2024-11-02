@@ -1,5 +1,6 @@
-import { Loader2, Zap } from 'lucide-react';
+import { Zap } from 'lucide-react';
 import { Button } from '@/common/components/ui/button';
+import { LoadingButton } from '@/common/components/loading-button/LoadingButton';
 import { useLogins } from '../hooks/useLogins';
 
 export function FastLoginButton() {
@@ -16,7 +17,7 @@ export function FastLoginButton() {
       disabled={loginAnonymouslyMutation.isPending}
     >
       {loginAnonymouslyMutation.isPending ? (
-        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+        <LoadingButton />
       ) : (
         <Zap className="mr-2 h-4 w-4" />
       )}

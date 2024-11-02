@@ -1,6 +1,5 @@
 import { useEffect } from 'react';
 import { observer } from 'mobx-react';
-import { Loader2 } from 'lucide-react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -15,6 +14,7 @@ import { Input } from '@/common/components/ui/input';
 import { Button } from '@/common/components/ui/button';
 import { useRootStore } from '@/stores/hooks/useRootStore';
 import { DrawerDialog } from '@/common/components/drawer-dialog/DrawerDialog';
+import { LoadingButton } from '@/common/components/loading-button/LoadingButton';
 import { useUpgradeAnonymousAccount } from '../hooks/useUpgradeAnonymousAccount';
 
 const formSchema = z
@@ -40,7 +40,7 @@ interface Props {
   handleProfileOpen: VoidFunction;
 }
 
-export const ProfileDialog = observer(function ProfileDialog({
+export const ProfileDialogContainer = observer(function ProfileDialogContainer({
   open,
   handleProfileOpen,
 }: Props) {
@@ -145,7 +145,7 @@ export const ProfileDialog = observer(function ProfileDialog({
       }
       footerContent={
         <Button type="submit" form="profile-form">
-          {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {isPending && <LoadingButton />}
           Save details
         </Button>
       }
