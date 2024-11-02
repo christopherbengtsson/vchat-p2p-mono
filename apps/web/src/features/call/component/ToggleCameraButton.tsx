@@ -1,5 +1,5 @@
 import { MdVideocam, MdVideocamOff } from 'react-icons/md';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/common/components/ui/button';
 
 interface Props {
   localStream: MediaStream | null;

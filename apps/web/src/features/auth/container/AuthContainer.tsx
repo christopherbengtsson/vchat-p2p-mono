@@ -4,7 +4,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
+} from '@/common/components/ui/card';
 import { FastLoginButton } from '../component/FastLoginButton';
 import { EmailLoginFormContainer } from './EmailLoginFormContainer';
 

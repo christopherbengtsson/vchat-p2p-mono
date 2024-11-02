@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ErrorBoundary } from '@/components/ErrorBoundary';
-import { ErrorToast } from '@/components/ErrorToast';
+import { ErrorBoundary } from '@/common/components/ErrorBoundary';
+import { ErrorToast } from '@/common/components/ErrorToast';
 import { Routes } from './Routes';
 import { RootStore } from './stores/RootStore';
-import { RootStoreProvider } from './stores/RootStoreProvider';
+import { RootStoreProvider } from './stores//context/RootStoreProvider';
 
 const queryClient = new QueryClient();
 

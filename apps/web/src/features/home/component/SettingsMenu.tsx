@@ -1,6 +1,6 @@
 import { observer } from 'mobx-react';
 import { Settings, LogOut, UserPen, UserPlus } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/common/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -8,7 +8,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+} from '@/common/components/ui/dropdown-menu';
 import { useRootStore } from '@/stores/hooks/useRootStore';
 import { useLogout } from '../hooks/useLogout';
 

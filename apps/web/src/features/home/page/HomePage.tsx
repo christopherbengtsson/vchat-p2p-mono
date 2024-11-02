@@ -2,7 +2,7 @@ import { useCallback, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { observer } from 'mobx-react';
 import { Loader2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/common/components/ui/button';
 import { useRootStore } from '@/stores/hooks/useRootStore';
 import { ProfileDialog } from '../component/ProfileDialog';
 import { SettingsMenu } from '../component/SettingsMenu';

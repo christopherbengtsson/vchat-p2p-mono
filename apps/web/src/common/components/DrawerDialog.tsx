@@ -5,7 +5,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from '@/common/components/ui/dialog';
 import {
   Drawer,
   DrawerContent,
@@ -13,8 +13,8 @@ import {
   DrawerFooter,
   DrawerHeader,
   DrawerTitle,
-} from '@/components/ui/drawer';
-import { useIsDesktop } from '@/hooks/useMediaQuery';
+} from '@/common/components/ui/drawer';
+import { useIsDesktop } from '@/common/hooks/useMediaQuery';
 
 interface Props {
   open: boolean;

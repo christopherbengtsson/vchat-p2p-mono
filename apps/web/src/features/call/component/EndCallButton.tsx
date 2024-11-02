@@ -1,5 +1,5 @@
 import { MdCallEnd } from 'react-icons/md';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/common/components/ui/button';
 
 interface Props {
   onClick: VoidFunction;

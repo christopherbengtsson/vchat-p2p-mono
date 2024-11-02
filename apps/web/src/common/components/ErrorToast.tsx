@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { observer } from 'mobx-react';
 import { Check, CircleX } from 'lucide-react';
-import { Toaster } from '@/components/ui/toaster';
-import { useToast } from '@/hooks/use-toast';
+import { Toaster } from '@/common/components/ui/toaster';
+import { useToast } from '@/common/hooks/use-toast';
 import { useRootStore } from '@/stores/hooks/useRootStore';
 import { ErrorState } from '@/stores/model/ErrorState';
 

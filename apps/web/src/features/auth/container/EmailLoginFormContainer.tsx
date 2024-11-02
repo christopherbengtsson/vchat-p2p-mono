@@ -8,9 +8,9 @@ import {
   FormField,
   FormItem,
   FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
+} from '@/common/components/ui/form';
+import { Input } from '@/common/components/ui/input';
+import { Button } from '@/common/components/ui/button';
 import { useLogins } from '../hooks/useLogins';
 
 const formSchema = z.object({

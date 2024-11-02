@@ -10,11 +10,11 @@ import {
   FormField,
   FormItem,
   FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
+} from '@/common/components/ui/form';
+import { Input } from '@/common/components/ui/input';
+import { Button } from '@/common/components/ui/button';
 import { useRootStore } from '@/stores/hooks/useRootStore';
-import { DrawerDialog } from '@/components/DrawerDialog';
+import { DrawerDialog } from '@/common/components/DrawerDialog';
 import { useUpgradeAnonymousAccount } from '../hooks/useUpgradeAnonymousAccount';
 
 const formSchema = z
