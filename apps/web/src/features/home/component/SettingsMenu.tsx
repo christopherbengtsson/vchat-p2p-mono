@@ -9,7 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useRootStore } from '@/stores/context/RootStoreContext';
+import { useRootStore } from '@/stores/hooks/useRootStore';
 import { useLogout } from '../hooks/useLogout';
 
 interface Props {

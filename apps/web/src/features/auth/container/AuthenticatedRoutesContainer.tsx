@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { observer } from 'mobx-react';
 import { Navigate, Outlet } from 'react-router-dom';
-import { useRootStore } from '@/stores/RootStoreContext';
+import { useRootStore } from '@/stores/hooks/useRootStore';
 
 export const AuthenticatedRoutesContainer = observer(
   function AuthenticatedRoutesContainer() {

@@ -1,6 +1,6 @@
 import { Navigate } from 'react-router-dom';
 import { observer } from 'mobx-react';
-import { useRootStore } from '@/stores/RootStoreContext';
+import { useRootStore } from '@/stores/hooks/useRootStore';
 import { AppState } from '@/stores/model/AppState';
 import { QueuePage } from './QueuePage';
 import { InCallPage } from './InCallPage';

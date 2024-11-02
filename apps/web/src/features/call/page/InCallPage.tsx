@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { observer } from 'mobx-react';
-import { useRootStore } from '@/stores/RootStoreContext';
+import { useRootStore } from '@/stores/hooks/useRootStore';
 import { Video } from '../component/Video';
 import { EndCallButton } from '../component/EndCallButton';
 import { ToggleCameraButton } from '../component/ToggleCameraButton';

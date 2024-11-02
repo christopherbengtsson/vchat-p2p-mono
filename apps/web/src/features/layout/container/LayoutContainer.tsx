@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { Outlet } from 'react-router-dom';
 import { observer } from 'mobx-react';
-import { useRootStore } from '@/stores/RootStoreContext';
+import { useRootStore } from '@/stores/hooks/useRootStore';
 
 export const LayoutContainer = observer(function StartPage() {
   const { mediaStore, callStore } = useRootStore();

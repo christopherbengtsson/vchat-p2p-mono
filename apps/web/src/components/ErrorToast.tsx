@@ -3,8 +3,8 @@ import { observer } from 'mobx-react';
 import { Check, CircleX } from 'lucide-react';
 import { Toaster } from '@/components/ui/toaster';
 import { useToast } from '@/hooks/use-toast';
-import { useRootStore } from '../stores/RootStoreContext';
-import { ErrorState } from '../stores/model/ErrorState';
+import { useRootStore } from '@/stores/hooks/useRootStore';
+import { ErrorState } from '@/stores/model/ErrorState';
 
 const getToastData = (errorState: ErrorState, restore?: boolean) => {
   if (errorState === ErrorState.CONNECT_ERROR) {

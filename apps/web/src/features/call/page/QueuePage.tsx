@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { MdTravelExplore } from 'react-icons/md';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { useRootStore } from '@/stores/RootStoreContext';
+import { useRootStore } from '@/stores/hooks/useRootStore';
 import { AppState } from '@/stores/model/AppState';
 
 export const QueuePage = observer(function QueuePage() {

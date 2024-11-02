@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { useRootStore } from '@/stores/context/RootStoreContext';
+import { useRootStore } from '@/stores/hooks/useRootStore';
 import { DrawerDialog } from '@/components/DrawerDialog';
 import { useUpgradeAnonymousAccount } from '../hooks/useUpgradeAnonymousAccount';
 
