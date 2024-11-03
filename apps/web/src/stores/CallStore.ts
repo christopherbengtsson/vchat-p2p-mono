@@ -4,6 +4,8 @@ import type { RootStore } from './RootStore';
 import { CallState } from './model/CallState';
 
 export class CallStore {
+  static NEW_MATCH_TIMEOUT = 1500;
+
   private rootStore: RootStore;
   private webRtcService: WebRTCService | undefined;
 
@@ -123,7 +125,7 @@ export class CallStore {
 
     setTimeout(() => {
       this.callState = CallState.IN_CALL;
-    }, 1500);
+    }, CallStore.NEW_MATCH_TIMEOUT);
   }
 
   emitVideoToggle(toggle: boolean) {

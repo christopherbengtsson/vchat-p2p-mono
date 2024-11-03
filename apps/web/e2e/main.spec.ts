@@ -1,5 +1,9 @@
 import { test, expect } from '@playwright/test';
 
+const SERVER_THROTTLE_TIMEOUT = 6000;
+
+test.setTimeout(60_000);
+
 test('happy flow', async ({ browser }) => {
   const context1 = await browser.newContext();
   const context2 = await browser.newContext();
@@ -11,15 +15,15 @@ test('happy flow', async ({ browser }) => {
   await user.goto('/');
   await expect(
     user.getByText('Currently 0 more users online', { exact: true }),
-  ).toBeVisible();
+  ).toBeVisible({ timeout: SERVER_THROTTLE_TIMEOUT });
 
   await partner.goto('/');
   await expect(
     partner.getByText('Currently 1 more users online', { exact: true }),
-  ).toBeVisible();
+  ).toBeVisible({ timeout: SERVER_THROTTLE_TIMEOUT });
   await expect(
     user.getByText('Currently 1 more users online', { exact: true }),
-  ).toBeVisible();
+  ).toBeVisible({ timeout: SERVER_THROTTLE_TIMEOUT });
 
   /** Start and cancel queue */
 
@@ -36,7 +40,7 @@ test('happy flow', async ({ browser }) => {
 
   await partner.getByRole('link', { name: 'Find match' }).click();
 
-  await expect(user.getByText(/Match with/)).toBeVisible();
+  await expect(user.getByText(/Match with/)).toBeVisible({ timeout: 20_000 });
   await expect(partner.getByText(/Match with/)).toBeVisible();
 
   /** Camera toggle */
@@ -105,20 +109,31 @@ test('happy flow', async ({ browser }) => {
   await expect(user.getByRole('button', { name: 'Cancel' })).toBeVisible();
   await expect(partner.getByRole('button', { name: 'Cancel' })).toBeVisible();
 
-  await expect(user.getByText(/Match with/)).toBeVisible();
+  await expect(user.getByText(/Match with/)).toBeVisible({ timeout: 20_000 });
   await expect(partner.getByText(/Match with/)).toBeVisible();
 
   // TODO: Redo toggle functionality tests?
 
-  await user.reload();
   await expect(
-    user.getByText('Currently 1 more users online', { exact: true }),
-  ).toBeVisible();
+    user.getByRole('button', { name: 'Turn camera off' }),
+  ).toBeEnabled();
+  await expect(
+    partner.getByRole('button', { name: 'Turn camera off' }),
+  ).toBeEnabled();
+
+  await user.reload();
+
   await expect(partner.getByRole('button', { name: 'Cancel' })).toBeVisible();
   await partner.getByRole('button', { name: 'Cancel' }).click();
+
+  await expect(
+    user.getByText('Currently 1 more users online', {
+      exact: true,
+    }),
+  ).toBeVisible({ timeout: SERVER_THROTTLE_TIMEOUT });
   await expect(
     partner.getByText('Currently 1 more users online', { exact: true }),
-  ).toBeVisible();
+  ).toBeVisible({ timeout: SERVER_THROTTLE_TIMEOUT });
 
   // Clean up
   await context1.close();
