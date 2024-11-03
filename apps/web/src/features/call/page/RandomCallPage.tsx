@@ -6,9 +6,10 @@ import { QueueContainer } from '../container/QueueContainer';
 import { InCallContainer } from '../container/InCallContainer';
 
 export const RandomCallPage = observer(function CallPage() {
-  const { uiStore } = useRootStore();
+  const { callStore } = useRootStore();
 
-  switch (uiStore.callState) {
+  console.log('RandomCallPage', callStore.callState);
+  switch (callStore.callState) {
     case CallState.IN_QUEUE:
     case CallState.MATCH_FOUND:
       return <QueueContainer />;

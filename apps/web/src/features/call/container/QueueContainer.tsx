@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { observer } from 'mobx-react';
 import { useNavigate } from 'react-router-dom';
 import { MdTravelExplore } from 'react-icons/md';
@@ -8,15 +9,25 @@ import { UserAvatar } from '../component/UserAvatar';
 import { MatchedUserText } from '../component/MatchedUserText';
 
 export const QueueContainer = observer(function QueuePage() {
-  const { uiStore, callStore } = useRootStore();
+  const { callStore, socketStore } = useRootStore();
   const navigate = useNavigate();
 
+  useEffect(() => {
+    socketStore.maybeSocket?.on('match-found', (...args) => {
+      callStore.initNewCall(...args);
+    });
+
+    return () => {
+      socketStore.maybeSocket?.off('match-found');
+    };
+  }, [callStore, socketStore.maybeSocket]);
+
   const handleCancel = () => {
-    uiStore.cancelMatch();
+    callStore.cancelMatch();
     navigate(-1);
   };
 
-  if (uiStore.callState === CallState.IN_QUEUE) {
+  if (callStore.callState === CallState.IN_QUEUE) {
     return (
       <div className="flex flex-col justify-center items-center gap-16 ">
         <MdTravelExplore className="text-white rounded-full text-[10em] animate-loading-pulse" />

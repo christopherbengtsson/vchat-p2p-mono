@@ -10,6 +10,7 @@ export const InCallContainer = observer(function InCallPage() {
   const { mediaStore, callStore } = useRootStore();
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
+  console.log('InCallContainer', callStore.callState);
 
   useEffect(() => {
     if (localVideoRef.current) {

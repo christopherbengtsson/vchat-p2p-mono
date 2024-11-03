@@ -5,6 +5,5 @@ export enum CallState {
   MATCH_FOUND,
   IN_CALL,
 
-  CONNECTION_ERROR,
   ERROR,
 }

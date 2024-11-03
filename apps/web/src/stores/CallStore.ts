@@ -7,7 +7,8 @@ export class CallStore {
   private rootStore: RootStore;
   private webRtcService: WebRTCService | undefined;
 
-  private _inCall = false;
+  private _callState: CallState = CallState.START;
+
   private _isPolite = false;
   private _roomId: string | undefined;
   private _partnerId: string | undefined;
@@ -22,11 +23,11 @@ export class CallStore {
     makeAutoObservable(this);
   }
 
-  get inCall() {
-    return this._inCall;
+  get callState() {
+    return this._callState;
   }
-  set inCall(value: boolean) {
-    this._inCall = value;
+  set callState(state: CallState) {
+    this._callState = state;
   }
 
   get isPolite() {
@@ -77,6 +78,32 @@ export class CallStore {
     this._remoteAudioEnabled = value;
   }
 
+  findMatch(slow?: boolean) {
+    console.log('findMatch', slow);
+    this.callState = CallState.IN_QUEUE;
+
+    if (slow) {
+      setTimeout(() => {
+        this.rootStore.socketStore.socket.emit(
+          'find-match',
+          this.rootStore.socketStore.id,
+        );
+      }, 2000);
+    } else {
+      this.rootStore.socketStore.socket.emit(
+        'find-match',
+        this.rootStore.socketStore.id,
+      );
+    }
+  }
+  cancelMatch() {
+    this.callState = CallState.START;
+    this.rootStore.socketStore.socket.emit(
+      'cancel-match',
+      this.rootStore.socketStore.id,
+    );
+  }
+
   initNewCall(roomId: string, partnerId: string, isPolite: boolean) {
     this.setupListeners();
 
@@ -92,11 +119,10 @@ export class CallStore {
       this.rootStore.socketStore.id,
     );
 
-    this.rootStore.uiStore.callState = CallState.MATCH_FOUND;
+    this.callState = CallState.MATCH_FOUND;
 
     setTimeout(() => {
-      this.rootStore.uiStore.callState = CallState.IN_CALL;
-      this.inCall = true;
+      this.callState = CallState.IN_CALL;
     }, 1500);
   }
 
@@ -115,9 +141,8 @@ export class CallStore {
       this.rootStore.socketStore.id,
     );
 
-    this.rootStore.uiStore.findMatch();
-
     this.cleanupAfterCall();
+    this.findMatch();
   }
 
   cleanupAfterCall() {
@@ -129,7 +154,11 @@ export class CallStore {
 
     this.roomId = undefined;
     this.partnerId = undefined;
-    this.inCall = false;
+  }
+
+  resetCallState() {
+    this.callState = CallState.START;
+    this.cleanupAfterCall();
   }
 
   private setupListeners() {
@@ -140,13 +169,12 @@ export class CallStore {
 
     socket.on('user-left', () => {
       this.cleanupAfterCall();
-      this.rootStore.uiStore.findMatch(true);
+      this.findMatch(true);
     });
 
     socket.on('partner-disconnected', () => {
-      console.log('partner-disconnected');
       this.cleanupAfterCall();
-      this.rootStore.uiStore.findMatch();
+      this.findMatch();
     });
 
     socket.on('video-toggle', (enabled) => {

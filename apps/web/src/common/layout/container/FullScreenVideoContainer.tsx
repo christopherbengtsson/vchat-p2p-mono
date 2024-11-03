@@ -1,5 +1,6 @@
 import { observer } from 'mobx-react';
 import { useRootStore } from '@/stores/hooks/useRootStore';
+import { CallState } from '@/stores/model/CallState';
 import { useMainVideoStream } from '../hooks/useMainVideoStream';
 import { BackgroundOverlay } from '../component/BackgroundOverlay';
 import { FullScreenVideo } from '../component/FullScreenVideo';
@@ -11,8 +12,11 @@ export const FullScreenVideoContainer = observer(
 
     return (
       <>
-        <FullScreenVideo inCall={callStore.inCall} videoRef={videoRef} />
-        <BackgroundOverlay inCall={callStore.inCall} />
+        <FullScreenVideo
+          inCall={callStore.callState === CallState.IN_CALL}
+          videoRef={videoRef}
+        />
+        <BackgroundOverlay inCall={callStore.callState === CallState.IN_CALL} />
       </>
     );
   },
