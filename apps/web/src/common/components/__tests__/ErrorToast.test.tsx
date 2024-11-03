@@ -1,8 +1,8 @@
 import { act, render, screen } from '@testing-library/react';
+import { ErrorState } from '@/stores/model/ErrorState';
+import { RootStore } from '@/stores/RootStore';
+import { RootStoreContext } from '@/stores/context/RootStoreContext';
 import { ErrorToast } from '../error-toast/ErrorToast';
-import { ErrorState } from '../../stores/model/ErrorState';
-import { RootStore } from '../../stores/RootStore';
-import { RootStoreContext } from '../../stores/RootStoreContext';
 
 describe('<ErrorToast />', () => {
   // TODO: Disable rule for tests
