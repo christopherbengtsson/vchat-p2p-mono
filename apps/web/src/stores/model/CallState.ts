@@ -1,10 +1,10 @@
-export enum AppState {
+export enum CallState {
   START,
 
   IN_QUEUE,
   MATCH_FOUND,
   IN_CALL,
 
-  CONNECTION__ERROR,
+  CONNECTION_ERROR,
   ERROR,
 }

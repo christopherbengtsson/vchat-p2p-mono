@@ -1,7 +1,7 @@
 import { makeAutoObservable } from 'mobx';
 import { WebRTCService } from '../features/call/service/WebRTCService';
 import type { RootStore } from './RootStore';
-import { AppState } from './model/AppState';
+import { CallState } from './model/CallState';
 
 export class CallStore {
   private rootStore: RootStore;
@@ -78,6 +78,8 @@ export class CallStore {
   }
 
   initNewCall(roomId: string, partnerId: string, isPolite: boolean) {
+    this.setupListeners();
+
     this.roomId = roomId;
     this.partnerId = partnerId;
     this.isPolite = isPolite;
@@ -90,10 +92,10 @@ export class CallStore {
       this.rootStore.socketStore.id,
     );
 
-    this.rootStore.uiStore.appState = AppState.MATCH_FOUND;
+    this.rootStore.uiStore.callState = CallState.MATCH_FOUND;
 
     setTimeout(() => {
-      this.rootStore.uiStore.appState = AppState.IN_CALL;
+      this.rootStore.uiStore.callState = CallState.IN_CALL;
       this.inCall = true;
     }, 1500);
   }
@@ -119,6 +121,8 @@ export class CallStore {
   }
 
   cleanupAfterCall() {
+    this.removeListeners();
+
     this.webRtcService?.cleanup();
     this.webRtcService = undefined;
     this.remoteStream = null;
@@ -126,5 +130,42 @@ export class CallStore {
     this.roomId = undefined;
     this.partnerId = undefined;
     this.inCall = false;
+  }
+
+  private setupListeners() {
+    const socket = this.rootStore.socketStore.maybeSocket;
+    if (!socket) {
+      return;
+    }
+
+    socket.on('user-left', () => {
+      this.cleanupAfterCall();
+      this.rootStore.uiStore.findMatch(true);
+    });
+
+    socket.on('partner-disconnected', () => {
+      console.log('partner-disconnected');
+      this.cleanupAfterCall();
+      this.rootStore.uiStore.findMatch();
+    });
+
+    socket.on('video-toggle', (enabled) => {
+      this.remoteVideoEnabled = enabled;
+    });
+
+    socket.on('audio-toggle', (enabled) => {
+      this.remoteAudioEnabled = enabled;
+    });
+  }
+
+  private removeListeners() {
+    const socket = this.rootStore.socketStore.maybeSocket;
+    if (!socket) {
+      return;
+    }
+    socket.off('user-left');
+    socket.off('partner-disconnected');
+    socket.off('video-toggle');
+    socket.off('audio-toggle');
   }
 }

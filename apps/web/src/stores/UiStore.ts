@@ -1,5 +1,5 @@
 import { makeAutoObservable } from 'mobx';
-import { AppState } from './model/AppState';
+import { CallState } from './model/CallState';
 import { ErrorState } from './model/ErrorState';
 import type { RootStore } from './RootStore';
 import type { SocketStore } from './SocketStore';
@@ -9,7 +9,7 @@ export class UiStore {
   private socketStore: SocketStore;
   private callStore: CallStore;
 
-  private _appState: AppState = AppState.START;
+  private _callState: CallState = CallState.START;
   private _errorState: ErrorState | undefined = undefined;
 
   private _localStreamPlacement: 'background' | 'mini' = 'background';
@@ -23,11 +23,11 @@ export class UiStore {
     makeAutoObservable(this);
   }
 
-  get appState() {
-    return this._appState;
+  get callState() {
+    return this._callState;
   }
-  set appState(state: AppState) {
-    this._appState = state;
+  set callState(state: CallState) {
+    this._callState = state;
   }
 
   get errorState() {
@@ -52,7 +52,7 @@ export class UiStore {
   }
 
   findMatch(slow?: boolean) {
-    this.appState = AppState.IN_QUEUE;
+    this.callState = CallState.IN_QUEUE;
 
     if (slow) {
       setTimeout(() => {
@@ -63,7 +63,7 @@ export class UiStore {
     }
   }
   cancelMatch() {
-    this.appState = AppState.START;
+    this.callState = CallState.START;
     this.socketStore.socket.emit('cancel-match', this.socketStore.id);
   }
 

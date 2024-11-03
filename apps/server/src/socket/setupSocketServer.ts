@@ -92,7 +92,6 @@ export function setupSocketServer(httpServer: Server, redisClient: Redis) {
     setupRoomManagement(socket, wrapSocketHandler);
 
     socket.on('disconnecting', async () => {
-      await redisQueue.removeFromQueue(socket.id);
       Array.from(socket.rooms.values()).forEach((roomId) => {
         socket.to(roomId).emit('partner-disconnected', socket.id);
       });
