@@ -2,8 +2,8 @@ import { Navigate } from 'react-router-dom';
 import { observer } from 'mobx-react';
 import { useRootStore } from '@/stores/hooks/useRootStore';
 import { AppState } from '@/stores/model/AppState';
-import { QueuePage } from './QueuePage';
-import { InCallPage } from './InCallPage';
+import { QueueContainer } from '../container/QueueContainer';
+import { InCallContainer } from '../container/InCallContainer';
 
 export const RandomCallPage = observer(function CallPage() {
   const { uiStore } = useRootStore();
@@ -11,10 +11,10 @@ export const RandomCallPage = observer(function CallPage() {
   switch (uiStore.appState) {
     case AppState.IN_QUEUE:
     case AppState.MATCH_FOUND:
-      return <QueuePage />;
+      return <QueueContainer />;
 
     case AppState.IN_CALL:
-      return <InCallPage />;
+      return <InCallContainer />;
 
     default:
       return <Navigate to="/" replace />;

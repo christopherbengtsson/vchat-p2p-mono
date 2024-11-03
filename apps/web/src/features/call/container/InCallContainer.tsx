@@ -6,7 +6,7 @@ import { EndCallButton } from '../component/EndCallButton';
 import { ToggleCameraButton } from '../component/ToggleCameraButton';
 import { ToggleMuteButton } from '../component/ToggleMuteButton';
 
-export const InCallPage = observer(function InCallPage() {
+export const InCallContainer = observer(function InCallPage() {
   const { mediaStore, callStore } = useRootStore();
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
