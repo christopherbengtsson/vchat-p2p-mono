@@ -1,3 +1,5 @@
+// apps/server/src/socket/nspEmitters.ts
+
 import type {
   ClientToServerEvents,
   ServerToClientEvents,
@@ -7,12 +9,41 @@ import throttle from 'lodash.throttle';
 
 export const nspEmitters = (
   nsp: Namespace<ClientToServerEvents, ServerToClientEvents>,
-) => ({
-  connectionsCount: throttle(
+) => {
+  let throttled = false;
+
+  const emitConnectionsCount = () => {
+    nsp.emit('connections-count', nsp.sockets.size);
+  };
+
+  const throttledEmit = throttle(
     () => {
-      nsp.emit('connections-count', nsp.sockets.size);
+      if (throttled) {
+        emitConnectionsCount();
+        throttled = false;
+      }
     },
     5000,
-    { leading: true, trailing: true },
-  ),
-});
+    {
+      leading: false,
+      trailing: true,
+    },
+  );
+
+  const connectionsCount = () => {
+    if (!throttled) {
+      // First call, emit immediately
+      emitConnectionsCount();
+      throttled = true;
+      throttledEmit();
+    } else {
+      // Subsequent calls during throttle period
+      throttled = true;
+      throttledEmit();
+    }
+  };
+
+  return {
+    connectionsCount,
+  };
+};
