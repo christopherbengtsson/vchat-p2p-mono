@@ -1,19 +1,25 @@
-import { useState } from 'react';
-import { ErrorBoundary } from '@/components/ErrorBoundary';
-import { ErrorToast } from '@/components/ErrorToast';
-import { Routes } from './routes/Routes';
+import { useRef } from 'react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ErrorBoundary } from '@/common/components/error-boundary/ErrorBoundary';
+import { ErrorToast } from '@/common/components/error-toast/ErrorToast';
+import { Routes } from './Routes';
 import { RootStore } from './stores/RootStore';
-import { RootStoreProvider } from './stores/RootStoreProvider';
+import { RootStoreProvider } from './stores/context/RootStoreProvider';
+
+const queryClient = new QueryClient();
 
 export function Application() {
-  const [store] = useState(new RootStore());
+  const storeRef = useRef(new RootStore());
+  const store = storeRef.current;
 
   return (
     <ErrorBoundary>
-      <RootStoreProvider store={store}>
-        <Routes />
-        <ErrorToast />
-      </RootStoreProvider>
+      <QueryClientProvider client={queryClient}>
+        <RootStoreProvider store={store}>
+          <Routes />
+          <ErrorToast />
+        </RootStoreProvider>
+      </QueryClientProvider>
     </ErrorBoundary>
   );
 }

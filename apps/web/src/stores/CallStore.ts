@@ -1,13 +1,16 @@
 import { makeAutoObservable } from 'mobx';
-import { WebRTCService } from '../services/WebRTCService';
+import { WebRTCService } from '../features/call/service/WebRTCService';
 import type { RootStore } from './RootStore';
-import { AppState } from './model/AppState';
+import { CallState } from './model/CallState';
 
 export class CallStore {
+  static NEW_MATCH_TIMEOUT = 1500;
+
   private rootStore: RootStore;
   private webRtcService: WebRTCService | undefined;
 
-  private _inCall = false;
+  private _callState: CallState = CallState.START;
+
   private _isPolite = false;
   private _roomId: string | undefined;
   private _partnerId: string | undefined;
@@ -22,11 +25,11 @@ export class CallStore {
     makeAutoObservable(this);
   }
 
-  get inCall() {
-    return this._inCall;
+  get callState() {
+    return this._callState;
   }
-  set inCall(value: boolean) {
-    this._inCall = value;
+  set callState(state: CallState) {
+    this._callState = state;
   }
 
   get isPolite() {
@@ -77,7 +80,35 @@ export class CallStore {
     this._remoteAudioEnabled = value;
   }
 
+  findMatch(slow?: boolean) {
+    console.log('findMatch', slow);
+    this.callState = CallState.IN_QUEUE;
+
+    if (slow) {
+      setTimeout(() => {
+        this.rootStore.socketStore.socket.emit(
+          'find-match',
+          this.rootStore.socketStore.id,
+        );
+      }, 2000);
+    } else {
+      this.rootStore.socketStore.socket.emit(
+        'find-match',
+        this.rootStore.socketStore.id,
+      );
+    }
+  }
+  cancelMatch() {
+    this.callState = CallState.START;
+    this.rootStore.socketStore.socket.emit(
+      'cancel-match',
+      this.rootStore.socketStore.id,
+    );
+  }
+
   initNewCall(roomId: string, partnerId: string, isPolite: boolean) {
+    this.setupListeners();
+
     this.roomId = roomId;
     this.partnerId = partnerId;
     this.isPolite = isPolite;
@@ -90,12 +121,11 @@ export class CallStore {
       this.rootStore.socketStore.id,
     );
 
-    this.rootStore.uiStore.appState = AppState.MATCH_FOUND;
+    this.callState = CallState.MATCH_FOUND;
 
     setTimeout(() => {
-      this.rootStore.uiStore.appState = AppState.IN_CALL;
-      this.inCall = true;
-    }, 1500);
+      this.callState = CallState.IN_CALL;
+    }, CallStore.NEW_MATCH_TIMEOUT);
   }
 
   emitVideoToggle(toggle: boolean) {
@@ -113,18 +143,59 @@ export class CallStore {
       this.rootStore.socketStore.id,
     );
 
-    this.rootStore.uiStore.findMatch();
-
     this.cleanupAfterCall();
+    this.findMatch();
   }
 
   cleanupAfterCall() {
+    this.removeListeners();
+
     this.webRtcService?.cleanup();
     this.webRtcService = undefined;
     this.remoteStream = null;
 
     this.roomId = undefined;
     this.partnerId = undefined;
-    this.inCall = false;
+  }
+
+  resetCallState() {
+    this.callState = CallState.START;
+    this.cleanupAfterCall();
+  }
+
+  private setupListeners() {
+    const socket = this.rootStore.socketStore.maybeSocket;
+    if (!socket) {
+      return;
+    }
+
+    socket.on('user-left', () => {
+      this.cleanupAfterCall();
+      this.findMatch(true);
+    });
+
+    socket.on('partner-disconnected', () => {
+      this.cleanupAfterCall();
+      this.findMatch();
+    });
+
+    socket.on('video-toggle', (enabled) => {
+      this.remoteVideoEnabled = enabled;
+    });
+
+    socket.on('audio-toggle', (enabled) => {
+      this.remoteAudioEnabled = enabled;
+    });
+  }
+
+  private removeListeners() {
+    const socket = this.rootStore.socketStore.maybeSocket;
+    if (!socket) {
+      return;
+    }
+    socket.off('user-left');
+    socket.off('partner-disconnected');
+    socket.off('video-toggle');
+    socket.off('audio-toggle');
   }
 }

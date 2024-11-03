@@ -1,7 +1,7 @@
 import { makeAutoObservable } from 'mobx';
-import { MediaStreamService } from '../services/MediaStreamService';
-import { RootStore } from './RootStore';
+import { MediaStreamService } from './services/MediaStreamService';
 import { ErrorState } from './model/ErrorState';
+import { RootStore } from './RootStore';
 
 export class MediaStore {
   private _rootStore: RootStore;

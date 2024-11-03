@@ -1,0 +1,18 @@
+{
+  "name": "@mono/common-supabase",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "types": "./dist/index.d.ts",
+  "main": "./dist/index.js",
+  "scripts": {
+    "build": "tsc"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.3",
+    "@supabase/supabase-js": "^2.45.4"
+  },
+  "peerDependencies": {
+    "@supabase/supabase-js": "^2.45.4"
+  }
+}

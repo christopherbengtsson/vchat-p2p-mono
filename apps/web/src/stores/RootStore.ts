@@ -16,6 +16,6 @@ export class RootStore {
     this.socketStore = new SocketStore(this);
     this.mediaStore = new MediaStore(this);
     this.callStore = new CallStore(this);
-    this.uiStore = new UiStore(this);
+    this.uiStore = new UiStore();
   }
 }
