@@ -17,7 +17,6 @@ import { ProfileDialogContainer } from './ProfileDialogContainer';
 export const SettingsMenuContainer = observer(function SettingsMenuContainer() {
   const { authStore } = useRootStore();
   const logoutMutation = useLogout();
-  const isAnonymous = Boolean(authStore.session?.user.is_anonymous);
 
   const [profileDialogOpen, setProfileDialogOpen] = useState(false);
 
@@ -43,7 +42,7 @@ export const SettingsMenuContainer = observer(function SettingsMenuContainer() {
 
             <ProfileMenuItem
               profileDialogToggle={profileDialogToggle}
-              isAnonymous={isAnonymous}
+              isAnonymous={Boolean(authStore.session?.user.is_anonymous)}
             />
 
             <LogoutMenuItem handleLogout={handleLogout} />
