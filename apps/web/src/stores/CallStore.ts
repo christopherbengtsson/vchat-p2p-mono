@@ -1,5 +1,5 @@
 import { makeAutoObservable } from 'mobx';
-import { WebRTCService } from '../services/WebRTCService';
+import { WebRTCService } from '../features/call/service/WebRTCService';
 import type { RootStore } from './RootStore';
 import { AppState } from './model/AppState';
 
