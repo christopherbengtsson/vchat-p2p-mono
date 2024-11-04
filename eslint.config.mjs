@@ -53,6 +53,7 @@ export default tseslint.config(
       'import/no-named-as-default-member': 'off',
       'import/no-unresolved': 'off',
       'import/namespace': 'off',
+      '@typescript-eslint/prefer-for-of': 'off',
     },
   },
 
