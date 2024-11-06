@@ -1,8 +1,12 @@
 import { makeAutoObservable } from 'mobx';
 import { io } from 'socket.io-client';
+import {
+  DefaultToastState,
+  ErrorToastState,
+} from '@/common/utils/toast/model/ToastState';
+import { showToast } from '@/common/utils/toast/showToast';
 import { ChatSocket } from './model/SocketModel';
 import type { RootStore } from './RootStore';
-import { ErrorState } from './model/ErrorState';
 
 export class SocketStore {
   private rootStore: RootStore;
@@ -25,7 +29,7 @@ export class SocketStore {
 
   get socket() {
     if (!this._socket) {
-      this.rootStore.uiStore.errorState = ErrorState.CONNECT_ERROR;
+      showToast(ErrorToastState.CONNECT_ERROR);
       throw new Error('Socket not defined');
     }
     return this._socket;
@@ -38,7 +42,7 @@ export class SocketStore {
   get id() {
     const id = this.socket.id;
     if (!id) {
-      this.rootStore.uiStore.errorState = ErrorState.CONNECT_ERROR;
+      showToast(ErrorToastState.CONNECT_ERROR);
       throw new Error('Socket id not defined');
     }
     return id;
@@ -79,16 +83,16 @@ export class SocketStore {
         // the disconnection was initiated by the server, you need to manually reconnect
         // this.maybeSocket?.active = false
         console.log('Disconnected by server');
-        this.rootStore.uiStore.errorState = ErrorState.SERVER_DISCONNECTED;
+        showToast(ErrorToastState.SERVER_DISCONNECTED);
       }
       this.rootStore.callStore.resetCallState();
     });
 
     this.socket.on('connect_error', (_err) => {
-      this.rootStore.uiStore.errorState = ErrorState.CONNECT_ERROR;
+      showToast(ErrorToastState.CONNECT_ERROR);
       this.socket.once('connect', () => {
         this.connected = true;
-        this.rootStore.uiStore.errorState = undefined;
+        showToast(DefaultToastState.CONNECTION_RESTORED);
       });
     });
   }

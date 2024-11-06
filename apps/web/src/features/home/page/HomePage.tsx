@@ -33,7 +33,8 @@ export const VolumeVisualizer: React.FC<VolumeVisualizerProps> = ({
 };
 
 export const HomePage = observer(function StartPage() {
-  const { uiStore, socketStore, callStore, mediaStore } = useRootStore();
+  const { socketStore, callStore, mediaStore } = useRootStore();
+
   const [vol, setVol] = useState(0);
 
   const handleVolume = useCallback((volume: number) => {
@@ -58,7 +59,6 @@ export const HomePage = observer(function StartPage() {
         <FindMatchButton
           connectOrFindMatch={connectOrFindMatch}
           connected={socketStore.connected}
-          disabled={uiStore.errorState !== undefined}
         />
 
         <ConnectionCountContainer />
