@@ -12,7 +12,7 @@ export class RootStore {
   callStore: CallStore;
 
   constructor() {
-    this.authStore = new AuthStore();
+    this.authStore = new AuthStore(this);
     this.socketStore = new SocketStore(this);
     this.mediaStore = new MediaStore(this);
     this.callStore = new CallStore(this);

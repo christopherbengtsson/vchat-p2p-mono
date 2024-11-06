@@ -1,5 +1,6 @@
 import { Outlet } from 'react-router-dom';
 import { FullScreenVideoContainer } from './FullScreenVideoContainer';
+import { DialogsContainer } from './DialogsContainer';
 
 export function LayoutContainer() {
   return (
@@ -8,6 +9,8 @@ export function LayoutContainer() {
 
       <main className="relative z-10 bg-transparent w-full h-screen flex items-center justify-center p-4">
         <Outlet />
+
+        <DialogsContainer />
       </main>
     </div>
   );

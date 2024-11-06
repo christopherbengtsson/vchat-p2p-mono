@@ -6,20 +6,18 @@ import { LoadingButton } from '@/common/components/loading-button/LoadingButton'
 interface Props {
   connectOrFindMatch: VoidFunction;
   connected: boolean;
-  disabled: boolean;
 }
 
 export const FindMatchButton = observer(function FindMatchButton({
   connectOrFindMatch,
   connected,
-  disabled,
 }: Props) {
   return (
     <Button
       asChild={connected ? true : undefined}
       className="w-full"
       onClick={connectOrFindMatch}
-      disabled={disabled || !connected}
+      disabled={!connected}
     >
       {!connected ? (
         <>
