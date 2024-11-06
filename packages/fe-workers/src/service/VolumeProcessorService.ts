@@ -1,5 +1,3 @@
-// src/volume-processor.js
-
 class VolumeProcessor extends AudioWorkletProcessor {
   process(
     inputs: Float32Array[][],
