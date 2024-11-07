@@ -2,7 +2,9 @@ import { useEffect, useRef, useCallback } from 'react';
 import { AudioAnalyserService } from '../service/AudioAnalyserService';
 import { Wall } from '../model/Wall';
 import {
+  ACCELERATION,
   BALL_RADIUS,
+  GRAVITY,
   WALL_FREQUENCY,
   WALL_SPEED,
 } from '../service/CanvasService';
@@ -32,16 +34,17 @@ const isCollision = ({
 
 interface In {
   canvasRef: React.RefObject<HTMLCanvasElement>;
-  draw: (ctx: CanvasRenderingContext2D, volume: number, walls: Wall[]) => void;
+  draw: (ctx: CanvasRenderingContext2D, yPos: number, walls: Wall[]) => void;
 }
 
 export const useCanvasAnimate = ({ canvasRef, draw }: In) => {
   const requestRef = useRef<number>();
   const previousVolumeRef = useRef<number>(0);
-  const smoothingFactor = 0.8; // Adjust between 0-1
-
   const wallsRef = useRef<Wall[]>([]);
   const frameCountRef = useRef<number>(0);
+
+  const velocityRef = useRef<number>(0);
+  const positionRef = useRef<number>(0);
 
   const animate = useCallback(() => {
     const canvas = canvasRef.current;
@@ -49,12 +52,30 @@ export const useCanvasAnimate = ({ canvasRef, draw }: In) => {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
+    const minY = BALL_RADIUS;
+    const maxY = canvas.height - BALL_RADIUS;
+
     // Update volume
     const newVolume = AudioAnalyserService.getVolume();
-    const smoothedVolume =
-      smoothingFactor * previousVolumeRef.current +
-      (1 - smoothingFactor) * newVolume;
-    previousVolumeRef.current = smoothedVolume;
+    previousVolumeRef.current = newVolume;
+
+    // Map volume to an upward force
+    const upwardForce = newVolume * ACCELERATION; // Adjust multiplier as needed
+
+    // Update physics
+    velocityRef.current += GRAVITY; // Gravity pulls the ball down
+    velocityRef.current -= upwardForce; // Voice volume pushes the ball up
+    positionRef.current += velocityRef.current;
+
+    // Clamp position within canvas bounds
+    if (positionRef.current > maxY) {
+      positionRef.current = maxY;
+      velocityRef.current = 0; // Reset velocity upon hitting the bottom
+    }
+    if (positionRef.current < minY) {
+      positionRef.current = minY;
+      velocityRef.current = 0; // Reset velocity upon hitting the top
+    }
 
     // Update walls
     frameCountRef.current++;
@@ -80,11 +101,8 @@ export const useCanvasAnimate = ({ canvasRef, draw }: In) => {
     );
 
     // Collision detection
-    const minY = BALL_RADIUS;
-    const maxY = canvas.height - BALL_RADIUS;
-
     const ballX = BALL_RADIUS * 5;
-    const ballY = maxY - smoothedVolume * (maxY - minY);
+    const ballY = positionRef.current;
 
     if (
       isCollision({
@@ -101,12 +119,17 @@ export const useCanvasAnimate = ({ canvasRef, draw }: In) => {
       }
     }
 
-    draw(ctx, smoothedVolume, wallsRef.current);
+    draw(ctx, positionRef.current, wallsRef.current);
 
     requestRef.current = requestAnimationFrame(animate);
   }, [canvasRef, draw]);
 
   useEffect(() => {
+    // Initialize position at the bottom of the canvas
+    const canvas = canvasRef.current;
+    if (canvas) {
+      positionRef.current = canvas.height - BALL_RADIUS;
+    }
     requestRef.current = requestAnimationFrame(animate);
 
     return () => {
@@ -114,5 +137,5 @@ export const useCanvasAnimate = ({ canvasRef, draw }: In) => {
         cancelAnimationFrame(requestRef.current);
       }
     };
-  }, [animate]);
+  }, [animate, canvasRef]);
 };

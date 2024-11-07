@@ -4,19 +4,15 @@ import { BALL_RADIUS } from '../service/CanvasService';
 
 export const useCanvasDraw = () => {
   const draw = useCallback(
-    (ctx: CanvasRenderingContext2D, volume: number, walls: Wall[]) => {
+    (ctx: CanvasRenderingContext2D, yPos: number, walls: Wall[]) => {
       const canvas = ctx.canvas;
-      const minY = BALL_RADIUS;
-      const maxY = canvas.height - BALL_RADIUS;
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // Map volume to vertical position
-      const clampedVolume = Math.min(Math.max(volume, 0), 1);
-      const y = maxY - clampedVolume * (maxY - minY);
-
       // Draw the ball
       const ballX = BALL_RADIUS * 5;
+      const y = yPos; // Use the provided yPos
+
       ctx.beginPath();
       ctx.arc(ballX, y, BALL_RADIUS, 0, 2 * Math.PI);
       ctx.fillStyle = '#1E3A8A'; // Tailwind CSS blue-900
