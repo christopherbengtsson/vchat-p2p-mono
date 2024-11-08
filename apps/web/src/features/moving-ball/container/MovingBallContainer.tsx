@@ -8,14 +8,26 @@ export const MovingBallContainer = observer(function MovingBallContainer() {
   const { mediaStore } = useRootStore();
 
   useEffect(() => {
-    if (mediaStore.maybeStream) {
-      AudioAnalyserService.init(mediaStore.maybeStream);
-    }
+    let analyserStream: MediaStream;
+
+    const getAnalyserStream = async () => {
+      try {
+        analyserStream = await mediaStore.requestGameAudioStream();
+        AudioAnalyserService.init(analyserStream);
+      } catch (error) {
+        console.error('Error accessing microphone for audio analysis:', error);
+      }
+    };
+
+    getAnalyserStream();
 
     return () => {
       AudioAnalyserService.stop();
+      if (analyserStream) {
+        analyserStream.getTracks().forEach((track) => track.stop());
+      }
     };
-  }, [mediaStore.maybeStream]);
+  }, [mediaStore]);
 
   return <CanvasContainer />;
 });

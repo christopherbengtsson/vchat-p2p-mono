@@ -85,6 +85,16 @@ export class MediaStore {
     }
   }
 
+  async requestGameAudioStream() {
+    try {
+      return await MediaStreamService.requestGameAudioStream();
+    } catch (error: DOMException | unknown) {
+      // TODO: Can this happen? Close call?
+      console.error(error);
+      throw error;
+    }
+  }
+
   private getDomExceptionError(error: DOMException): ToastState {
     switch (error.name) {
       case 'NotAllowedError':
