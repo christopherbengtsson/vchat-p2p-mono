@@ -2,9 +2,7 @@ import { useEffect, useRef, useCallback } from 'react';
 import { AudioAnalyserService } from '../service/AudioAnalyserService';
 import { Wall } from '../model/Wall';
 import {
-  ACCELERATION,
   BALL_RADIUS,
-  GRAVITY,
   WALL_FREQUENCY,
   WALL_SPEED,
 } from '../service/CanvasService';
@@ -39,12 +37,11 @@ interface In {
 
 export const useCanvasAnimate = ({ canvasRef, draw }: In) => {
   const requestRef = useRef<number>();
-  const previousVolumeRef = useRef<number>(0);
   const wallsRef = useRef<Wall[]>([]);
   const frameCountRef = useRef<number>(0);
 
-  const velocityRef = useRef<number>(0);
-  const positionRef = useRef<number>(0);
+  const volumeHistory = useRef<number[]>([]);
+  const SMOOTHING_FRAMES = 35;
 
   const animate = useCallback(() => {
     const canvas = canvasRef.current;
@@ -52,36 +49,38 @@ export const useCanvasAnimate = ({ canvasRef, draw }: In) => {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
+    // Get the normalized volume (0 to 1)
+    const rawVolume = AudioAnalyserService.getVolume();
+
+    // Make is easier to reach the top
+    const scaleFactor = 2;
+    const scaledVolume = Math.min(rawVolume * scaleFactor, 1);
+
+    // Cancel small out noices
+    const threshold = 0.1;
+    const volume = scaledVolume < threshold ? 0 : scaledVolume;
+
+    volumeHistory.current.push(volume);
+    if (volumeHistory.current.length > SMOOTHING_FRAMES) {
+      volumeHistory.current.shift();
+    }
+    const smoothedVolume =
+      volumeHistory.current.reduce((sum, v) => sum + v, 0) /
+      volumeHistory.current.length;
+
+    // Map volume to Y position
     const minY = BALL_RADIUS;
     const maxY = canvas.height - BALL_RADIUS;
+    const usableHeight = maxY - minY;
 
-    // Update volume
-    const newVolume = AudioAnalyserService.getVolume();
-    previousVolumeRef.current = newVolume;
+    // Invert volume so that higher volume moves the ball up (Y decreases upwards)
+    const ballY = maxY - smoothedVolume * usableHeight;
 
-    // Map volume to an upward force
-    const upwardForce = newVolume * ACCELERATION; // Adjust multiplier as needed
-
-    // Update physics
-    velocityRef.current += GRAVITY; // Gravity pulls the ball down
-    velocityRef.current -= upwardForce; // Voice volume pushes the ball up
-    positionRef.current += velocityRef.current;
-
-    // Clamp position within canvas bounds
-    if (positionRef.current > maxY) {
-      positionRef.current = maxY;
-      velocityRef.current = 0; // Reset velocity upon hitting the bottom
-    }
-    if (positionRef.current < minY) {
-      positionRef.current = minY;
-      velocityRef.current = 0; // Reset velocity upon hitting the top
-    }
-
-    // Update walls
+    // Update walls (if necessary)
     frameCountRef.current++;
     if (frameCountRef.current % WALL_FREQUENCY === 0) {
-      // Add a new wall
-      const gapHeight = 100; // Height of the wall
+      // Add a new wall (if your game uses walls)
+      const gapHeight = 100; // Adjust as needed
       wallsRef.current.push({
         x: canvas.width,
         width: 20,
@@ -95,18 +94,16 @@ export const useCanvasAnimate = ({ canvasRef, draw }: In) => {
       wall.x -= WALL_SPEED;
     });
 
-    // Remove walls that have gone offscreen
+    // Remove off-screen walls
     wallsRef.current = wallsRef.current.filter(
       (wall) => wall.x + wall.width > 0,
     );
 
     // Collision detection
-    const ballX = BALL_RADIUS * 5;
-    const ballY = positionRef.current;
 
     if (
       isCollision({
-        ballX,
+        ballX: BALL_RADIUS * 5,
         ballY,
         walls: wallsRef.current,
         canvasHeight: canvas.height,
@@ -119,17 +116,14 @@ export const useCanvasAnimate = ({ canvasRef, draw }: In) => {
       }
     }
 
-    draw(ctx, positionRef.current, wallsRef.current);
+    // Draw the frame
+    draw(ctx, ballY, wallsRef.current);
 
+    // Request the next frame
     requestRef.current = requestAnimationFrame(animate);
   }, [canvasRef, draw]);
 
   useEffect(() => {
-    // Initialize position at the bottom of the canvas
-    const canvas = canvasRef.current;
-    if (canvas) {
-      positionRef.current = canvas.height - BALL_RADIUS;
-    }
     requestRef.current = requestAnimationFrame(animate);
 
     return () => {
@@ -137,5 +131,5 @@ export const useCanvasAnimate = ({ canvasRef, draw }: In) => {
         cancelAnimationFrame(requestRef.current);
       }
     };
-  }, [animate, canvasRef]);
+  }, [animate]);
 };

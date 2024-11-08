@@ -26,7 +26,9 @@ const getVolume = () => {
     sum += value * value;
   }
   const rms = Math.sqrt(sum / dataArray.length);
-  return rms;
+  const normalizedRMS = Math.min(rms, 1);
+
+  return normalizedRMS;
 };
 
 const stop = () => {
