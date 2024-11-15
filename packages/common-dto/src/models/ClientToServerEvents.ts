@@ -13,5 +13,8 @@ export interface ClientToServerEvents {
   'audio-toggle': (enabled: boolean, roomId: string) => void;
   'video-toggle': (enabled: boolean, roomId: string) => void;
 
+  'send-game-invite': (roomId: string) => void;
+  'answer-game-invite': (roomId: string, accept: boolean) => void;
+
   'peer-message': (data: PeerMessage, roomId: string, userId: string) => void;
 }

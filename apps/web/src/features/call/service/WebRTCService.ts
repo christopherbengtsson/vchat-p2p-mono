@@ -18,6 +18,9 @@ export class WebRTCService {
   private makingOffer = false;
   private ignoreOffer = false;
 
+  private canvasStream: RTCRtpSender | null = null;
+  private videoStreamId: string | null = null;
+
   constructor(rootStore: RootStore) {
     this.rootStore = rootStore;
 
@@ -69,11 +72,19 @@ export class WebRTCService {
 
     this.peerConnection.ontrack = ({ track, streams }) => {
       track.onunmute = () => {
-        if (this.rootStore.callStore.remoteStream) {
-          return;
+        const remoteStream = streams[0];
+
+        if (!this.rootStore.callStore.remoteStream) {
+          this.rootStore.callStore.remoteStream = remoteStream;
+          this.videoStreamId = remoteStream.id;
         }
 
-        this.rootStore.callStore.remoteStream = streams[0];
+        if (
+          !this.rootStore.callStore.remoteCanvasStream &&
+          remoteStream.id !== this.videoStreamId
+        ) {
+          this.rootStore.callStore.remoteCanvasStream = remoteStream;
+        }
       };
     };
   }
@@ -91,7 +102,6 @@ export class WebRTCService {
       );
       return;
     }
-
     try {
       if (PeerMessage.isDescription(peerMessage) && !!peerMessage.description) {
         const { description } = peerMessage;
@@ -127,6 +137,19 @@ export class WebRTCService {
       console.warn(error);
     }
   };
+
+  async addCanvasStream(canvasStream: MediaStream) {
+    for (const track of canvasStream.getTracks()) {
+      this.canvasStream = this.peerConnection.addTrack(track, canvasStream);
+    }
+  }
+
+  async removeCanvasStream() {
+    if (this.canvasStream) {
+      this.peerConnection.removeTrack(this.canvasStream);
+      this.canvasStream = null;
+    }
+  }
 
   cleanup() {
     this.peerConnection.close();

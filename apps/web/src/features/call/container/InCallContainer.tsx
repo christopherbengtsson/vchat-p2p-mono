@@ -5,12 +5,13 @@ import { Video } from '../component/Video';
 import { EndCallButton } from '../component/EndCallButton';
 import { ToggleCameraButton } from '../component/ToggleCameraButton';
 import { ToggleMuteButton } from '../component/ToggleMuteButton';
+import { MovingBallContainer } from '../../moving-ball/container/MovingBallContainer';
+import { GameInviteButton } from '../component/GameInviteButton';
 
 export const InCallContainer = observer(function InCallPage() {
-  const { mediaStore, callStore } = useRootStore();
+  const { mediaStore, callStore, socketStore } = useRootStore();
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
-  console.log('InCallContainer', callStore.callState);
 
   useEffect(() => {
     if (localVideoRef.current) {
@@ -20,6 +21,32 @@ export const InCallContainer = observer(function InCallPage() {
       remoteVideoRef.current.srcObject = callStore.remoteStream;
     }
   }, [callStore.remoteStream, mediaStore.stream]);
+
+  useEffect(() => {
+    socketStore.maybeSocket?.on('send-game-invite', () => {
+      socketStore.maybeSocket?.emit(
+        'answer-game-invite',
+        callStore.roomId,
+        true,
+      );
+    });
+
+    return () => {
+      socketStore.maybeSocket?.off('send-game-invite');
+    };
+  }, [callStore.roomId, socketStore.maybeSocket]);
+
+  useEffect(() => {
+    socketStore.maybeSocket?.on('answer-game-invite', (accept) => {
+      if (accept) {
+        callStore.startGameLocally();
+      }
+    });
+
+    return () => {
+      socketStore.maybeSocket?.off('send-game-invite');
+    };
+  }, [callStore, callStore.roomId, socketStore.maybeSocket]);
 
   const toggleVideo = useCallback(() => {
     const toggle = !mediaStore.videoEnabled;
@@ -32,6 +59,16 @@ export const InCallContainer = observer(function InCallPage() {
     callStore.emitAudioToggle(toggle);
     mediaStore.audioEnabled = toggle;
   }, [callStore, mediaStore]);
+
+  const handleCanvasStream = useCallback(() => {
+    /**
+     * send invite
+     * show toast that invite was sent
+     * show alert to receiver to accept/decline (just accept for now)
+     * start game
+     */
+    callStore.inviteToGame();
+  }, [callStore]);
 
   return (
     <div className="relative w-full h-screen bg-main">
@@ -62,7 +99,19 @@ export const InCallContainer = observer(function InCallPage() {
           onToggle={toggleAudio}
         />
         <EndCallButton onClick={() => callStore.endCall()} />
+
+        <GameInviteButton
+          canvasStream={callStore.remoteCanvasStream}
+          onToggle={handleCanvasStream}
+        />
       </div>
+
+      {(callStore.localCanvasAudioStream || callStore.remoteCanvasStream) && (
+        <MovingBallContainer
+          localAudioStream={callStore.localCanvasAudioStream}
+          remoteCanvasStream={callStore.remoteCanvasStream}
+        />
+      )}
     </div>
   );
 });

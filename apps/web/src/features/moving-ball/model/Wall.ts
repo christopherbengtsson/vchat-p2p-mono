@@ -1,6 +1,6 @@
 export interface Wall {
   x: number;
+  y: number;
   width: number;
-  gapY: number;
-  gapHeight: number;
+  height: number;
 }

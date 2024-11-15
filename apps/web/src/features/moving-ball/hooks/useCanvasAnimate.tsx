@@ -10,29 +10,25 @@ import {
   SMOOTHING_FRAMES,
   VOLUME_THRESHOLD,
   VOLUME_SCALE,
+  WALL_GAP,
 } from '../service/CanvasService';
 
 const isCollision = ({
   ballX,
   ballY,
   walls,
-  canvasHeight,
 }: {
   walls: Wall[];
   ballX: number;
   ballY: number;
-  canvasHeight: number;
 }) =>
   walls.some((wall) => {
-    if (
-      ballX + BALL_RADIUS > wall.x &&
-      ballX - BALL_RADIUS < wall.x + wall.width
-    ) {
-      if (ballY + BALL_RADIUS > canvasHeight - wall.gapHeight) {
-        return true;
-      }
-    }
-    return false;
+    const inXRange =
+      ballX + BALL_RADIUS > wall.x && ballX - BALL_RADIUS < wall.x + wall.width;
+    const inYRange =
+      ballY + BALL_RADIUS > wall.y &&
+      ballY - BALL_RADIUS < wall.y + wall.height;
+    return inXRange && inYRange;
   });
 
 interface In {
@@ -106,13 +102,25 @@ export const useCanvasAnimate = ({ canvasRef, draw }: In) => {
     // Update walls (if necessary)
     frameCountRef.current++;
     if (frameCountRef.current % WALL_FREQUENCY === 0) {
-      // Add a new wall
-      const gapHeight = 100; // Adjust as needed
+      // Determine the position of the gap between the top and bottom walls
+      const minGapY = BALL_RADIUS * 2; // Minimum gap from top
+      const maxGapY = canvas.height - WALL_GAP - BALL_RADIUS * 2; // Maximum gap from top
+      const gapY = Math.random() * (maxGapY - minGapY) + minGapY;
+
+      // Top wall
       wallsRef.current.push({
         x: canvas.width,
+        y: 0,
         width: 20,
-        gapY: 0,
-        gapHeight,
+        height: gapY,
+      });
+
+      // Bottom wall
+      wallsRef.current.push({
+        x: canvas.width,
+        y: gapY + WALL_GAP,
+        width: 20,
+        height: canvas.height - (gapY + WALL_GAP),
       });
     }
 
@@ -132,7 +140,6 @@ export const useCanvasAnimate = ({ canvasRef, draw }: In) => {
         ballX: BALL_RADIUS * 5,
         ballY: ballYRef.current,
         walls: wallsRef.current,
-        canvasHeight: canvas.height,
       })
     ) {
       if (requestRef.current) {

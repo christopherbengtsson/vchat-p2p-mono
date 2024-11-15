@@ -23,12 +23,7 @@ export const useCanvasDraw = () => {
       walls.forEach((wall) => {
         ctx.fillStyle = '#DC2626'; // Tailwind CSS red-600
 
-        ctx.fillRect(
-          wall.x,
-          canvas.height - wall.gapHeight,
-          wall.width,
-          wall.gapHeight,
-        );
+        ctx.fillRect(wall.x, wall.y, wall.width, wall.height);
       });
     },
     [],

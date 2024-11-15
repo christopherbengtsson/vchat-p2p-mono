@@ -1,5 +1,7 @@
 import { makeAutoObservable } from 'mobx';
+import { Maybe } from '@mono/common-dto';
 import { WebRTCService } from '../features/call/service/WebRTCService';
+import { AudioAnalyserService } from '../features/moving-ball/service/AudioAnalyserService';
 import type { RootStore } from './RootStore';
 import { CallState } from './model/CallState';
 
@@ -7,7 +9,7 @@ export class CallStore {
   static NEW_MATCH_TIMEOUT = 1500;
 
   private rootStore: RootStore;
-  private webRtcService: WebRTCService | undefined;
+  private _webRtcService: WebRTCService | undefined;
 
   private _callState: CallState = CallState.START;
 
@@ -18,6 +20,10 @@ export class CallStore {
   private _remoteStream: MediaStream | null = null;
   private _remoteVideoEnabled = true;
   private _remoteAudioEnabled = true;
+
+  private _remoteCanvasStream: MediaStream | null = null;
+  private _localCanvasStream: MediaStream | null = null;
+  private _localCanvasAudioStream: MediaStream | null = null;
 
   constructor(rootStore: RootStore) {
     this.rootStore = rootStore;
@@ -59,6 +65,13 @@ export class CallStore {
     this._partnerId = value;
   }
 
+  get webRtcService() {
+    return this._webRtcService;
+  }
+  set webRtcService(value: WebRTCService | undefined) {
+    this._webRtcService = value;
+  }
+
   get remoteVideoEnabled() {
     return this._remoteVideoEnabled;
   }
@@ -67,7 +80,7 @@ export class CallStore {
   }
 
   get remoteStream() {
-    return this._remoteStream ?? null;
+    return this._remoteStream;
   }
   set remoteStream(value: MediaStream | null) {
     this._remoteStream = value;
@@ -78,6 +91,27 @@ export class CallStore {
   }
   set remoteAudioEnabled(value: boolean) {
     this._remoteAudioEnabled = value;
+  }
+
+  get remoteCanvasStream() {
+    return this._remoteCanvasStream;
+  }
+  set remoteCanvasStream(value: MediaStream | null) {
+    this._remoteCanvasStream = value;
+  }
+
+  get localCanvasStream() {
+    return this._localCanvasStream;
+  }
+  set localCanvasStream(value: MediaStream | null) {
+    this._localCanvasStream = value;
+  }
+
+  get localCanvasAudioStream() {
+    return this._localCanvasAudioStream;
+  }
+  set localCanvasAudioStream(value: MediaStream | null) {
+    this._localCanvasAudioStream = value;
   }
 
   findMatch(slow?: boolean) {
@@ -113,7 +147,7 @@ export class CallStore {
     this.partnerId = partnerId;
     this.isPolite = isPolite;
 
-    this.webRtcService = new WebRTCService(this.rootStore);
+    this._webRtcService = new WebRTCService(this.rootStore);
 
     this.rootStore.socketStore.socket.emit(
       'join-room',
@@ -147,11 +181,40 @@ export class CallStore {
     this.findMatch();
   }
 
+  inviteToGame() {
+    this.rootStore.socketStore.socket.emit('send-game-invite', this.roomId);
+  }
+
+  async startGameLocally() {
+    this.localCanvasAudioStream =
+      await this.rootStore.mediaStore.requestGameAudioStream();
+    AudioAnalyserService.init(this.localCanvasAudioStream);
+  }
+
+  sendCanvasStream(stream: Maybe<MediaStream>) {
+    if (!stream) {
+      console.log('No stream to send');
+      this.endGame();
+      return;
+    }
+
+    this.localCanvasStream = stream;
+    this.webRtcService?.addCanvasStream(stream);
+  }
+
+  endGame() {
+    AudioAnalyserService.stop();
+    if (this.remoteCanvasStream) {
+      this.remoteCanvasStream.getTracks().forEach((track) => track.stop());
+    }
+  }
+
   cleanupAfterCall() {
     this.removeListeners();
+    this.endGame();
 
-    this.webRtcService?.cleanup();
-    this.webRtcService = undefined;
+    this._webRtcService?.cleanup();
+    this._webRtcService = undefined;
     this.remoteStream = null;
 
     this.roomId = undefined;

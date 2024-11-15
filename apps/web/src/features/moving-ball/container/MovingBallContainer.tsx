@@ -1,33 +1,41 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { observer } from 'mobx-react';
-import { useRootStore } from '@/stores/hooks/useRootStore';
-import { AudioAnalyserService } from '../service/AudioAnalyserService';
 import { CanvasContainer } from './CanvasContainer';
 
-export const MovingBallContainer = observer(function MovingBallContainer() {
-  const { mediaStore } = useRootStore();
+interface Props {
+  localAudioStream: MediaStream | null;
+  remoteCanvasStream: MediaStream | null;
+}
+
+export const MovingBallContainer = observer(function MovingBallContainer({
+  localAudioStream,
+  remoteCanvasStream,
+}: Props) {
+  const remoteCanvasStreamRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
-    let analyserStream: MediaStream;
+    const videoElement = remoteCanvasStreamRef.current;
+    if (videoElement && remoteCanvasStream) {
+      videoElement.srcObject = remoteCanvasStream;
+    }
+  }, [remoteCanvasStream]);
 
-    const getAnalyserStream = async () => {
-      try {
-        analyserStream = await mediaStore.requestGameAudioStream();
-        AudioAnalyserService.init(analyserStream);
-      } catch (error) {
-        console.error('Error accessing microphone for audio analysis:', error);
-      }
-    };
+  if (localAudioStream) {
+    return <CanvasContainer />;
+  }
 
-    getAnalyserStream();
-
-    return () => {
-      AudioAnalyserService.stop();
-      if (analyserStream) {
-        analyserStream.getTracks().forEach((track) => track.stop());
-      }
-    };
-  }, [mediaStore]);
-
-  return <CanvasContainer />;
+  return (
+    <div className="absolute top-0 left-0 w-full h-full">
+      <div className="relative w-full h-full flex justify-center items-center">
+        <video
+          id="canvas-video-stream"
+          ref={remoteCanvasStreamRef}
+          autoPlay
+          playsInline
+          muted
+          className="absolute top-4 left-4 w-1/3 h-1/4 rounded-lg overflow-hidden shadow-lg"
+        />
+      </div>
+    </div>
+  );
 });
