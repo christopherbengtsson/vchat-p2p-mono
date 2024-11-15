@@ -11,6 +11,7 @@ import {
   VOLUME_THRESHOLD,
   VOLUME_SCALE,
   WALL_GAP,
+  WALL_WIDTH,
 } from '../service/CanvasService';
 
 const isCollision = ({
@@ -111,7 +112,7 @@ export const useCanvasAnimate = ({ canvasRef, draw }: In) => {
       wallsRef.current.push({
         x: canvas.width,
         y: 0,
-        width: 20,
+        width: WALL_WIDTH,
         height: gapY,
       });
 
@@ -119,7 +120,7 @@ export const useCanvasAnimate = ({ canvasRef, draw }: In) => {
       wallsRef.current.push({
         x: canvas.width,
         y: gapY + WALL_GAP,
-        width: 20,
+        width: WALL_WIDTH,
         height: canvas.height - (gapY + WALL_GAP),
       });
     }
@@ -143,9 +144,9 @@ export const useCanvasAnimate = ({ canvasRef, draw }: In) => {
       })
     ) {
       if (requestRef.current) {
-        AudioAnalyserService.stop();
-        cancelAnimationFrame(requestRef.current);
-        return;
+        // AudioAnalyserService.stop();
+        // cancelAnimationFrame(requestRef.current);
+        // return;
       }
     }
 
