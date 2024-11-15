@@ -4,7 +4,11 @@ import { useRootStore } from '@/stores/hooks/useRootStore';
 import { Canvas } from '../component/Canvas';
 import { useCanvasDraw } from '../hooks/useCanvasDraw';
 import { useCanvasAnimate } from '../hooks/useCanvasAnimate';
-import { GAME_HEIGHT, GAME_WIDTH } from '../service/CanvasService';
+import {
+  setGameDimensions,
+  GAME_WIDTH,
+  GAME_HEIGHT,
+} from '../service/CanvasService';
 
 export const CanvasContainer = observer(function CanvasContainer() {
   const { callStore } = useRootStore();
@@ -19,6 +23,9 @@ export const CanvasContainer = observer(function CanvasContainer() {
     if (!canvas || !container) return;
 
     const handleResize = () => {
+      const isPortrait = window.innerHeight > window.innerWidth;
+      setGameDimensions(isPortrait);
+
       const scale = Math.min(
         container.clientWidth / GAME_WIDTH,
         container.clientHeight / GAME_HEIGHT,
@@ -38,7 +45,23 @@ export const CanvasContainer = observer(function CanvasContainer() {
   }, []);
 
   useEffect(() => {
-    callStore.sendCanvasStream(canvasRef.current?.captureStream(30)); // TODO: Choose FPS based on network speed?
+    const handleOrientationChange = () => {
+      // Recalculate scaling and game dimensions
+      if (containerRef.current) {
+        const event = new Event('resize');
+        window.dispatchEvent(event);
+      }
+    };
+
+    window.addEventListener('orientationchange', handleOrientationChange);
+
+    return () => {
+      window.removeEventListener('orientationchange', handleOrientationChange);
+    };
+  }, []);
+
+  useEffect(() => {
+    callStore.sendCanvasStream(canvasRef.current?.captureStream(30));
   }, [callStore]);
 
   return (
