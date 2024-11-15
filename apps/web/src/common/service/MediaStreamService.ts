@@ -1,6 +1,6 @@
 const VIDEO_CONSTRAINS: MediaTrackConstraints = {
-  width: { ideal: 1280 },
-  height: { ideal: 720 },
+  // width: { ideal: 1280 },
+  // height: { ideal: 720 },
   frameRate: { min: 10, ideal: 30, max: 30 },
 } as const;
 

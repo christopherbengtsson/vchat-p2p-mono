@@ -4,14 +4,17 @@ interface Props {
   videoRef?: React.RefObject<HTMLVideoElement>;
   isLocal?: boolean;
   videoEnabled: boolean;
+  isPortrait: boolean;
 }
 
-export function Video({ videoRef, isLocal, videoEnabled }: Props) {
+export function Video({ videoRef, isLocal, videoEnabled, isPortrait }: Props) {
   return (
-    <div className="relative w-full h-full">
+    <div className="relative flex w-full h-full">
       <video
         ref={videoRef}
-        className={`w-full h-full object-cover ${isLocal ? 'z-10' : 'z-0'}`}
+        className={`${
+          isPortrait ? 'w-auto h-full' : 'w-full h-auto'
+        } ${isLocal ? 'z-10' : 'z-0'}`}
         autoPlay
         playsInline
         muted={isLocal}

@@ -154,5 +154,7 @@ export class WebRTCService {
   cleanup() {
     this.peerConnection.close();
     this.rootStore.socketStore.socket.off('peer-message');
+    this.canvasStream = null;
+    this.videoStreamId = null;
   }
 }

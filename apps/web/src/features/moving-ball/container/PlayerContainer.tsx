@@ -5,12 +5,12 @@ import { Canvas } from '../component/Canvas';
 import { useCanvasDraw } from '../hooks/useCanvasDraw';
 import { useCanvasAnimate } from '../hooks/useCanvasAnimate';
 import {
-  setGameDimensions,
-  GAME_WIDTH,
   GAME_HEIGHT,
+  GAME_WIDTH,
+  setGameDimensions,
 } from '../service/CanvasService';
 
-export const CanvasContainer = observer(function CanvasContainer() {
+export const PlayerContainer = observer(function PlayerContainer() {
   const { callStore } = useRootStore();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -65,13 +65,14 @@ export const CanvasContainer = observer(function CanvasContainer() {
   }, [callStore]);
 
   return (
-    <div className="absolute top-0 left-0 w-full h-full">
-      <div
-        ref={containerRef}
-        className="relative w-full h-full flex justify-center items-center"
-      >
-        <Canvas canvasRef={canvasRef} />
+    <>
+      <div ref={containerRef} className="absolute w-4/5 h-4/5 z-40">
+        <div className="relative z-10">
+          <Canvas canvasRef={canvasRef} />
+        </div>
       </div>
-    </div>
+
+      <div className="absolute top-0 left-0 w-full h-full bg-black opacity-60" />
+    </>
   );
 });

@@ -217,6 +217,10 @@ export class CallStore {
     this._webRtcService = undefined;
     this.remoteStream = null;
 
+    this._remoteCanvasStream = null;
+    this._localCanvasStream = null;
+    this._localCanvasAudioStream = null;
+
     this.roomId = undefined;
     this.partnerId = undefined;
   }

@@ -11,6 +11,7 @@ import {
 import { useRootStore } from '@/stores/hooks/useRootStore';
 import { ProfileMenuItem } from '../component/ProfileMenuItem';
 import { LogoutMenuItem } from '../component/LogoutMenuItem';
+import { Header } from '../component/Header';
 import { useLogout } from '../hooks/useLogout';
 import { ProfileDialogContainer } from './ProfileDialogContainer';
 
@@ -30,7 +31,7 @@ export const SettingsMenuContainer = observer(function SettingsMenuContainer() {
 
   return (
     <>
-      <div className="absolute top-0 right-0 p-inherit">
+      <Header>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="secondary">
@@ -48,7 +49,7 @@ export const SettingsMenuContainer = observer(function SettingsMenuContainer() {
             <LogoutMenuItem handleLogout={handleLogout} />
           </DropdownMenuContent>
         </DropdownMenu>
-      </div>
+      </Header>
 
       <ProfileDialogContainer
         open={profileDialogOpen}
