@@ -3,7 +3,7 @@ import {
   GAME_HEIGHT,
   GAME_WIDTH,
   setGameDimensions,
-} from '../service/CanvasService';
+} from '../model/CanvasConstants';
 
 export const useCanvasResize = (
   canvasRef: React.RefObject<HTMLCanvasElement>,

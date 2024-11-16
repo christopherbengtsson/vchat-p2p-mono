@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { BALL_RADIUS, BALL_X_POS_MULTIPLIER } from '../service/CanvasService';
+import { BALL_RADIUS, BALL_X_POS_MULTIPLIER } from '../model/CanvasConstants';
 import { DrawProps } from '../model/DrawProps';
 
 export const useCanvasDraw = () => {
