@@ -54,7 +54,7 @@ export const InCallContainer = observer(function InCallPage() {
 
       <FlyingBallContainer />
 
-      <div className="absolute top-4 right-4 w-auto h-auto max-w-32 rounded-lg overflow-hidden shadow-lg">
+      <div className="absolute top-4 right-4 w-auto h-auto max-w-32 md:max-w-64 rounded-lg overflow-hidden shadow-lg">
         <UserVideoContainer
           videoRef={localVideoRef}
           videoEnabled={mediaStore.videoEnabled}
