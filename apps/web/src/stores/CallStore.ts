@@ -115,7 +115,6 @@ export class CallStore {
   }
 
   findMatch(slow?: boolean) {
-    console.log('findMatch', slow);
     this.callState = CallState.IN_QUEUE;
 
     if (slow) {
@@ -133,7 +132,7 @@ export class CallStore {
     }
   }
   cancelMatch() {
-    this.callState = CallState.START;
+    this.resetCallState();
     this.rootStore.socketStore.socket.emit(
       'cancel-match',
       this.rootStore.socketStore.id,
@@ -227,6 +226,7 @@ export class CallStore {
 
   resetCallState() {
     this.callState = CallState.START;
+    this.rootStore.mediaStore.closeAudioAndVideoStream();
     this.cleanupAfterCall();
   }
 

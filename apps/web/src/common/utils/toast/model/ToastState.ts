@@ -3,6 +3,8 @@ export enum DefaultToastState {
 }
 
 export enum ErrorToastState {
+  UNKNOWN_ERROR = 'unknown_error',
+
   CONNECT_ERROR = 'connect_error',
   SERVER_DISCONNECTED = 'server_disconnected',
 

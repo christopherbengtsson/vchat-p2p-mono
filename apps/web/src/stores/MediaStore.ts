@@ -2,24 +2,19 @@ import { makeAutoObservable } from 'mobx';
 import { PermissionService } from '@/common/service/PermissionService';
 import { LocalStorageService } from '@/common/service/LocalStorageService';
 import { STORAGE_KEYS } from '@/common/model/LocalStorageKeys';
-import { PromtState } from '@/common/model/PromptState';
 import { MediaStreamService } from '@/common/service/MediaStreamService';
 import {
   ToastState,
   ErrorToastState,
 } from '@/common/utils/toast/model/ToastState';
-import { showToast } from '@/common/utils/toast/showToast';
-import { RootStore } from './RootStore';
 
 export class MediaStore {
-  private _rootStore: RootStore;
   private _stream: MediaStream | null = null;
   private _videoEnabled = true;
   private _audioEnabled = true;
 
-  constructor(rootStore: RootStore) {
+  constructor() {
     makeAutoObservable(this);
-    this._rootStore = rootStore;
   }
 
   get maybeStream() {
@@ -52,19 +47,19 @@ export class MediaStore {
     this._audioEnabled = toggle;
   }
 
-  async checkMediaPermissions() {
+  async getMediaPermissions(): Promise<boolean> {
     const state = await PermissionService.checkMediaPermissions();
+
     if (state === 'granted') {
-      return await this.requestAudioAndVideoStream();
+      return true;
     }
 
     const storedState = LocalStorageService.get(STORAGE_KEYS.MEDIA_PERMISSIONS);
-
     if (storedState === 'granted') {
-      return await this.requestAudioAndVideoStream();
+      return true;
     }
 
-    this._rootStore.uiStore.promptState = PromtState.PERMISSIONS;
+    return false;
   }
 
   async requestAudioAndVideoStream() {
@@ -77,12 +72,15 @@ export class MediaStore {
 
       LocalStorageService.set(STORAGE_KEYS.MEDIA_PERMISSIONS, 'granted');
     } catch (error: DOMException | unknown) {
-      const errorState = this.getDomExceptionError(error as DOMException);
-
-      showToast(errorState);
-
-      LocalStorageService.set(STORAGE_KEYS.MEDIA_PERMISSIONS, 'denied');
+      LocalStorageService.set(STORAGE_KEYS.MEDIA_PERMISSIONS, 'error');
+      return this.getDomExceptionError(error as DOMException);
     }
+  }
+
+  closeAudioAndVideoStream() {
+    this.maybeStream?.getTracks()?.forEach((track) => {
+      track.stop();
+    });
   }
 
   async requestGameAudioStream() {
@@ -95,8 +93,12 @@ export class MediaStore {
     }
   }
 
-  private getDomExceptionError(error: DOMException): ToastState {
-    switch (error.name) {
+  private getDomExceptionError(error: DOMException | unknown): ToastState {
+    if (!(error as DOMException).name) {
+      return ErrorToastState.UNKNOWN_ERROR;
+    }
+
+    switch ((error as DOMException).name) {
       case 'NotAllowedError':
         return ErrorToastState.MEDIA_STREAM_NOT_ALLOWED;
 

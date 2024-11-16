@@ -1,4 +1,3 @@
-import { observer } from 'mobx-react';
 import { Camera, Mic } from 'lucide-react';
 import {
   AlertDialog,
@@ -8,8 +7,8 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '../ui/alert-dialog';
-import { LoadingButton } from '../loading-button/LoadingButton';
+} from '@/common/components/ui/alert-dialog';
+import { LoadingButton } from '@/common/components/loading-button/LoadingButton';
 
 interface Props {
   open: boolean;
@@ -17,11 +16,7 @@ interface Props {
   onClick: VoidFunction;
 }
 
-export const PermissionsDialog = observer(function PermissionsDialog({
-  open,
-  isLoading,
-  onClick,
-}: Props) {
+export function PermissionsDialog({ open, isLoading, onClick }: Props) {
   return (
     <AlertDialog open={open}>
       <AlertDialogContent>
@@ -29,15 +24,19 @@ export const PermissionsDialog = observer(function PermissionsDialog({
           <AlertDialogTitle>Let's get started</AlertDialogTitle>
 
           <AlertDialogDescription>
-            We need permission to start your:
+            We need the following permissions
           </AlertDialogDescription>
 
-          <ul className="py-4">
+          <ul className="flex flex-col gap-4 py-4">
             <li>
               <div className="flex justify-start gap-2 mb-2">
                 <Camera />
                 Camera
               </div>
+
+              <AlertDialogDescription>
+                You can always turn your camera off during calls
+              </AlertDialogDescription>
             </li>
 
             <li>
@@ -45,12 +44,12 @@ export const PermissionsDialog = observer(function PermissionsDialog({
                 <Mic />
                 Microphone
               </div>
+
+              <AlertDialogDescription>
+                You can always mute your microphone during calls
+              </AlertDialogDescription>
             </li>
           </ul>
-
-          <AlertDialogDescription>
-            You can always toggle your camera and mic on or off during calls
-          </AlertDialogDescription>
         </AlertDialogHeader>
 
         <AlertDialogFooter>
@@ -66,4 +65,4 @@ export const PermissionsDialog = observer(function PermissionsDialog({
       </AlertDialogContent>
     </AlertDialog>
   );
-});
+}
