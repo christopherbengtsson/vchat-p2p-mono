@@ -8,7 +8,7 @@ export const CurrentUsersOnline = observer(function CurrentUsersOnline({
   nrOfAvailableUsers,
 }: Props) {
   return (
-    <p className="text-primary-foreground">
+    <p className="text-primary-foreground text-center">
       Currently {nrOfAvailableUsers} more users online
     </p>
   );

@@ -7,7 +7,7 @@ export function HomePage() {
     <>
       <SettingsMenuContainer />
 
-      <div className="w-full max-w-sm flex flex-col items-center gap-4">
+      <div className="w-full max-w-sm flex flex-col items-center gap-4 p-4">
         <FindMatchContainer />
         <ConnectionCountContainer />
       </div>
