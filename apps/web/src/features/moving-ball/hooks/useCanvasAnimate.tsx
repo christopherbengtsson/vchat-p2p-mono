@@ -12,7 +12,38 @@ import {
   VOLUME_SCALE,
   WALL_GAP,
   WALL_WIDTH,
+  BALL_X_POS_MULTIPLIER,
 } from '../service/CanvasService';
+import { DrawProps } from '../model/DrawProps';
+
+// Helper function to clamp a value between min and max
+const clamp = (value: number, min: number, max: number): number => {
+  return Math.max(min, Math.min(max, value));
+};
+
+// Circle-Rectangle collision detection
+const isCircleRectCollision = (
+  circleX: number,
+  circleY: number,
+  radius: number,
+  rectX: number,
+  rectY: number,
+  rectWidth: number,
+  rectHeight: number,
+): boolean => {
+  // Find the closest point to the circle within the rectangle
+  const closestX = clamp(circleX, rectX, rectX + rectWidth);
+  const closestY = clamp(circleY, rectY, rectY + rectHeight);
+
+  // Calculate the distance between the circle's center and this closest point
+  const distanceX = circleX - closestX;
+  const distanceY = circleY - closestY;
+
+  // If the distance is less than the circle's radius, a collision occurs
+  const distanceSquared = distanceX * distanceX + distanceY * distanceY;
+
+  return distanceSquared < radius * radius;
+};
 
 const isCollision = ({
   ballX,
@@ -22,24 +53,28 @@ const isCollision = ({
   walls: Wall[];
   ballX: number;
   ballY: number;
-}) =>
+}): boolean =>
   walls.some((wall) => {
-    const inXRange =
-      ballX + BALL_RADIUS > wall.x && ballX - BALL_RADIUS < wall.x + wall.width;
-    const inYRange =
-      ballY + BALL_RADIUS > wall.y &&
-      ballY - BALL_RADIUS < wall.y + wall.height;
-    return inXRange && inYRange;
+    return isCircleRectCollision(
+      ballX,
+      ballY,
+      BALL_RADIUS,
+      wall.x,
+      wall.y,
+      wall.width,
+      wall.height,
+    );
   });
 
 interface In {
   canvasRef: React.RefObject<HTMLCanvasElement>;
-  draw: (ctx: CanvasRenderingContext2D, yPos: number, walls: Wall[]) => void;
+  draw: (drawProps: DrawProps) => void;
 }
 
 export const useCanvasAnimate = ({ canvasRef, draw }: In) => {
   const requestRef = useRef<number>();
   const wallsRef = useRef<Wall[]>([]);
+  const wallsPassedRef = useRef<number>(0);
   const frameCountRef = useRef<number>(0);
 
   // Add refs for ball position and velocity
@@ -47,6 +82,15 @@ export const useCanvasAnimate = ({ canvasRef, draw }: In) => {
   const velocityRef = useRef<number>(0);
 
   const volumeHistory = useRef<number[]>([]);
+
+  const endGame = () => {
+    if (!requestRef.current) {
+      return;
+    }
+
+    AudioAnalyserService.stop();
+    cancelAnimationFrame(requestRef.current);
+  };
 
   const animate = useCallback(() => {
     const canvas = canvasRef.current;
@@ -100,12 +144,12 @@ export const useCanvasAnimate = ({ canvasRef, draw }: In) => {
       velocityRef.current = 0;
     }
 
-    // Update walls (if necessary)
+    // Update walls
     frameCountRef.current++;
     if (frameCountRef.current % WALL_FREQUENCY === 0) {
       // Determine the position of the gap between the top and bottom walls
-      const minGapY = BALL_RADIUS * 2; // Minimum gap from top
-      const maxGapY = canvas.height - WALL_GAP - BALL_RADIUS * 2; // Maximum gap from top
+      const minGapY = BALL_RADIUS;
+      const maxGapY = canvas.height - WALL_GAP - BALL_RADIUS; // Maximum gap from top
       const gapY = Math.random() * (maxGapY - minGapY) + minGapY;
 
       // Top wall
@@ -114,6 +158,8 @@ export const useCanvasAnimate = ({ canvasRef, draw }: In) => {
         y: 0,
         width: WALL_WIDTH,
         height: gapY,
+        passed: false,
+        isUpperWall: true,
       });
 
       // Bottom wall
@@ -122,12 +168,26 @@ export const useCanvasAnimate = ({ canvasRef, draw }: In) => {
         y: gapY + WALL_GAP,
         width: WALL_WIDTH,
         height: canvas.height - (gapY + WALL_GAP),
+        passed: false,
+        isUpperWall: false,
       });
     }
 
     // Move walls
     wallsRef.current.forEach((wall) => {
       wall.x -= WALL_SPEED;
+
+      // Check if the wall has passed the ball and hasn't been counted yet
+      const ballX = BALL_RADIUS * BALL_X_POS_MULTIPLIER; // The ball's x-position
+      if (
+        !wall.passed &&
+        wall.isUpperWall &&
+        wall.x + wall.width < ballX - BALL_RADIUS
+      ) {
+        wall.passed = true; // Mark wall as passed
+        wallsPassedRef.current += 1; // Increment the count
+        console.log('Walls passed:', wallsPassedRef.current); // Optional: Log the count
+      }
     });
 
     // Remove off-screen walls
@@ -138,20 +198,21 @@ export const useCanvasAnimate = ({ canvasRef, draw }: In) => {
     // Collision detection
     if (
       isCollision({
-        ballX: BALL_RADIUS * 5,
+        ballX: BALL_RADIUS * BALL_X_POS_MULTIPLIER,
         ballY: ballYRef.current,
         walls: wallsRef.current,
       })
     ) {
-      if (requestRef.current) {
-        // AudioAnalyserService.stop();
-        // cancelAnimationFrame(requestRef.current);
-        // return;
-      }
+      endGame();
+      return;
     }
 
-    // Draw the frame
-    draw(ctx, ballYRef.current, wallsRef.current);
+    draw({
+      ctx,
+      yPos: ballYRef.current,
+      walls: wallsRef.current,
+      score: wallsPassedRef.current,
+    });
 
     // Request the next frame
     requestRef.current = requestAnimationFrame(animate);

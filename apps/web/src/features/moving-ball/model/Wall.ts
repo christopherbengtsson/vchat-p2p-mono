@@ -3,4 +3,6 @@ export interface Wall {
   y: number;
   width: number;
   height: number;
+  passed?: boolean;
+  isUpperWall?: boolean;
 }

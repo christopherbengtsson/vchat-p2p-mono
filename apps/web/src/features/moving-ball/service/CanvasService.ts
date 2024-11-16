@@ -4,6 +4,8 @@ export let GAME_HEIGHT = 600;
 
 /** Ball size */
 export let BALL_RADIUS: number;
+/** To calc ball x position on canvas */
+export const BALL_X_POS_MULTIPLIER = 5;
 /** Gap between top and bottom walls */
 export let WALL_GAP: number;
 export let WALL_WIDTH: number;
@@ -23,8 +25,8 @@ export const WALL_SPEED = 2;
 export const WALL_FREQUENCY = 150;
 
 /** Physics */
-export const GRAVITY = 0.08; //0.08;
-export const JUMP_STRENGTH = -10; //-30;
+export const GRAVITY = 0.1;
+export const JUMP_STRENGTH = -10;
 
 export const setGameDimensions = (isPortrait: boolean) => {
   if (isPortrait) {
@@ -40,7 +42,7 @@ export const setGameDimensions = (isPortrait: boolean) => {
 /** Function to update constants whenever game dimensions change */
 export const updateConstants = () => {
   BALL_RADIUS = GAME_WIDTH * 0.022;
-  WALL_GAP = GAME_HEIGHT * 0.25;
+  WALL_GAP = GAME_HEIGHT * 0.2;
   WALL_WIDTH = GAME_WIDTH * 0.022;
 };
 
