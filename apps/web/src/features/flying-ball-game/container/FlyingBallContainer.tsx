@@ -3,7 +3,7 @@ import { useRootStore } from '../../../stores/hooks/useRootStore';
 import { SpectatorContainer } from './SpectatorContainer';
 import { PlayerContainer } from './PlayerContainer';
 
-export const MovingBallContainer = observer(function MovingBallContainer() {
+export const FlyingBallContainer = observer(function FlyingBallContainer() {
   const { callStore } = useRootStore();
 
   if (callStore.remoteCanvasStream) {

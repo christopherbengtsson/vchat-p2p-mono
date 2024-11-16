@@ -1,5 +1,3 @@
-// apps/web/src/features/moving-ball/service/AudioContextService.ts
-
 let analyserNode: AnalyserNode;
 let dataArray: Uint8Array;
 

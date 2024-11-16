@@ -1,7 +1,7 @@
 import { makeAutoObservable } from 'mobx';
 import { Maybe } from '@mono/common-dto';
 import { WebRTCService } from '../features/call/service/WebRTCService';
-import { AudioAnalyserService } from '../features/moving-ball/service/AudioAnalyserService';
+import { AudioAnalyserService } from '../features/flying-ball-game/service/AudioAnalyserService';
 import type { RootStore } from './RootStore';
 import { CallState } from './model/CallState';
 

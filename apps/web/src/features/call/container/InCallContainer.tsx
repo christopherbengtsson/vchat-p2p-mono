@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { observer } from 'mobx-react';
 import { useRootStore } from '@/stores/hooks/useRootStore';
-import { MovingBallContainer } from '../../moving-ball/container/MovingBallContainer';
+import { FlyingBallContainer } from '../../flying-ball-game/container/FlyingBallContainer';
 import { CallActionContainer } from './CallActionContainer';
 import { UserVideoContainer } from './UserVideoContainer';
 
@@ -52,7 +52,7 @@ export const InCallContainer = observer(function InCallPage() {
         videoEnabled={callStore.remoteVideoEnabled}
       />
 
-      <MovingBallContainer />
+      <FlyingBallContainer />
 
       <div className="absolute top-4 right-4 w-auto h-auto max-w-32 rounded-lg overflow-hidden shadow-lg">
         <UserVideoContainer
