@@ -4,61 +4,17 @@ import { useRootStore } from '@/stores/hooks/useRootStore';
 import { Canvas } from '../component/Canvas';
 import { useCanvasDraw } from '../hooks/useCanvasDraw';
 import { useCanvasAnimate } from '../hooks/useCanvasAnimate';
-import {
-  GAME_HEIGHT,
-  GAME_WIDTH,
-  setGameDimensions,
-} from '../service/CanvasService';
+import { useCanvasResize } from '../hooks/useCanvasResize';
 
 export const PlayerContainer = observer(function PlayerContainer() {
   const { callStore } = useRootStore();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+
   const draw = useCanvasDraw();
+
+  useCanvasResize(canvasRef, containerRef);
   useCanvasAnimate({ canvasRef, draw });
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    const container = containerRef.current;
-    if (!canvas || !container) return;
-
-    const handleResize = () => {
-      const isPortrait = window.innerHeight > window.innerWidth;
-      setGameDimensions(isPortrait);
-
-      const scale = Math.min(
-        container.clientWidth / GAME_WIDTH,
-        container.clientHeight / GAME_HEIGHT,
-      );
-
-      canvas.width = GAME_WIDTH;
-      canvas.height = GAME_HEIGHT;
-      canvas.style.width = `${GAME_WIDTH * scale}px`;
-      canvas.style.height = `${GAME_HEIGHT * scale}px`;
-    };
-
-    const resizeObserver = new ResizeObserver(handleResize);
-    resizeObserver.observe(container);
-    handleResize(); // Initial size
-
-    return () => resizeObserver.disconnect();
-  }, []);
-
-  useEffect(() => {
-    const handleOrientationChange = () => {
-      // Recalculate scaling and game dimensions
-      if (containerRef.current) {
-        const event = new Event('resize');
-        window.dispatchEvent(event);
-      }
-    };
-
-    window.addEventListener('orientationchange', handleOrientationChange);
-
-    return () => {
-      window.removeEventListener('orientationchange', handleOrientationChange);
-    };
-  }, []);
 
   useEffect(() => {
     callStore.sendCanvasStream(canvasRef.current?.captureStream(30));
@@ -67,12 +23,12 @@ export const PlayerContainer = observer(function PlayerContainer() {
   return (
     <>
       <div ref={containerRef} className="absolute w-4/5 h-4/5 z-40">
-        <div className="relative z-10">
+        <div className="relative flex justify-center z-10">
           <Canvas canvasRef={canvasRef} />
         </div>
       </div>
 
-      <div className="absolute top-0 left-0 w-full h-full bg-black opacity-60" />
+      <div className="absolute top-0 left-0 w-full h-full bg-black opacity-80" />
     </>
   );
 });
