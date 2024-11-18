@@ -58,4 +58,12 @@ export function setupRoomManagement(
       socket.to(roomId).emit('answer-game-invite', accept);
     }),
   );
+
+  socket.on(
+    'round-game-over',
+    wrapHandler((roomId, round, userScore) => {
+      logger.debug({ roomId, round, userScore }, 'Recevied round game over');
+      socket.to(roomId).emit('round-game-over', round, userScore);
+    }),
+  );
 }

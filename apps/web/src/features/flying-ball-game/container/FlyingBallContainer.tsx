@@ -1,20 +1,23 @@
 import { observer } from 'mobx-react';
-import { useRootStore } from '../../../stores/hooks/useRootStore';
-import { SpectatorContainer } from './SpectatorContainer';
-import { PlayerContainer } from './PlayerContainer';
+import { useRootStore } from '@/stores/hooks/useRootStore';
+import { InviteAlertDialogContainer } from './InviteAlertDialogContainer';
+import { StartGameAlertDialogContainer } from './StartGameAlertDialogContainer';
+import { InGameContainer } from './InGameContainer';
 
 export const FlyingBallContainer = observer(function FlyingBallContainer() {
-  const { callStore } = useRootStore();
+  const { gameStore } = useRootStore();
 
-  if (callStore.remoteCanvasStream) {
-    return (
-      <SpectatorContainer remoteCanvasStream={callStore.remoteCanvasStream} />
-    );
-  }
-
-  if (callStore.localCanvasAudioStream) {
-    return <PlayerContainer />;
-  }
-
-  return null;
+  return (
+    <>
+      {gameStore.gameActive ? (
+        <InGameContainer
+          localCanvasAudioStream={gameStore.localCanvasAudioStream}
+          remoteCanvasStream={gameStore.remoteCanvasStream}
+        />
+      ) : (
+        <InviteAlertDialogContainer />
+      )}
+      <StartGameAlertDialogContainer />
+    </>
+  );
 });

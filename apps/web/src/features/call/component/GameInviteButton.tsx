@@ -2,24 +2,20 @@ import { Gamepad2 } from 'lucide-react';
 import { Button } from '@/common/components/ui/button';
 
 interface Props {
-  canvasStream: MediaStream | null;
   onToggle: VoidFunction;
+  gameActive: boolean;
 }
 
-export function GameInviteButton({ canvasStream, onToggle }: Props) {
+export function GameInviteButton({ onToggle, gameActive }: Props) {
   return (
     <Button
-      aria-label={`${canvasStream ? 'End game' : 'Invite to game'}`}
+      aria-label={`${gameActive ? 'Game is active' : 'Invite to game'}`}
       variant="secondary"
       size="icon"
       onClick={onToggle}
-      // disabled={!canvasStream}
+      disabled={gameActive}
     >
-      {canvasStream ? (
-        <Gamepad2 className="h-6 w-6" />
-      ) : (
-        <Gamepad2 className="h-6 w-6" />
-      )}
+      <Gamepad2 className="h-6 w-6" />
     </Button>
   );
 }

@@ -80,10 +80,10 @@ export class WebRTCService {
         }
 
         if (
-          !this.rootStore.callStore.remoteCanvasStream &&
+          !this.rootStore.gameStore.remoteCanvasStream &&
           remoteStream.id !== this.videoStreamId
         ) {
-          this.rootStore.callStore.remoteCanvasStream = remoteStream;
+          this.rootStore.gameStore.remoteCanvasStream = remoteStream;
         }
       };
     };

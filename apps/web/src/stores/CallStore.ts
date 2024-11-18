@@ -1,7 +1,5 @@
 import { makeAutoObservable } from 'mobx';
-import { Maybe } from '@mono/common-dto';
 import { WebRTCService } from '../features/call/service/WebRTCService';
-import { AudioAnalyserService } from '../features/flying-ball-game/service/AudioAnalyserService';
 import type { RootStore } from './RootStore';
 import { CallState } from './model/CallState';
 
@@ -20,10 +18,6 @@ export class CallStore {
   private _remoteStream: MediaStream | null = null;
   private _remoteVideoEnabled = true;
   private _remoteAudioEnabled = true;
-
-  private _remoteCanvasStream: MediaStream | null = null;
-  private _localCanvasStream: MediaStream | null = null;
-  private _localCanvasAudioStream: MediaStream | null = null;
 
   constructor(rootStore: RootStore) {
     this.rootStore = rootStore;
@@ -93,27 +87,6 @@ export class CallStore {
     this._remoteAudioEnabled = value;
   }
 
-  get remoteCanvasStream() {
-    return this._remoteCanvasStream;
-  }
-  set remoteCanvasStream(value: MediaStream | null) {
-    this._remoteCanvasStream = value;
-  }
-
-  get localCanvasStream() {
-    return this._localCanvasStream;
-  }
-  set localCanvasStream(value: MediaStream | null) {
-    this._localCanvasStream = value;
-  }
-
-  get localCanvasAudioStream() {
-    return this._localCanvasAudioStream;
-  }
-  set localCanvasAudioStream(value: MediaStream | null) {
-    this._localCanvasAudioStream = value;
-  }
-
   findMatch(slow?: boolean) {
     this.callState = CallState.IN_QUEUE;
 
@@ -131,6 +104,7 @@ export class CallStore {
       );
     }
   }
+
   cancelMatch() {
     this.resetCallState();
     this.rootStore.socketStore.socket.emit(
@@ -140,7 +114,7 @@ export class CallStore {
   }
 
   initNewCall(roomId: string, partnerId: string, isPolite: boolean) {
-    this.setupListeners();
+    this._setupListeners();
 
     this.roomId = roomId;
     this.partnerId = partnerId;
@@ -180,45 +154,12 @@ export class CallStore {
     this.findMatch();
   }
 
-  inviteToGame() {
-    this.rootStore.socketStore.socket.emit('send-game-invite', this.roomId);
-  }
-
-  async startGameLocally() {
-    this.localCanvasAudioStream =
-      await this.rootStore.mediaStore.requestGameAudioStream();
-    AudioAnalyserService.init(this.localCanvasAudioStream);
-  }
-
-  sendCanvasStream(stream: Maybe<MediaStream>) {
-    if (!stream) {
-      console.log('No stream to send');
-      this.endGame();
-      return;
-    }
-
-    this.localCanvasStream = stream;
-    this.webRtcService?.addCanvasStream(stream);
-  }
-
-  endGame() {
-    AudioAnalyserService.stop();
-    if (this.remoteCanvasStream) {
-      this.remoteCanvasStream.getTracks().forEach((track) => track.stop());
-    }
-  }
-
   cleanupAfterCall() {
-    this.removeListeners();
-    this.endGame();
+    this._removeListeners();
 
     this._webRtcService?.cleanup();
     this._webRtcService = undefined;
     this.remoteStream = null;
-
-    this._remoteCanvasStream = null;
-    this._localCanvasStream = null;
-    this._localCanvasAudioStream = null;
 
     this.roomId = undefined;
     this.partnerId = undefined;
@@ -230,7 +171,7 @@ export class CallStore {
     this.cleanupAfterCall();
   }
 
-  private setupListeners() {
+  private _setupListeners() {
     const socket = this.rootStore.socketStore.maybeSocket;
     if (!socket) {
       return;
@@ -255,7 +196,7 @@ export class CallStore {
     });
   }
 
-  private removeListeners() {
+  private _removeListeners() {
     const socket = this.rootStore.socketStore.maybeSocket;
     if (!socket) {
       return;

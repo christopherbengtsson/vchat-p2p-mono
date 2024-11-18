@@ -10,11 +10,14 @@ export interface ClientToServerEvents {
   'join-room': (roomId: string, userId: string) => void;
   'leave-room': (roomId: string, userId: string) => void;
 
+  'peer-message': (data: PeerMessage, roomId: string, userId: string) => void;
+
   'audio-toggle': (enabled: boolean, roomId: string) => void;
   'video-toggle': (enabled: boolean, roomId: string) => void;
 
   'send-game-invite': (roomId: string) => void;
   'answer-game-invite': (roomId: string, accept: boolean) => void;
-
-  'peer-message': (data: PeerMessage, roomId: string, userId: string) => void;
+  'round-game-over': (roomId: string, round: number, score: number) => void;
+  'new-round': (roomId: string) => void;
+  'game-over': (roomId: string, score: number) => void;
 }

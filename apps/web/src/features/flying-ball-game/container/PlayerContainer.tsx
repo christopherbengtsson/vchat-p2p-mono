@@ -7,18 +7,22 @@ import { useCanvasAnimate } from '../hooks/useCanvasAnimate';
 import { useCanvasResize } from '../hooks/useCanvasResize';
 
 export const PlayerContainer = observer(function PlayerContainer() {
-  const { callStore } = useRootStore();
+  const { gameStore } = useRootStore();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const draw = useCanvasDraw();
 
+  const onGameOver = (score: number) => {
+    gameStore.roundGameOver(score);
+  };
+
   useCanvasResize(canvasRef, containerRef);
-  useCanvasAnimate({ canvasRef, draw });
+  useCanvasAnimate({ canvasRef, draw, onGameOver });
 
   useEffect(() => {
-    callStore.sendCanvasStream(canvasRef.current?.captureStream(30));
-  }, [callStore]);
+    gameStore.sendCanvasStream(canvasRef.current?.captureStream(30));
+  }, [gameStore]);
 
   return (
     <>

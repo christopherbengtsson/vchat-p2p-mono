@@ -16,9 +16,10 @@ import { CanvasWallService } from '../service/CanvasWallService';
 interface In {
   canvasRef: React.RefObject<HTMLCanvasElement>;
   draw: (drawProps: DrawProps) => void;
+  onGameOver: (score: number) => void;
 }
 
-export const useCanvasAnimate = ({ canvasRef, draw }: In) => {
+export const useCanvasAnimate = ({ canvasRef, draw, onGameOver }: In) => {
   const requestRef = useRef<number>();
   const frameCountRef = useRef<number>(0);
 
@@ -37,6 +38,7 @@ export const useCanvasAnimate = ({ canvasRef, draw }: In) => {
 
     AudioAnalyserService.stop();
     cancelAnimationFrame(requestRef.current);
+    onGameOver(wallsPassedRef.current);
   };
 
   const animate = useCallback(() => {

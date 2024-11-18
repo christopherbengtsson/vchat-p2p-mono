@@ -6,7 +6,7 @@ import { CallActionContainer } from './CallActionContainer';
 import { UserVideoContainer } from './UserVideoContainer';
 
 export const InCallContainer = observer(function InCallPage() {
-  const { mediaStore, callStore, socketStore } = useRootStore();
+  const { mediaStore, callStore } = useRootStore();
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
 
@@ -19,41 +19,8 @@ export const InCallContainer = observer(function InCallPage() {
     }
   }, [callStore.remoteStream, mediaStore.stream]);
 
-  useEffect(() => {
-    socketStore.maybeSocket?.on('send-game-invite', () => {
-      socketStore.maybeSocket?.emit(
-        'answer-game-invite',
-        callStore.roomId,
-        true,
-      );
-    });
-
-    return () => {
-      socketStore.maybeSocket?.off('send-game-invite');
-    };
-  }, [callStore.roomId, socketStore.maybeSocket]);
-
-  useEffect(() => {
-    socketStore.maybeSocket?.on('answer-game-invite', (accept) => {
-      if (accept) {
-        callStore.startGameLocally();
-      }
-    });
-
-    return () => {
-      socketStore.maybeSocket?.off('send-game-invite');
-    };
-  }, [callStore, callStore.roomId, socketStore.maybeSocket]);
-
   return (
     <>
-      <UserVideoContainer
-        videoRef={remoteVideoRef}
-        videoEnabled={callStore.remoteVideoEnabled}
-      />
-
-      <FlyingBallContainer />
-
       <div className="absolute top-4 right-4 w-auto h-auto max-w-32 md:max-w-64 rounded-lg overflow-hidden shadow-lg">
         <UserVideoContainer
           videoRef={localVideoRef}
@@ -62,7 +29,13 @@ export const InCallContainer = observer(function InCallPage() {
         />
       </div>
 
+      <UserVideoContainer
+        videoRef={remoteVideoRef}
+        videoEnabled={callStore.remoteVideoEnabled}
+      />
+
       <CallActionContainer />
+      <FlyingBallContainer />
     </>
   );
 });
