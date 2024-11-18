@@ -31,7 +31,7 @@ export const useCanvasAnimate = ({ canvasRef, draw, onGameOver }: In) => {
 
   const volumeHistory = useRef<number[]>([]);
 
-  const endGame = () => {
+  const endGame = useCallback(() => {
     if (!requestRef.current) {
       return;
     }
@@ -39,7 +39,7 @@ export const useCanvasAnimate = ({ canvasRef, draw, onGameOver }: In) => {
     AudioAnalyserService.stop();
     cancelAnimationFrame(requestRef.current);
     onGameOver(wallsPassedRef.current);
-  };
+  }, [onGameOver]);
 
   const animate = useCallback(() => {
     const canvas = canvasRef.current;
@@ -91,7 +91,7 @@ export const useCanvasAnimate = ({ canvasRef, draw, onGameOver }: In) => {
     });
 
     requestRef.current = requestAnimationFrame(animate);
-  }, [canvasRef, draw]);
+  }, [canvasRef, draw, endGame]);
 
   useEffect(() => {
     requestRef.current = requestAnimationFrame(animate);
