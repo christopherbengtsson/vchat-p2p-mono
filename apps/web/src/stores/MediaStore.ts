@@ -73,7 +73,7 @@ export class MediaStore {
       LocalStorageService.set(STORAGE_KEYS.MEDIA_PERMISSIONS, 'granted');
     } catch (error: DOMException | unknown) {
       LocalStorageService.set(STORAGE_KEYS.MEDIA_PERMISSIONS, 'error');
-      return this.getDomExceptionError(error as DOMException);
+      return this._getDomExceptionError(error as DOMException);
     }
   }
 
@@ -93,7 +93,7 @@ export class MediaStore {
     }
   }
 
-  private getDomExceptionError(error: DOMException | unknown): ToastState {
+  private _getDomExceptionError(error: DOMException | unknown): ToastState {
     if (!(error as DOMException).name) {
       return ErrorToastState.UNKNOWN_ERROR;
     }
