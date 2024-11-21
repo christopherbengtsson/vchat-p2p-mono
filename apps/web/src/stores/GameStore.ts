@@ -1,4 +1,4 @@
-import { makeAutoObservable, observable } from 'mobx';
+import { makeAutoObservable, observable, runInAction } from 'mobx';
 import { toast } from 'sonner';
 import { Maybe } from '@mono/common-dto';
 import { GameType } from '@/common/model/GameType';
@@ -94,6 +94,18 @@ export class GameStore {
     this._resultDialogOpen = value;
   }
 
+  setRemoteCanvasStream(stream: Maybe<MediaStream>) {
+    runInAction(() => {
+      this.remoteCanvasStream = stream;
+    });
+  }
+
+  setLocalCanvasAudioStream(stream: Maybe<MediaStream>) {
+    runInAction(() => {
+      this.localCanvasAudioStream = stream;
+    });
+  }
+
   invitePartnerToGame() {
     this._rootStore.socketStore.socket.emit(
       'send-game-invite',
@@ -134,7 +146,7 @@ export class GameStore {
     this.userScore = score;
 
     this.localCanvasStream = null;
-    this.localCanvasAudioStream = null;
+    this.setLocalCanvasAudioStream(null);
 
     this.resultDialogOpen = true;
 
@@ -169,9 +181,9 @@ export class GameStore {
     this.userScore = 0;
     this.partnerScore = 0;
 
-    this.remoteCanvasStream = undefined;
+    this.setRemoteCanvasStream(undefined);
     this.localCanvasStream = undefined;
-    this.localCanvasAudioStream = undefined;
+    this.setLocalCanvasAudioStream(undefined);
 
     this.startNewRoundDialogOpen = false;
     this.resultDialogOpen = false;
@@ -182,14 +194,14 @@ export class GameStore {
 
     AudioAnalyserService.init(stream);
 
-    this.localCanvasAudioStream = stream;
+    this.setLocalCanvasAudioStream(stream);
     this.round++;
   }
 
   private _cleanupGameRound() {
-    this.remoteCanvasStream = null;
+    this.setRemoteCanvasStream(null);
     this.localCanvasStream = null;
-    this.localCanvasAudioStream = null;
+    this.setLocalCanvasAudioStream(null);
   }
 
   private _handleUnexpectedGameError() {
