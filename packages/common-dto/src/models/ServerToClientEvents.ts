@@ -18,10 +18,4 @@ export interface ServerToClientEvents {
 
   'audio-toggle': (enabled: boolean) => void;
   'video-toggle': (enabled: boolean) => void;
-
-  'send-game-invite': VoidFunction;
-  'answer-game-invite': (accept: boolean) => void;
-  'round-game-over': (round: number, score: number) => void;
-  'new-round': (roomId: string) => void;
-  'game-over': (roomId: string, score: number) => void;
 }

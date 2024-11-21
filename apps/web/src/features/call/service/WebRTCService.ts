@@ -1,5 +1,6 @@
 import { PeerMessage } from '@mono/common-dto';
-import { RootStore } from '../../../stores/RootStore';
+import type { DataChannelMessage } from '@/stores/model/DataChannelMessage';
+import { RootStore } from '@/stores/RootStore';
 
 const configuration = {
   iceServers: [
@@ -21,12 +22,16 @@ export class WebRTCService {
   private canvasStream: RTCRtpSender | null = null;
   private videoStreamId: string | null = null;
 
+  dataChannel: RTCDataChannel | null = null;
+
   constructor(rootStore: RootStore) {
     this.rootStore = rootStore;
 
     this.peerConnection = new RTCPeerConnection(configuration);
     this.setupPeerListeners();
     this.setupSocketListeners();
+
+    this.createDataChannel();
 
     for (const track of this.rootStore.mediaStore.stream.getTracks()) {
       this.peerConnection.addTrack(track, this.rootStore.mediaStore.stream);
@@ -83,9 +88,14 @@ export class WebRTCService {
           !this.rootStore.gameStore.remoteCanvasStream &&
           remoteStream.id !== this.videoStreamId
         ) {
-          this.rootStore.gameStore.remoteCanvasStream = remoteStream;
+          this.rootStore.gameStore.setRemoteCanvasStream(remoteStream);
         }
       };
+    };
+
+    this.peerConnection.ondatachannel = (event) => {
+      this.dataChannel = event.channel;
+      this.setupDataChannel();
     };
   }
 
@@ -94,6 +104,37 @@ export class WebRTCService {
       this.handleOffer(...data),
     );
   }
+
+  private createDataChannel() {
+    if (!this.rootStore.callStore.isPolite) {
+      this.dataChannel = this.peerConnection.createDataChannel('game');
+      this.setupDataChannel();
+    }
+  }
+
+  private setupDataChannel() {
+    if (!this.dataChannel) return;
+
+    this.dataChannel.onopen = () => {
+      console.log('Data channel is open and ready to be used.');
+    };
+
+    this.dataChannel.onmessage = this.handleDataChannelMessage;
+  }
+
+  private handleDataChannelMessage = (event: MessageEvent) => {
+    const message: DataChannelMessage = JSON.parse(event.data);
+
+    switch (message.type) {
+      case 'GAME':
+        this.rootStore.gameStore.handleIncomingMessage(message.data);
+        break;
+
+      // TODO: Add cases for other message types (e.g., chat messages)
+      default:
+        console.warn('Unknown message:', message);
+    }
+  };
 
   private handleOffer = async (peerMessage: PeerMessage, _userId: string) => {
     if (!this.peerConnection) {
@@ -144,16 +185,57 @@ export class WebRTCService {
     }
   }
 
+  sendMessage(message: DataChannelMessage) {
+    if (this.dataChannel && this.dataChannel.readyState === 'open') {
+      this.dataChannel.send(JSON.stringify(message));
+    } else {
+      console.warn('Data channel is not open. Cannot send message:', message);
+    }
+  }
+
   async removeCanvasStream() {
     if (this.canvasStream) {
+      // Stop the track associated with the sender
+      const track = this.canvasStream.track;
+      if (track) {
+        track.stop();
+      }
+
+      // Remove the sender from the peer connection
       this.peerConnection.removeTrack(this.canvasStream);
+
+      // Nullify the canvasStream reference
       this.canvasStream = null;
     }
   }
 
   cleanup() {
-    this.peerConnection.close();
-    this.rootStore.socketStore.socket.off('peer-message');
+    if (this.dataChannel) {
+      this.dataChannel.close();
+      this.dataChannel = null;
+    }
+
+    if (this.peerConnection) {
+      const senders = this.peerConnection.getSenders();
+
+      senders.forEach((sender) => {
+        if (sender.track) {
+          sender.track.stop();
+        }
+        this.peerConnection.removeTrack(sender);
+      });
+
+      this.peerConnection.onnegotiationneeded = null;
+      this.peerConnection.oniceconnectionstatechange = null;
+      this.peerConnection.onicecandidate = null;
+      this.peerConnection.ontrack = null;
+      this.peerConnection.ondatachannel = null;
+
+      this.peerConnection.close();
+    }
+
+    this.rootStore.socketStore.socket.off('peer-message', this.handleOffer);
+
     this.canvasStream = null;
     this.videoStreamId = null;
   }

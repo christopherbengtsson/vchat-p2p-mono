@@ -99,6 +99,12 @@ export class SocketStore {
 
   disconnect() {
     this._socket?.disconnect();
+    this._socket?.io.engine.off('error');
+    this._socket?.io.engine.off('upgradeError');
+    this._socket?.io.off('reconnect_error');
+    this._socket?.io.off('error');
+    this._socket?.off('connect');
+    this._socket?.off('disconnect');
     this.rootStore.callStore.resetCallState();
   }
 }

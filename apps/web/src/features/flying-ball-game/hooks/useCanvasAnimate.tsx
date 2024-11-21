@@ -36,7 +36,6 @@ export const useCanvasAnimate = ({ canvasRef, draw, onGameOver }: In) => {
       return;
     }
 
-    AudioAnalyserService.stop();
     cancelAnimationFrame(requestRef.current);
     onGameOver(wallsPassedRef.current);
   }, [onGameOver]);

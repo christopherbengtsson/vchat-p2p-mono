@@ -4,12 +4,17 @@ import { Maybe } from '@mono/common-dto';
 import { GameType } from '@/common/model/GameType';
 import { AudioAnalyserService } from '../features/flying-ball-game/service/AudioAnalyserService';
 import { RootStore } from './RootStore';
+import { GameData } from './model/GameData';
+import { RoundData } from './model/RoundData';
+import { InviteResponse } from './model/InviteResponse';
 
 export class GameStore {
   private _rootStore: RootStore;
 
   private _gameActive = false;
   private _gameType: Maybe<GameType>;
+
+  private _inviteDialogOpen = false;
 
   private _partnersTurn = false;
   private _maxRounds = 2;
@@ -32,6 +37,13 @@ export class GameStore {
     });
 
     this._rootStore = rootStore;
+  }
+
+  get inviteDialogOpen() {
+    return this._inviteDialogOpen;
+  }
+  set inviteDialogOpen(value: boolean) {
+    this._inviteDialogOpen = value;
   }
 
   get partnersTurn() {
@@ -107,23 +119,42 @@ export class GameStore {
   }
 
   invitePartnerToGame() {
-    this._rootStore.socketStore.socket.emit(
-      'send-game-invite',
-      this._rootStore.callStore.roomId,
-    );
+    this._sendMessage({
+      type: 'INVITE',
+    });
   }
 
-  handleIncomingGameInvitation(acceptInvite: boolean) {
-    if (acceptInvite) {
+  answerGameInvite(accept: boolean) {
+    if (accept) {
       this.gameActive = true;
       this.partnersTurn = true;
     }
 
-    this._rootStore.socketStore.socket.emit(
-      'answer-game-invite',
-      this._rootStore.callStore.roomId,
-      acceptInvite,
-    );
+    this.inviteDialogOpen = false;
+
+    this._sendMessage({
+      type: 'INVITE_RESPONSE',
+      response: accept ? 'ACCEPT' : 'DECLINE',
+    });
+  }
+
+  handleIncomingMessage(message: GameData) {
+    switch (message.type) {
+      case 'INVITE':
+        this.inviteDialogOpen = true;
+        break;
+
+      case 'INVITE_RESPONSE':
+        this._onInviteResponse(message.response);
+        break;
+
+      case 'ROUND_UPDATE':
+        this._onRoundUpdate(message.data);
+        break;
+
+      default:
+        break;
+    }
   }
 
   async startGame() {
@@ -144,34 +175,20 @@ export class GameStore {
 
   roundGameOver(score: number) {
     this.userScore = score;
-
-    this.localCanvasStream = null;
-    this.setLocalCanvasAudioStream(null);
-
     this.resultDialogOpen = true;
-
-    this._rootStore.socketStore.socket.emit(
-      'round-game-over',
-      this._rootStore.callStore.roomId,
-      this.round,
-      this.userScore,
-    );
-  }
-
-  async handlePartnerRoundCompleted(round: number, partnerScore: number) {
-    this.round = round;
-    this.partnerScore = partnerScore;
-    this.resultDialogOpen = true;
-
     this._cleanupGameRound();
+
+    this._sendMessage({
+      type: 'ROUND_UPDATE',
+      data: {
+        round: this.round,
+        score: this.userScore,
+      },
+    });
   }
 
   cleanupGame() {
-    AudioAnalyserService.stop();
-
-    if (this.remoteCanvasStream) {
-      this.remoteCanvasStream.getTracks().forEach((track) => track.stop());
-    }
+    this._cleanupGameRound();
 
     this.gameActive = false;
     this.gameType = undefined;
@@ -181,12 +198,30 @@ export class GameStore {
     this.userScore = 0;
     this.partnerScore = 0;
 
-    this.setRemoteCanvasStream(undefined);
-    this.localCanvasStream = undefined;
-    this.setLocalCanvasAudioStream(undefined);
-
     this.startNewRoundDialogOpen = false;
     this.resultDialogOpen = false;
+  }
+
+  private _onInviteResponse(response: InviteResponse) {
+    if (response === 'ACCEPT') {
+      this.startNewRoundDialogOpen = true;
+    } else {
+      toast('Invitation was declined');
+    }
+  }
+
+  private _onRoundUpdate(data: RoundData) {
+    this.round = data.round;
+    this.userScore = data.score;
+    this.resultDialogOpen = true;
+    this._cleanupGameRound();
+  }
+
+  private _sendMessage(message: GameData) {
+    this._rootStore.callStore.webRtcService?.sendMessage({
+      type: 'GAME',
+      data: message,
+    });
   }
 
   private async _startNewRound() {
@@ -199,9 +234,22 @@ export class GameStore {
   }
 
   private _cleanupGameRound() {
-    this.setRemoteCanvasStream(null);
-    this.localCanvasStream = null;
-    this.setLocalCanvasAudioStream(null);
+    AudioAnalyserService.stop();
+
+    if (this.remoteCanvasStream) {
+      this.remoteCanvasStream.getTracks().forEach((track) => track.stop());
+      this.setRemoteCanvasStream(null);
+    }
+
+    if (this.localCanvasStream) {
+      this.localCanvasStream.getTracks().forEach((track) => track.stop());
+      this.localCanvasStream = null;
+    }
+
+    if (this.localCanvasAudioStream) {
+      this.localCanvasAudioStream.getTracks().forEach((track) => track.stop());
+      this.setLocalCanvasAudioStream(null);
+    }
   }
 
   private _handleUnexpectedGameError() {

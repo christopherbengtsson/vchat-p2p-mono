@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 import { observer } from 'mobx-react';
 import { DrawerDialog } from '@/common/components/drawer-dialog/DrawerDialog';
 import { Button } from '@/common/components/ui/button';
@@ -6,38 +6,28 @@ import { useRootStore } from '@/stores/hooks/useRootStore';
 import { ResultDialogContent } from '../component/ResultDialogContent';
 
 export const ResultDialogContainer = observer(function ResultDialogContainer() {
-  const { socketStore, gameStore } = useRootStore();
+  const { gameStore } = useRootStore();
 
   const dialogContent = useMemo(() => {
-    const gameComplete = gameStore?.round === gameStore?.maxRounds;
+    const gameComplete = gameStore.round === gameStore.maxRounds;
 
     return {
       title: gameComplete
         ? 'Game finished'
-        : `Round ${gameStore?.round} finished`,
+        : `Round ${gameStore.round} finished`,
       description: gameComplete ? `` : ``,
       ctaText: gameStore.partnersTurn ? 'Close' : 'Next round',
       gameComplete,
     };
-  }, [gameStore?.maxRounds, gameStore.partnersTurn, gameStore?.round]);
-
-  useEffect(() => {
-    socketStore.maybeSocket?.on('round-game-over', (round, partnerScore) => {
-      gameStore?.handlePartnerRoundCompleted(round, partnerScore);
-    });
-
-    return () => {
-      socketStore.maybeSocket?.off('round-game-over');
-    };
-  }, [gameStore, socketStore.maybeSocket]);
+  }, [gameStore.maxRounds, gameStore.partnersTurn, gameStore.round]);
 
   const handleResultDialogToggle = () => {
     const toggle = !gameStore.resultDialogOpen;
     gameStore.resultDialogOpen = toggle;
 
     if (!toggle) {
-      if (dialogContent?.gameComplete) {
-        gameStore?.cleanupGame();
+      if (dialogContent.gameComplete) {
+        gameStore.cleanupGame();
       } else {
         if (gameStore.partnersTurn) {
           gameStore.startNewRoundDialogOpen = true;
@@ -56,8 +46,8 @@ export const ResultDialogContainer = observer(function ResultDialogContainer() {
       description={dialogContent.description}
       mainContent={
         <ResultDialogContent
-          round={gameStore?.round}
-          userScore={gameStore?.userScore}
+          round={gameStore.round}
+          userScore={gameStore.userScore}
         />
       }
       footerContent={
