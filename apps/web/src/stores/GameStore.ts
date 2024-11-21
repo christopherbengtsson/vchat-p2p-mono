@@ -1,4 +1,4 @@
-import { makeAutoObservable } from 'mobx';
+import { makeAutoObservable, observable } from 'mobx';
 import { toast } from 'sonner';
 import { Maybe } from '@mono/common-dto';
 import { GameType } from '@/common/model/GameType';
@@ -17,15 +17,19 @@ export class GameStore {
   private _userScore = 0;
   private _partnerScore = 0;
 
-  private _remoteCanvasStream: Maybe<MediaStream>;
-  private _localCanvasStream: Maybe<MediaStream>;
-  private _localCanvasAudioStream: Maybe<MediaStream>;
+  remoteCanvasStream: Maybe<MediaStream> = null;
+  localCanvasAudioStream: Maybe<MediaStream> = null;
+  localCanvasStream: Maybe<MediaStream> = null;
 
   private _startNewRoundDialogOpen = false;
   private _resultDialogOpen = false;
 
   constructor(rootStore: RootStore) {
-    makeAutoObservable(this);
+    makeAutoObservable(this, {
+      remoteCanvasStream: observable.ref,
+      localCanvasAudioStream: observable.ref,
+      localCanvasStream: false,
+    });
 
     this._rootStore = rootStore;
   }
@@ -74,27 +78,6 @@ export class GameStore {
   }
   set gameActive(value: boolean) {
     this._gameActive = value;
-  }
-
-  get remoteCanvasStream() {
-    return this._remoteCanvasStream;
-  }
-  set remoteCanvasStream(value: Maybe<MediaStream>) {
-    this._remoteCanvasStream = value;
-  }
-
-  get localCanvasStream() {
-    return this._localCanvasStream;
-  }
-  set localCanvasStream(value: Maybe<MediaStream>) {
-    this._localCanvasStream = value;
-  }
-
-  get localCanvasAudioStream() {
-    return this._localCanvasAudioStream;
-  }
-  set localCanvasAudioStream(value: Maybe<MediaStream>) {
-    this._localCanvasAudioStream = value;
   }
 
   get startNewRoundDialogOpen() {
@@ -195,10 +178,11 @@ export class GameStore {
   }
 
   private async _startNewRound() {
-    this.localCanvasAudioStream =
-      await this._rootStore.mediaStore.requestGameAudioStream();
-    AudioAnalyserService.init(this.localCanvasAudioStream);
+    const stream = await this._rootStore.mediaStore.requestGameAudioStream();
 
+    AudioAnalyserService.init(stream);
+
+    this.localCanvasAudioStream = stream;
     this.round++;
   }
 
