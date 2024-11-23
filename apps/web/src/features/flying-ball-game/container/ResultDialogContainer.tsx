@@ -9,28 +9,25 @@ export const ResultDialogContainer = observer(function ResultDialogContainer() {
   const { gameStore } = useRootStore();
 
   const dialogContent = useMemo(() => {
-    const gameComplete = gameStore.round === gameStore.maxRounds;
-
     return {
-      title: gameComplete
+      title: gameStore.gameComplete
         ? 'Game finished'
         : `Round ${gameStore.round} finished`,
-      description: gameComplete ? `` : ``,
+      description: gameStore.gameComplete ? `some desc` : `some desc`,
       ctaText: gameStore.partnersTurn ? 'Close' : 'Next round',
-      gameComplete,
     };
-  }, [gameStore.maxRounds, gameStore.partnersTurn, gameStore.round]);
+  }, [gameStore.gameComplete, gameStore.partnersTurn, gameStore.round]);
 
   const handleResultDialogToggle = () => {
     const toggle = !gameStore.resultDialogOpen;
-    gameStore.resultDialogOpen = toggle;
+    gameStore.toggleResultDialog(toggle);
 
     if (!toggle) {
-      if (dialogContent.gameComplete) {
+      if (gameStore.gameComplete) {
         gameStore.cleanupGame();
       } else {
         if (gameStore.partnersTurn) {
-          gameStore.startNewRoundDialogOpen = true;
+          gameStore.setStartNewRoundDialogOpen(true);
         }
       }
     }

@@ -1,4 +1,4 @@
-import { makeAutoObservable } from 'mobx';
+import { makeAutoObservable, flow, observable } from 'mobx';
 import { PermissionService } from '@/common/service/PermissionService';
 import { LocalStorageService } from '@/common/service/LocalStorageService';
 import { STORAGE_KEYS } from '@/common/model/LocalStorageKeys';
@@ -9,46 +9,38 @@ import {
 } from '@/common/utils/toast/model/ToastState';
 
 export class MediaStore {
-  private _stream: MediaStream | null = null;
-  private _videoEnabled = true;
-  private _audioEnabled = true;
+  stream: MediaStream | null = null;
+  videoEnabled = true;
+  audioEnabled = true;
 
   constructor() {
-    makeAutoObservable(this);
+    makeAutoObservable(this, {
+      stream: observable.ref,
+
+      getMediaPermissions: false,
+      requestGameAudioStream: false,
+    });
   }
 
-  get maybeStream() {
-    return this._stream;
-  }
-
-  get stream(): MediaStream {
-    if (!this._stream) {
-      throw new Error('Local stream is not available');
+  setVideoEnabled(toggle: boolean) {
+    if (!this.stream) {
+      return;
     }
-    return this._stream;
-  }
-  set stream(stream: MediaStream | null) {
-    this._stream = stream;
-  }
-
-  get videoEnabled() {
-    return this._videoEnabled;
-  }
-  set videoEnabled(toggle: boolean) {
     this.stream.getVideoTracks()[0].enabled = toggle;
-    this._videoEnabled = toggle;
+    this.videoEnabled = toggle;
   }
 
-  get audioEnabled() {
-    return this._audioEnabled;
-  }
-  set audioEnabled(toggle: boolean) {
+  setAudioEnabled(toggle: boolean) {
+    if (!this.stream) {
+      return;
+    }
     this.stream.getAudioTracks()[0].enabled = toggle;
-    this._audioEnabled = toggle;
+    this.audioEnabled = toggle;
   }
 
-  async getMediaPermissions(): Promise<boolean> {
-    const state = await PermissionService.checkMediaPermissions();
+  getMediaPermissions = flow(function* (this: MediaStore) {
+    const state: PermissionState =
+      yield PermissionService.checkMediaPermissions();
 
     if (state === 'granted') {
       return true;
@@ -60,38 +52,38 @@ export class MediaStore {
     }
 
     return false;
-  }
+  });
 
-  async requestAudioAndVideoStream() {
+  requestAudioAndVideoStream = flow(function* (this: MediaStore) {
     try {
-      const stream = await MediaStreamService.requestAudioAndVideoStream();
+      const stream: MediaStream =
+        yield MediaStreamService.requestAudioAndVideoStream();
 
       this.stream = stream;
       this.videoEnabled = stream.getVideoTracks()[0].enabled;
       this.audioEnabled = stream.getAudioTracks()[0].enabled;
 
       LocalStorageService.set(STORAGE_KEYS.MEDIA_PERMISSIONS, 'granted');
-    } catch (error: DOMException | unknown) {
+    } catch (error) {
       LocalStorageService.set(STORAGE_KEYS.MEDIA_PERMISSIONS, 'error');
       return this._getDomExceptionError(error as DOMException);
     }
-  }
+  });
 
   closeAudioAndVideoStream() {
-    this.maybeStream?.getTracks()?.forEach((track) => {
+    this.stream?.getTracks()?.forEach((track) => {
       track.stop();
     });
   }
 
-  async requestGameAudioStream() {
+  requestGameAudioStream = flow(function* (this: MediaStore) {
     try {
-      return await MediaStreamService.requestGameAudioStream();
-    } catch (error: DOMException | unknown) {
-      // TODO: Can this happen? Close call?
+      return yield MediaStreamService.requestGameAudioStream();
+    } catch (error) {
       console.error(error);
       throw error;
     }
-  }
+  });
 
   private _getDomExceptionError(error: DOMException | unknown): ToastState {
     if (!(error as DOMException).name) {

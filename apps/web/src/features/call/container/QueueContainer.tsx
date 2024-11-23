@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { observer } from 'mobx-react';
 import { useNavigate } from 'react-router-dom';
 import { MdTravelExplore } from 'react-icons/md';
+import { Assert } from '@/common/utils/Assert';
 import { Button } from '@/common/components/ui/button';
 import { useRootStore } from '@/stores/hooks/useRootStore';
 import { CallState } from '@/stores/model/CallState';
@@ -13,14 +14,14 @@ export const QueueContainer = observer(function QueuePage() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    socketStore.maybeSocket?.on('match-found', (...args) => {
+    socketStore.socket?.on('match-found', (...args) => {
       callStore.initNewCall(...args);
     });
 
     return () => {
-      socketStore.maybeSocket?.off('match-found');
+      socketStore.socket?.off('match-found');
     };
-  }, [callStore, socketStore.maybeSocket]);
+  }, [callStore, socketStore.socket]);
 
   const handleCancel = () => {
     callStore.cancelMatch();
@@ -38,6 +39,8 @@ export const QueueContainer = observer(function QueuePage() {
       </div>
     );
   }
+
+  Assert.isDefined(callStore.partnerId);
 
   return (
     <div className="flex flex-col justify-center items-center gap-6">

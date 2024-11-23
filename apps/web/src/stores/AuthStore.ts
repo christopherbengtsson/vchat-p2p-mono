@@ -3,46 +3,32 @@ import type { Session } from '@supabase/supabase-js';
 import { SupabaseClient } from '../common/supabase/client';
 
 export class AuthStore {
-  private _session: Session | null = null;
-  private _authenticated = false;
-
-  private _userUpgraded = false;
+  session: Session | null = null;
+  authenticated = false;
+  userUpgraded = false;
 
   constructor() {
     makeAutoObservable(this);
 
     SupabaseClient.instance.auth.getSession().then(({ data: { session } }) => {
-      this.session = session;
+      this.setSession(session);
     });
 
     SupabaseClient.instance.auth.onAuthStateChange((_event, session) => {
-      this.session = session;
+      this.setSession(session);
 
       const authenticated = !!session;
       if (authenticated !== this.authenticated) {
-        this.authenticated = authenticated;
+        this.setAuthenticated(authenticated);
       }
     });
   }
 
-  get session() {
-    return this._session;
-  }
-  set session(session: Session | null) {
-    this._session = session;
+  setSession(session: Session | null) {
+    this.session = session;
   }
 
-  get authenticated() {
-    return this._authenticated;
-  }
-  set authenticated(authenticated: boolean) {
-    this._authenticated = authenticated;
-  }
-
-  get userUpgraded() {
-    return this._userUpgraded;
-  }
-  set userUpgraded(userUpgraded: boolean) {
-    this._userUpgraded = userUpgraded;
+  setAuthenticated(authenticated: boolean) {
+    this.authenticated = authenticated;
   }
 }

@@ -1,4 +1,5 @@
 import { PeerMessage } from '@mono/common-dto';
+import { Assert } from '@/common/utils/Assert';
 import type { DataChannelMessage } from '@/stores/model/DataChannelMessage';
 import { RootStore } from '@/stores/RootStore';
 
@@ -19,90 +20,42 @@ export class WebRTCService {
   private makingOffer = false;
   private ignoreOffer = false;
 
-  private canvasStream: RTCRtpSender | null = null;
+  private canvasSender: RTCRtpSender | null = null;
   private videoStreamId: string | null = null;
 
-  dataChannel: RTCDataChannel | null = null;
+  private dataChannel: RTCDataChannel | null = null;
 
   constructor(rootStore: RootStore) {
     this.rootStore = rootStore;
 
     this.peerConnection = new RTCPeerConnection(configuration);
+
     this.setupPeerListeners();
     this.setupSocketListeners();
 
     this.createDataChannel();
 
+    Assert.isDefined(this.rootStore.mediaStore.stream, 'Stream is not defined');
     for (const track of this.rootStore.mediaStore.stream.getTracks()) {
       this.peerConnection.addTrack(track, this.rootStore.mediaStore.stream);
     }
   }
 
   private setupPeerListeners() {
-    this.peerConnection.onnegotiationneeded = async () => {
-      try {
-        this.makingOffer = true;
-
-        await this.peerConnection.setLocalDescription();
-
-        this.rootStore.socketStore.socket.emit(
-          'peer-message',
-          { description: this.peerConnection.localDescription },
-          this.rootStore.callStore.roomId,
-          this.rootStore.callStore.partnerId,
-        );
-      } catch (err) {
-        console.error(err);
-      } finally {
-        this.makingOffer = false;
-      }
-    };
-
-    this.peerConnection.oniceconnectionstatechange = () => {
-      if (this.peerConnection.iceConnectionState === 'failed') {
-        this.peerConnection.restartIce();
-      }
-    };
-
-    this.peerConnection.onicecandidate = (ev) => {
-      if (ev.candidate) {
-        this.rootStore.socketStore.socket.emit(
-          'peer-message',
-          { candidate: ev.candidate },
-          this.rootStore.callStore.roomId,
-          this.rootStore.callStore.partnerId,
-        );
-      }
-    };
-
-    this.peerConnection.ontrack = ({ track, streams }) => {
-      track.onunmute = () => {
-        const remoteStream = streams[0];
-
-        if (!this.rootStore.callStore.remoteStream) {
-          this.rootStore.callStore.remoteStream = remoteStream;
-          this.videoStreamId = remoteStream.id;
-        }
-
-        if (
-          !this.rootStore.gameStore.remoteCanvasStream &&
-          remoteStream.id !== this.videoStreamId
-        ) {
-          this.rootStore.gameStore.setRemoteCanvasStream(remoteStream);
-        }
-      };
-    };
-
-    this.peerConnection.ondatachannel = (event) => {
-      this.dataChannel = event.channel;
-      this.setupDataChannel();
-    };
+    this.peerConnection.onnegotiationneeded = this.handleNegotiationNeeded;
+    this.peerConnection.oniceconnectionstatechange =
+      this.handleIceConnectionStateChange;
+    this.peerConnection.onicecandidate = this.handleIceCandidate;
+    this.peerConnection.ontrack = this.handleTrackEvent;
+    this.peerConnection.ondatachannel = this.handleDataChannelEvent;
   }
 
   private setupSocketListeners() {
-    this.rootStore.socketStore.socket.on('peer-message', (...data) =>
-      this.handleOffer(...data),
+    Assert.isDefined(
+      this.rootStore.socketStore.socket,
+      'Socket is not defined',
     );
+    this.rootStore.socketStore.socket.on('peer-message', this.handleOffer);
   }
 
   private createDataChannel() {
@@ -122,21 +75,83 @@ export class WebRTCService {
     this.dataChannel.onmessage = this.handleDataChannelMessage;
   }
 
-  private handleDataChannelMessage = (event: MessageEvent) => {
-    const message: DataChannelMessage = JSON.parse(event.data);
+  private handleNegotiationNeeded = async () => {
+    Assert.isDefined(this.rootStore.callStore.roomId, 'roomId is not defined');
+    Assert.isDefined(
+      this.rootStore.callStore.partnerId,
+      'partnerId is not defined',
+    );
+    try {
+      this.makingOffer = true;
 
-    switch (message.type) {
-      case 'GAME':
-        this.rootStore.gameStore.handleIncomingMessage(message.data);
-        break;
+      await this.peerConnection.setLocalDescription();
 
-      // TODO: Add cases for other message types (e.g., chat messages)
-      default:
-        console.warn('Unknown message:', message);
+      Assert.isDefined(
+        this.rootStore.socketStore.socket,
+        'socket is not defined',
+      );
+      this.rootStore.socketStore.socket.emit(
+        'peer-message',
+        { description: this.peerConnection.localDescription },
+        this.rootStore.callStore.roomId,
+        this.rootStore.callStore.partnerId,
+      );
+    } catch (err) {
+      console.error(err);
+    } finally {
+      this.makingOffer = false;
     }
   };
 
+  private handleIceConnectionStateChange = () => {
+    if (this.peerConnection.iceConnectionState === 'failed') {
+      this.peerConnection.restartIce();
+    }
+  };
+
+  private handleIceCandidate = (event: RTCPeerConnectionIceEvent) => {
+    Assert.isDefined(this.rootStore.socketStore.socket);
+    Assert.isDefined(this.rootStore.callStore.roomId);
+    Assert.isDefined(this.rootStore.callStore.partnerId);
+
+    if (event.candidate) {
+      this.rootStore.socketStore.socket.emit(
+        'peer-message',
+        { candidate: event.candidate },
+        this.rootStore.callStore.roomId,
+        this.rootStore.callStore.partnerId,
+      );
+    }
+  };
+
+  private handleTrackEvent = (event: RTCTrackEvent) => {
+    event.track.onunmute = () => {
+      const remoteStream = event.streams[0];
+
+      if (!this.rootStore.callStore.remoteStream) {
+        this.rootStore.callStore.setRemoteStream(remoteStream);
+        this.videoStreamId = remoteStream.id;
+      }
+
+      if (
+        !this.rootStore.gameStore.remoteCanvasStream &&
+        remoteStream.id !== this.videoStreamId
+      ) {
+        this.rootStore.gameStore.setRemoteCanvasStream(remoteStream);
+      }
+    };
+  };
+
+  private handleDataChannelEvent = (event: RTCDataChannelEvent) => {
+    this.dataChannel = event.channel;
+    this.setupDataChannel();
+  };
+
   private handleOffer = async (peerMessage: PeerMessage, _userId: string) => {
+    Assert.isDefined(this.rootStore.socketStore.socket);
+    Assert.isDefined(this.rootStore.callStore.roomId);
+    Assert.isDefined(this.rootStore.callStore.partnerId);
+
     if (!this.peerConnection) {
       console.warn(
         'Attempting to handle offer before PeerConnection is initialized',
@@ -155,7 +170,7 @@ export class WebRTCService {
 
         await this.peerConnection.setRemoteDescription(description); // SRD rolls back as needed
 
-        if (description.type == 'offer') {
+        if (description.type === 'offer') {
           await this.peerConnection.setLocalDescription();
           this.rootStore.socketStore.socket.emit(
             'peer-message',
@@ -179,9 +194,23 @@ export class WebRTCService {
     }
   };
 
+  private handleDataChannelMessage = (event: MessageEvent) => {
+    const message: DataChannelMessage = JSON.parse(event.data);
+
+    switch (message.type) {
+      case 'GAME':
+        this.rootStore.gameStore.handleIncomingMessage(message.data);
+        break;
+
+      // TODO: Add cases for other message types (e.g., chat messages)
+      default:
+        console.warn('Unknown message:', message);
+    }
+  };
+
   async addCanvasStream(canvasStream: MediaStream) {
     for (const track of canvasStream.getTracks()) {
-      this.canvasStream = this.peerConnection.addTrack(track, canvasStream);
+      this.canvasSender = this.peerConnection.addTrack(track, canvasStream);
     }
   }
 
@@ -194,37 +223,24 @@ export class WebRTCService {
   }
 
   async removeCanvasStream() {
-    if (this.canvasStream) {
-      // Stop the track associated with the sender
-      const track = this.canvasStream.track;
+    if (this.canvasSender) {
+      const track = this.canvasSender.track;
       if (track) {
         track.stop();
       }
 
-      // Remove the sender from the peer connection
-      this.peerConnection.removeTrack(this.canvasStream);
+      this.peerConnection.removeTrack(this.canvasSender);
 
-      // Nullify the canvasStream reference
-      this.canvasStream = null;
+      this.canvasSender = null;
     }
   }
 
   cleanup() {
-    if (this.dataChannel) {
-      this.dataChannel.close();
-      this.dataChannel = null;
-    }
+    this.rootStore.socketStore.socket?.off('peer-message', this.handleOffer);
+
+    this.cleanupDataChannel();
 
     if (this.peerConnection) {
-      const senders = this.peerConnection.getSenders();
-
-      senders.forEach((sender) => {
-        if (sender.track) {
-          sender.track.stop();
-        }
-        this.peerConnection.removeTrack(sender);
-      });
-
       this.peerConnection.onnegotiationneeded = null;
       this.peerConnection.oniceconnectionstatechange = null;
       this.peerConnection.onicecandidate = null;
@@ -234,9 +250,18 @@ export class WebRTCService {
       this.peerConnection.close();
     }
 
-    this.rootStore.socketStore.socket.off('peer-message', this.handleOffer);
-
-    this.canvasStream = null;
+    this.canvasSender = null;
     this.videoStreamId = null;
+  }
+
+  private cleanupDataChannel() {
+    if (this.dataChannel) {
+      this.dataChannel.onmessage = null;
+      this.dataChannel.onopen = null;
+      this.dataChannel.onerror = null;
+      this.dataChannel.onclose = null;
+      this.dataChannel.close();
+      this.dataChannel = null;
+    }
   }
 }
