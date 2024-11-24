@@ -10,14 +10,14 @@ export const ConnectionCountContainer = observer(
     const [nrOfAvailableUsers, setNrOfAvailableUsers] = useState(0);
 
     useEffect(() => {
-      socketStore.maybeSocket?.on('connections-count', (count: number) => {
+      socketStore.socket?.on('connections-count', (count: number) => {
         setNrOfAvailableUsers(count === 1 ? 0 : count - 1);
       });
 
       return () => {
-        socketStore.maybeSocket?.off('connections-count');
+        socketStore.socket?.off('connections-count');
       };
-    }, [socketStore.maybeSocket]);
+    }, [socketStore.socket]);
 
     return (
       socketStore.connected && (

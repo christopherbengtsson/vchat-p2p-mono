@@ -12,7 +12,6 @@
     "server": "pnpm --filter server",
     "common-dto": "pnpm --filter common-dto",
     "common-supabase": "pnpm --filter common-supabase",
-    "fe-workers": "pnpm --filter fe-workers",
     "prepare": "husky",
     "server:run:docker": "docker-compose -f docker-compose.local.yml up",
     "server:close:docker": "docker-compose -f docker-compose.local.yml down",
