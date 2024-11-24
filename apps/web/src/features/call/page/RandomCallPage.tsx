@@ -8,7 +8,6 @@ import { InCallContainer } from '../container/InCallContainer';
 export const RandomCallPage = observer(function CallPage() {
   const { callStore } = useRootStore();
 
-  console.log('RandomCallPage', callStore.callState);
   switch (callStore.callState) {
     case CallState.IN_QUEUE:
     case CallState.MATCH_FOUND:

@@ -1,60 +1,106 @@
-import { makeAutoObservable } from 'mobx';
-import { MediaStreamService } from './services/MediaStreamService';
-import { ErrorState } from './model/ErrorState';
-import { RootStore } from './RootStore';
+import { makeAutoObservable, flow, observable } from 'mobx';
+import { PermissionService } from '@/common/service/PermissionService';
+import { LocalStorageService } from '@/common/service/LocalStorageService';
+import { STORAGE_KEYS } from '@/common/model/LocalStorageKeys';
+import { MediaStreamService } from '@/common/service/MediaStreamService';
+import {
+  ToastState,
+  ErrorToastState,
+} from '@/common/utils/toast/model/ToastState';
 
 export class MediaStore {
-  private _rootStore: RootStore;
-  private _stream: MediaStream | null = null;
-  private _videoEnabled = true;
-  private _audioEnabled = true;
+  stream: MediaStream | null = null;
+  videoEnabled = true;
+  audioEnabled = true;
 
-  constructor(rootStore: RootStore) {
-    makeAutoObservable(this);
-    this._rootStore = rootStore;
-    void this.initStreams();
+  constructor() {
+    makeAutoObservable(this, {
+      stream: observable.ref,
+
+      getMediaPermissions: false,
+      requestGameAudioStream: false,
+    });
   }
 
-  get maybeStream() {
-    return this._stream;
-  }
-
-  get stream(): MediaStream {
-    if (!this._stream) {
-      throw new Error('Local stream is not available');
+  setVideoEnabled(toggle: boolean) {
+    if (!this.stream) {
+      return;
     }
-    return this._stream;
-  }
-  set stream(stream: MediaStream | null) {
-    this._stream = stream;
-  }
-
-  get videoEnabled() {
-    return this._videoEnabled;
-  }
-  set videoEnabled(toggle: boolean) {
     this.stream.getVideoTracks()[0].enabled = toggle;
-    this._videoEnabled = toggle;
+    this.videoEnabled = toggle;
   }
 
-  get audioEnabled() {
-    return this._audioEnabled;
-  }
-  set audioEnabled(toggle: boolean) {
+  setAudioEnabled(toggle: boolean) {
+    if (!this.stream) {
+      return;
+    }
     this.stream.getAudioTracks()[0].enabled = toggle;
-    this._audioEnabled = toggle;
+    this.audioEnabled = toggle;
   }
 
-  private async initStreams() {
+  getMediaPermissions = flow(function* (this: MediaStore) {
+    const state: PermissionState =
+      yield PermissionService.checkMediaPermissions();
+
+    if (state === 'granted') {
+      return true;
+    }
+
+    const storedState = LocalStorageService.get(STORAGE_KEYS.MEDIA_PERMISSIONS);
+    if (storedState === 'granted') {
+      return true;
+    }
+
+    return false;
+  });
+
+  requestAudioAndVideoStream = flow(function* (this: MediaStore) {
     try {
-      const stream = await MediaStreamService.requestAudioAndVideoStream();
+      const stream: MediaStream =
+        yield MediaStreamService.requestAudioAndVideoStream();
 
       this.stream = stream;
       this.videoEnabled = stream.getVideoTracks()[0].enabled;
       this.audioEnabled = stream.getAudioTracks()[0].enabled;
+
+      LocalStorageService.set(STORAGE_KEYS.MEDIA_PERMISSIONS, 'granted');
+    } catch (error) {
+      LocalStorageService.set(STORAGE_KEYS.MEDIA_PERMISSIONS, 'error');
+      return this._getDomExceptionError(error as DOMException);
+    }
+  });
+
+  closeAudioAndVideoStream() {
+    this.stream?.getTracks()?.forEach((track) => {
+      track.stop();
+    });
+  }
+
+  requestGameAudioStream = flow(function* (this: MediaStore) {
+    try {
+      return yield MediaStreamService.requestGameAudioStream();
     } catch (error) {
       console.error(error);
-      this._rootStore.uiStore.errorState = ErrorState.MEDIA_STREAM_ERROR;
+      throw error;
+    }
+  });
+
+  private _getDomExceptionError(error: DOMException | unknown): ToastState {
+    if (!(error as DOMException).name) {
+      return ErrorToastState.UNKNOWN_ERROR;
+    }
+
+    switch ((error as DOMException).name) {
+      case 'NotAllowedError':
+        return ErrorToastState.MEDIA_STREAM_NOT_ALLOWED;
+
+      case 'NotFoundError':
+      case 'NotReadableError':
+        return ErrorToastState.MEDIA_STREAM_NOT_AVAILABLE;
+
+      default:
+        console.error('requestAudioAndVideoStream()', error);
+        return ErrorToastState.MEDIA_STREAM_UNKNOWN;
     }
   }
 }

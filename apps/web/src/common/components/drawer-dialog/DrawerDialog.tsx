@@ -1,3 +1,4 @@
+import { observer } from 'mobx-react';
 import {
   Dialog,
   DialogContent,
@@ -27,7 +28,7 @@ interface Props {
   footerContent?: React.ReactNode;
 }
 
-export function DrawerDialog({
+export const DrawerDialog = observer(function DrawerDialog({
   open,
   toggle,
   title,
@@ -77,4 +78,4 @@ export function DrawerDialog({
       </DrawerContent>
     </Drawer>
   );
-}
+});

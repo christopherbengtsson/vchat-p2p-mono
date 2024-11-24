@@ -10,8 +10,8 @@ export interface ClientToServerEvents {
   'join-room': (roomId: string, userId: string) => void;
   'leave-room': (roomId: string, userId: string) => void;
 
+  'peer-message': (data: PeerMessage, roomId: string, userId: string) => void;
+
   'audio-toggle': (enabled: boolean, roomId: string) => void;
   'video-toggle': (enabled: boolean, roomId: string) => void;
-
-  'peer-message': (data: PeerMessage, roomId: string, userId: string) => void;
 }

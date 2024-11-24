@@ -1,21 +1,21 @@
 import { AuthStore } from './AuthStore';
 import { SocketStore } from './SocketStore';
-import { UiStore } from './UiStore';
 import { CallStore } from './CallStore';
 import { MediaStore } from './MediaStore';
+import { GameStore } from './GameStore';
 
 export class RootStore {
   authStore: AuthStore;
   socketStore: SocketStore;
   mediaStore: MediaStore;
-  uiStore: UiStore;
   callStore: CallStore;
+  gameStore: GameStore;
 
   constructor() {
     this.authStore = new AuthStore();
     this.socketStore = new SocketStore(this);
-    this.mediaStore = new MediaStore(this);
+    this.mediaStore = new MediaStore();
     this.callStore = new CallStore(this);
-    this.uiStore = new UiStore();
+    this.gameStore = new GameStore(this);
   }
 }

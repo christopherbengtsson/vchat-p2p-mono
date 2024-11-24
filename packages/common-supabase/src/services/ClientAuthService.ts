@@ -1,4 +1,4 @@
-import { SupabaseClient } from '@supabase/supabase-js';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
 async function loginAnonymously(client: SupabaseClient) {
   const { error } = await client.auth.signInAnonymously({
