@@ -20,7 +20,7 @@ export function StartGameAlertDialog({ open, onClick, gameRound }: Props) {
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>
-            {gameRound <= 1 ? 'Invite accepted, get ready!' : 'Your turn'}
+            {gameRound === 0 ? 'Invite accepted, get ready!' : 'Your turn'}
           </AlertDialogTitle>
           <AlertDialogDescription>
             Move the ball using your voice, don't hit the walls. Easy peasy
