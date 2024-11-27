@@ -19,4 +19,13 @@
         reverse_proxy /socket.io/* {$CADDY_PROXY_ADDRESS} {
                 lb_policy cookie
         }
+
+        # Return 404 for all other requests
+        @not_proxy {
+                not path /socket.io/*
+        }
+
+        respond @not_proxy 404 {
+                close
+        }
 }
