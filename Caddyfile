@@ -28,4 +28,28 @@
         respond @not_proxy 404 {
                 close
         }
+
+        header {
+                # Enforce HTTPS
+                Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+                # Content Security Policy
+                Content-Security-Policy
+                default-src 'self';
+                connect-src 'self' {$CADDY_FRONTEND_URL} wss://{$CADDY_DOMAIN} https://{$CADDY_DOMAIN};
+                script-src 'self' 'unsafe-inline';
+                style-src 'self' 'unsafe-inline';
+                img-src 'self' data:;
+                media-src 'self';
+
+                # Prevent MIME-type sniffing
+                X-Content-Type-Options nosniff
+                # Prevent the site from being framed
+                X-Frame-Options DENY
+                # Control referrer information
+                Referrer-Policy no-referrer-when-downgrade
+                # Allow access to camera and microphone for WebRTC
+                Permissions-Policy "camera=(self), microphone=(self), geolocation=()"
+                # Omit server information
+                -Server
+        }
 }
