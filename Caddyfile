@@ -16,17 +16,18 @@
                 }
         }
 
-        reverse_proxy /socket.io/* {$CADDY_PROXY_ADDRESS} {
-                lb_policy cookie
-        }
+        route {
+                reverse_proxy /socket.io/* {$CADDY_PROXY_ADDRESS} {
+                        lb_policy cookie
+                }
 
-        # Return 404 for all other requests
-        @not_proxy {
-                not path /socket.io/*
-        }
+                @not_proxy {
+                        not path /socket.io/*
+                }
 
-        respond @not_proxy 404 {
-                close
+                respond @not_proxy 404 {
+                        close
+                }
         }
 
         header {
@@ -40,15 +41,14 @@
                 style-src 'self' 'unsafe-inline';
                 img-src 'self' data:;
                 media-src 'self';
-
                 # Prevent MIME-type sniffing
                 X-Content-Type-Options nosniff
                 # Prevent the site from being framed
                 X-Frame-Options DENY
                 # Control referrer information
                 Referrer-Policy no-referrer-when-downgrade
-                # Allow access to camera and microphone for WebRTC
-                Permissions-Policy "camera=(self), microphone=(self), geolocation=()"
+                # Disallow stuff
+                Permissions-Policy "camera=(), microphone=(), geolocation=()"
                 # Omit server information
                 -Server
         }
