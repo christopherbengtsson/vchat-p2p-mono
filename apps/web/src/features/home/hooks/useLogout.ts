@@ -9,7 +9,7 @@ export const useLogout = () => {
   const logoutMutation = useMutation<unknown, AuthError>({
     mutationFn: () => ClientAuthService.logout(client),
     onError: (error) => {
-      console.log(error); // TODO: handle error
+      console.error(error); // TODO: handle error
     },
   });
 

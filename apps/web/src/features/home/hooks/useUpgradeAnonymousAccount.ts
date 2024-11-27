@@ -14,7 +14,7 @@ export const useUpgradeAnonymousAccount = () => {
     mutationFn: async ({ email, password }) =>
       ClientAuthService.upgradeAnonymousAccount(email, password, client),
     onError: (error) => {
-      console.log(error); // TODO: handle error
+      console.error(error); // TODO: handle error
     },
   });
 

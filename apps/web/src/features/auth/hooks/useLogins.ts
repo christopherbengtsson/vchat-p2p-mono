@@ -14,14 +14,14 @@ export const useLogins = () => {
     mutationFn: async ({ email, password }) =>
       ClientAuthService.loginWithEmail(email, password, client),
     onError: (error) => {
-      console.log(error); // TODO: handle error
+      console.error(error); // TODO: handle error
     },
   });
 
   const loginAnonymouslyMutation = useMutation<unknown, AuthError>({
     mutationFn: () => ClientAuthService.loginAnonymously(client),
     onError: (error) => {
-      console.log(error); // TODO: handle error
+      console.error(error); // TODO: handle error
     },
   });
 

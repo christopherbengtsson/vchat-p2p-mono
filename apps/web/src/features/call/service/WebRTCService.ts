@@ -69,7 +69,7 @@ export class WebRTCService {
     if (!this.dataChannel) return;
 
     this.dataChannel.onopen = () => {
-      console.log('Data channel is open and ready to be used.');
+      console.debug('Data channel is open and ready to be used.');
     };
 
     this.dataChannel.onmessage = this.handleDataChannelMessage;

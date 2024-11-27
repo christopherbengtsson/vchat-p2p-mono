@@ -1,7 +1,7 @@
 import { useRef } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { FaroErrorBoundary } from '@grafana/faro-react';
 import { Toaster } from 'sonner';
-import { ErrorBoundary } from '@/common/components/error-boundary/ErrorBoundary';
 import { Routes } from './Routes';
 import { RootStore } from './stores/RootStore';
 import { RootStoreProvider } from './stores/context/RootStoreProvider';
@@ -13,13 +13,13 @@ export function Application() {
   const store = storeRef.current;
 
   return (
-    <ErrorBoundary>
+    <FaroErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <RootStoreProvider store={store}>
           <Routes />
           <Toaster richColors />
         </RootStoreProvider>
       </QueryClientProvider>
-    </ErrorBoundary>
+    </FaroErrorBoundary>
   );
 }

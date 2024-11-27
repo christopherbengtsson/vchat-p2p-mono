@@ -63,9 +63,9 @@ export class SocketStore {
   handleDisconnect = (reason: string) => {
     this.connected = false;
 
-    console.log('disconnected');
+    console.debug('disconnected');
     if (reason === 'io server disconnect') {
-      console.log('Disconnected by server');
+      console.debug('Disconnected by server');
       showToast(ErrorToastState.SERVER_DISCONNECTED);
     }
     this.rootStore.callStore.resetCallState();

@@ -58,7 +58,7 @@ const moveWalls = (
     ) {
       wall.passed = true; // Mark wall as passed
       wallsPassedRef.current += 1; // Increment the count
-      console.log('Walls passed:', wallsPassedRef.current); // Optional: Log the count
+      console.debug('Walls passed:', wallsPassedRef.current); // Optional: Log the count
     }
   });
 };
