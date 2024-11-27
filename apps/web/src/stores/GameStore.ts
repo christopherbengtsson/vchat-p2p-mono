@@ -1,4 +1,4 @@
-import { flow, makeAutoObservable, observable } from 'mobx';
+import { makeAutoObservable, observable } from 'mobx';
 import { toast } from 'sonner';
 import { Maybe } from '@mono/common-dto';
 import { GameType } from '@/common/model/GameType';
@@ -80,11 +80,11 @@ export class GameStore {
         break;
     }
   }
-  startGame() {
+  async startGame() {
     this.gameActive = true;
     this.partnersTurn = false;
     this.setStartNewRoundDialogOpen(false);
-    this.startNewRound();
+    await this.startNewRound();
   }
   sendCanvasStream(stream: Maybe<MediaStream>) {
     if (!stream || !this.rootStore.callStore.webRtcService) {
@@ -136,15 +136,15 @@ export class GameStore {
     this.startNewRoundDialogOpen = open;
   }
 
-  startNewRound = flow(function* (this: GameStore) {
-    const stream = yield this.rootStore.mediaStore.requestGameAudioStream();
+  async startNewRound(this: GameStore) {
+    const stream = await this.rootStore.mediaStore.requestGameAudioStream();
 
     AudioAnalyserService.init(stream);
 
     this.setLocalCanvasAudioStream(stream);
 
     this.round++;
-  });
+  }
 
   onInviteResponse(response: InviteResponse) {
     if (response === 'ACCEPT') {

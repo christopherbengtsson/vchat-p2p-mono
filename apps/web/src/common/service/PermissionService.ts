@@ -1,5 +1,3 @@
-import { Maybe } from '@mono/common-dto';
-
 const checkCameraPermissions = async () => {
   const cameraPermission = await navigator.permissions.query({
     name: 'camera' as PermissionName,
@@ -16,24 +14,25 @@ const checkMicrophonePermissions = async () => {
   return microphonePermission.state;
 };
 
-const checkMediaPermissions = async (): Promise<Maybe<PermissionState>> => {
+const checkMediaPermissions = async (): Promise<PermissionState> => {
   try {
-    const [cameraEnabled, micophoneEnabled] = await Promise.all([
+    const [cameraEnabled, microphoneEnabled] = await Promise.all([
       checkCameraPermissions(),
       checkMicrophonePermissions(),
     ]);
 
-    if (cameraEnabled === 'granted' && micophoneEnabled === 'granted') {
+    if (cameraEnabled === 'granted' && microphoneEnabled === 'granted') {
       return 'granted';
     }
 
-    if (cameraEnabled === 'denied' || micophoneEnabled === 'denied') {
+    if (cameraEnabled === 'denied' || microphoneEnabled === 'denied') {
       return 'denied';
     }
 
     return 'prompt';
   } catch (error) {
     console.error(error);
+    return 'denied';
   }
 };
 

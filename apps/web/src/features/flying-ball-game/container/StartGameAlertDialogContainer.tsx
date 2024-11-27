@@ -6,8 +6,8 @@ export const StartGameAlertDialogContainer = observer(
   function StartGameAlertDialogContainer() {
     const { gameStore } = useRootStore();
 
-    const startGame = () => {
-      gameStore.startGame();
+    const startGame = async () => {
+      await gameStore.startGame();
     };
 
     return (
