@@ -9,7 +9,7 @@ interface Props {
 
 export function Video({ videoRef, isLocal, videoEnabled, isPortrait }: Props) {
   return (
-    <div className="relative flex w-full h-full">
+    <div className="relative flex justify-center w-full h-full">
       <video
         ref={videoRef}
         className={`${
