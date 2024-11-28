@@ -1,9 +1,4 @@
 import { useEffect } from 'react';
-import {
-  GAME_HEIGHT,
-  GAME_WIDTH,
-  setGameDimensions,
-} from '../model/CanvasConstants';
 
 export const useCanvasResize = (
   canvasRef: React.RefObject<HTMLCanvasElement>,
@@ -15,24 +10,22 @@ export const useCanvasResize = (
     if (!canvas || !container) return;
 
     const handleResize = () => {
-      const isPortrait = window.innerHeight > window.innerWidth;
-      setGameDimensions(isPortrait);
+      const { clientWidth: width, clientHeight: height } = container;
 
-      const scale = Math.min(
-        container.clientWidth / GAME_WIDTH,
-        container.clientHeight / GAME_HEIGHT,
-      );
+      canvas.width = width;
+      canvas.height = height;
 
-      canvas.width = GAME_WIDTH;
-      canvas.height = GAME_HEIGHT;
-      canvas.style.width = `${GAME_WIDTH * scale}px`;
-      canvas.style.height = `${GAME_HEIGHT * scale}px`;
+      canvas.style.width = `${width}px`;
+      canvas.style.height = `${height}px`;
     };
 
     const resizeObserver = new ResizeObserver(handleResize);
     resizeObserver.observe(container);
+
     handleResize();
 
-    return () => resizeObserver.disconnect();
+    return () => {
+      resizeObserver.disconnect();
+    };
   }, [canvasRef, containerRef]);
 };

@@ -135,6 +135,9 @@ export class GameStore {
   setStartNewRoundDialogOpen(open: boolean) {
     this.startNewRoundDialogOpen = open;
   }
+  incrementRound() {
+    this.round++;
+  }
 
   async startNewRound(this: GameStore) {
     const stream = await this.rootStore.mediaStore.requestGameAudioStream();
@@ -142,8 +145,7 @@ export class GameStore {
     AudioAnalyserService.init(stream);
 
     this.setLocalCanvasAudioStream(stream);
-
-    this.round++;
+    this.incrementRound();
   }
 
   onInviteResponse(response: InviteResponse) {

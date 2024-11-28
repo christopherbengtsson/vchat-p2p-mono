@@ -26,8 +26,8 @@ export const PlayerContainer = observer(function PlayerContainer() {
 
   return (
     <>
-      <div ref={containerRef} className="absolute w-4/5 h-4/5 z-40">
-        <div className="relative flex justify-center z-10">
+      <div ref={containerRef} className="absolute w-full h-full z-40">
+        <div className="relative z-10">
           <Canvas canvasRef={canvasRef} />
         </div>
       </div>
