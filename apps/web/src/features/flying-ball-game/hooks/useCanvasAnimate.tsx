@@ -48,11 +48,12 @@ export const useCanvasAnimate = ({ canvasRef, draw, onGameOver }: In) => {
 
     // Get the normalized volume (0 to 1)
     const rawVolume = AudioAnalyserService.getVolume();
-    // Make it easier to reach the top
+    // Scale the volume to enhance sensitivity
     const scaledVolume = Math.min(rawVolume * VOLUME_SCALE, 1);
     // Cancel out small noises
     const volume = scaledVolume < VOLUME_THRESHOLD ? 0 : scaledVolume;
 
+    // Smooth the volume over several frames
     volumeHistory.current.push(volume);
     if (volumeHistory.current.length > SMOOTHING_FRAMES) {
       volumeHistory.current.shift();

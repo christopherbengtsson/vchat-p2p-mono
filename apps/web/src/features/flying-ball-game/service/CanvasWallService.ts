@@ -17,7 +17,7 @@ const addWall = (
   if (frameCountRef.current % WALL_FREQUENCY === 0) {
     // Determine the position of the gap between the top and bottom walls
     const minGapY = BALL_RADIUS;
-    const maxGapY = canvas.height - WALL_GAP - BALL_RADIUS; // Maximum gap from top
+    const maxGapY = canvas.height - WALL_GAP - BALL_RADIUS;
     const gapY = Math.random() * (maxGapY - minGapY) + minGapY;
 
     // Top wall
@@ -50,21 +50,19 @@ const moveWalls = (
     wall.x -= WALL_SPEED;
 
     // Check if the wall has passed the ball and hasn't been counted yet
-    const ballX = BALL_RADIUS * BALL_X_POS_MULTIPLIER; // The ball's x-position
+    const ballX = BALL_RADIUS * BALL_X_POS_MULTIPLIER;
     if (
       !wall.passed &&
       wall.isUpperWall &&
       wall.x + wall.width < ballX - BALL_RADIUS
     ) {
-      wall.passed = true; // Mark wall as passed
-      wallsPassedRef.current += 1; // Increment the count
-      console.debug('Walls passed:', wallsPassedRef.current); // Optional: Log the count
+      wall.passed = true;
+      wallsPassedRef.current += 1;
     }
   });
 };
 
 const removeWalls = (wallsRef: React.MutableRefObject<Wall[]>) => {
-  // Remove off-screen walls
   wallsRef.current = wallsRef.current.filter((wall) => wall.x + wall.width > 0);
 };
 
