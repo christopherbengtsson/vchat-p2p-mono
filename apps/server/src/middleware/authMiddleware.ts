@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
 import logger from '../utils/logger.js';
-import type { IncomingMessage } from '../models/IncomingMessage.js';
+import type { IncomingMessage } from '../model/IncomingMessage.js';
 
 const JWT_SECRET = process.env.SUPABASE_JWT_SECRET ?? 'invalid';
 

@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
 import logger from '../../utils/logger.js';
 import { validateJwtMiddleware } from '../authMiddleware.js';
-import type { IncomingMessage } from '../../models/IncomingMessage.js';
+import type { IncomingMessage } from '../../model/IncomingMessage.js';
 
 vi.mock('jsonwebtoken');
 vi.mock('../../utils/logger');

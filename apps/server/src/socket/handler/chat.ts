@@ -1,4 +1,4 @@
-import type { VChatSocket } from '../models/VChatSocket.js';
+import type { VChatSocket } from '../../model/VChatSocket.js';
 
 export function setupChat(
   socket: VChatSocket,

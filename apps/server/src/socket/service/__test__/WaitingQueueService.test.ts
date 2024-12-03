@@ -1,6 +1,6 @@
 import { RedisMemoryServer } from 'redis-memory-server';
 import { Redis } from 'ioredis';
-import { RedisQueue } from '../RedisQueue.js';
+import { WaitingQueueService } from '../WaitingQueueService.js';
 
 describe('RedisQueue', () => {
   let redisServer: RedisMemoryServer;
@@ -27,34 +27,37 @@ describe('RedisQueue', () => {
 
   describe('queueKey', () => {
     it('should have the correct value', () => {
-      const redisQueue = new RedisQueue(redisClient);
+      const redisQueue = new WaitingQueueService(redisClient);
       expect(redisQueue['queueKey']).toBe('waiting_queue');
     });
 
     it('should be a private property', () => {
-      new RedisQueue(redisClient);
+      new WaitingQueueService(redisClient);
       expect(
-        Object.getOwnPropertyDescriptor(RedisQueue.prototype, 'queueKey'),
+        Object.getOwnPropertyDescriptor(
+          WaitingQueueService.prototype,
+          'queueKey',
+        ),
       ).toBeUndefined();
     });
 
     it('should be used consistently across instances', () => {
-      const redisQueue1 = new RedisQueue(redisClient);
-      const redisQueue2 = new RedisQueue(redisClient);
+      const redisQueue1 = new WaitingQueueService(redisClient);
+      const redisQueue2 = new WaitingQueueService(redisClient);
       expect(redisQueue1['queueKey']).toBe(redisQueue2['queueKey']);
     });
   });
 
   describe('addToQueue', () => {
     it('should add an item to the queue', async () => {
-      const redisQueue = new RedisQueue(redisClient);
+      const redisQueue = new WaitingQueueService(redisClient);
       await redisQueue.addToQueue('id1');
       const queue = await redisQueue.getQueue();
       expect(queue).toEqual(['id1']);
     });
 
     it('should add multiple items to the queue', async () => {
-      const redisQueue = new RedisQueue(redisClient);
+      const redisQueue = new WaitingQueueService(redisClient);
       await redisQueue.addToQueue('id1');
       await redisQueue.addToQueue('id2');
       const queue = await redisQueue.getQueue();
@@ -62,7 +65,7 @@ describe('RedisQueue', () => {
     });
 
     it('should be put last in queue if already present', async () => {
-      const redisQueue = new RedisQueue(redisClient);
+      const redisQueue = new WaitingQueueService(redisClient);
       await redisQueue.addToQueue('id1');
       vi.advanceTimersByTime(1);
       await redisQueue.addToQueue('id2');
@@ -81,7 +84,7 @@ describe('RedisQueue', () => {
 
   describe('removeFromQueue', () => {
     it('should remove an item from the queue', async () => {
-      const redisQueue = new RedisQueue(redisClient);
+      const redisQueue = new WaitingQueueService(redisClient);
       await redisQueue.addToQueue('id1');
       await redisQueue.addToQueue('id2');
       await redisQueue.removeFromQueue('id1');
@@ -90,7 +93,7 @@ describe('RedisQueue', () => {
     });
 
     it('should not affect the queue if the item does not exist', async () => {
-      const redisQueue = new RedisQueue(redisClient);
+      const redisQueue = new WaitingQueueService(redisClient);
       await redisQueue.addToQueue('id1');
       await redisQueue.removeFromQueue('id2');
       const queue = await redisQueue.getQueue();
@@ -100,7 +103,7 @@ describe('RedisQueue', () => {
 
   describe('getQueueCount', () => {
     it('should return the correct count of items in the queue', async () => {
-      const redisQueue = new RedisQueue(redisClient);
+      const redisQueue = new WaitingQueueService(redisClient);
       await redisQueue.addToQueue('id1');
       await redisQueue.addToQueue('id2');
       const count = await redisQueue.getQueueCount();
@@ -108,7 +111,7 @@ describe('RedisQueue', () => {
     });
 
     it('should return 0 for an empty queue', async () => {
-      const redisQueue = new RedisQueue(redisClient);
+      const redisQueue = new WaitingQueueService(redisClient);
       const count = await redisQueue.getQueueCount();
       expect(count).toBe(0);
     });
@@ -116,7 +119,7 @@ describe('RedisQueue', () => {
 
   describe('getFirstInQueue', () => {
     it('should return the first item in the queue', async () => {
-      const redisQueue = new RedisQueue(redisClient);
+      const redisQueue = new WaitingQueueService(redisClient);
       await redisQueue.addToQueue('id1');
       await redisQueue.addToQueue('id2');
       const first = await redisQueue.getFirstInQueue();
@@ -124,7 +127,7 @@ describe('RedisQueue', () => {
     });
 
     it('should return null for an empty queue', async () => {
-      const redisQueue = new RedisQueue(redisClient);
+      const redisQueue = new WaitingQueueService(redisClient);
       const first = await redisQueue.getFirstInQueue();
       expect(first).toBeNull();
     });
@@ -132,7 +135,7 @@ describe('RedisQueue', () => {
 
   describe('getQueue', () => {
     it('should return all items in the queue in order', async () => {
-      const redisQueue = new RedisQueue(redisClient);
+      const redisQueue = new WaitingQueueService(redisClient);
       await redisQueue.addToQueue('id1');
       await redisQueue.addToQueue('id2');
       await redisQueue.addToQueue('id3');
@@ -141,7 +144,7 @@ describe('RedisQueue', () => {
     });
 
     it('should return an empty array for an empty queue', async () => {
-      const redisQueue = new RedisQueue(redisClient);
+      const redisQueue = new WaitingQueueService(redisClient);
       const queue = await redisQueue.getQueue();
       expect(queue).toEqual([]);
     });

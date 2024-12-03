@@ -1,7 +1,7 @@
 import { v4 as uuid } from 'uuid';
-import logger from '../utils/logger.js';
-import type { VChatSocket } from '../models/VChatSocket.js';
-import type { RedisQueue } from '../services/RedisQueue.js';
+import logger from '../../utils/logger.js';
+import type { VChatSocket } from '../../model/VChatSocket.js';
+import type { WaitingQueueService } from '../service/WaitingQueueService.js';
 
 /**
  * TODO:
@@ -12,7 +12,7 @@ import type { RedisQueue } from '../services/RedisQueue.js';
  */
 export function setupMatchmaking(
   socket: VChatSocket,
-  redisQueue: RedisQueue,
+  redisQueue: WaitingQueueService,
   wrapHandler: <T extends (...args: string[]) => void>(
     handler: T,
   ) => (...args: Parameters<T>) => void,

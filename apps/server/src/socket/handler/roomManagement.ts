@@ -1,5 +1,5 @@
-import logger from '../utils/logger.js';
-import type { VChatSocket } from '../models/VChatSocket.js';
+import logger from '../../utils/logger.js';
+import type { VChatSocket } from '../../model/VChatSocket.js';
 
 export function setupRoomManagement(
   socket: VChatSocket,

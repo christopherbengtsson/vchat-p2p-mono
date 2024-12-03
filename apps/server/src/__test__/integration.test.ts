@@ -4,15 +4,15 @@ import { RedisMemoryServer } from 'redis-memory-server';
 import { Server, type Socket as ServerSocket } from 'socket.io';
 import { io as ioc, type Socket as ClientSocket } from 'socket.io-client';
 import { Redis } from 'ioredis';
-import { RedisQueue } from '../services/RedisQueue.js';
-import { setupMatchmaking } from '../socket/matchmaking.js';
+import { WaitingQueueService } from '../socket/service/WaitingQueueService.js';
+import { setupMatchmaking } from '../socket/handler/matchmaking.js';
 import { wrapSocketHandler } from '../utils/wrapSocketHandler.js';
 
 const CLIENT_ID = 'clientId';
 
 describe('Client to Server', () => {
   let io: Server, serverSocket: ServerSocket, firstClientSocket: ClientSocket;
-  let redisQueue: RedisQueue;
+  let redisQueue: WaitingQueueService;
   let redisServer: RedisMemoryServer;
 
   beforeAll(async () => {
@@ -23,7 +23,7 @@ describe('Client to Server', () => {
     const redisClient = new Redis({ host, port, lazyConnect: true });
     await redisClient.connect();
 
-    redisQueue = new RedisQueue(redisClient);
+    redisQueue = new WaitingQueueService(redisClient);
 
     return new Promise<void>((resolve) => {
       const httpServer = createServer();

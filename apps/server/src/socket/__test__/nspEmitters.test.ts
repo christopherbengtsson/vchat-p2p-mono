@@ -1,4 +1,4 @@
-import { nspEmitters } from '../nspEmitters.js';
+import { nspEmitters } from '../handler/nspEmitters.js';
 
 describe('nspEmitters', () => {
   beforeEach(() => {

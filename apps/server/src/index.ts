@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import { collectDefaultMetrics } from 'prom-client';
-import { createServer } from './server.js';
-import { setupSocketServer } from './socket/setupSocketServer.js';
+import { HttpServer } from './HttpServer.js';
+import { SocketServer } from './socket/SocketServer.js';
 import logger from './utils/logger.js';
 import redisClient from './redis/client.js';
 
@@ -11,8 +11,9 @@ const PORT = process.env.PORT || 8000;
 
 await redisClient.connect();
 
-const httpServer = createServer();
-setupSocketServer(httpServer, redisClient);
+const httpServer = HttpServer.init();
+
+SocketServer.init(httpServer, redisClient);
 
 process.on('uncaughtException', (error) => {
   logger.fatal({ error }, 'Uncaught Exception');

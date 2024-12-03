@@ -1,7 +1,7 @@
 import type { Redis } from 'ioredis';
-import type { SocketId } from '../models/SocketId.js';
+import type { SocketId } from '../../model/SocketId.js';
 
-export class RedisQueue {
+export class WaitingQueueService {
   private readonly queueKey = 'waiting_queue';
   private readonly redisClient: Redis;
 

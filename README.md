@@ -6,23 +6,21 @@
 
 `pnpm install`
 
-### Web app
-
-`pnpm run web dev`
-
 ### NodeJS server
-
-`redis-server` (see [Redis](#redis))
 
 `pnpm run server dev`
 
-### Redis
+### Redis (debug)
 
 - Run in foreground: `redis-server`
 
 - Run in background: `brew services start redis`
 - Check status: `brew services info redis`
 - Stop background: `brew services stop redis`
+
+### Web app
+
+`pnpm run web dev`
 
 # Monitoring
 

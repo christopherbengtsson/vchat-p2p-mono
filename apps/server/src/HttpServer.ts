@@ -4,7 +4,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import { register } from 'prom-client';
 
-export function createServer(): http.Server {
+const init = () => {
   const app = express();
 
   app.use(helmet());
@@ -26,4 +26,8 @@ export function createServer(): http.Server {
   });
 
   return http.createServer(app);
-}
+};
+
+export const HttpServer = {
+  init,
+};
