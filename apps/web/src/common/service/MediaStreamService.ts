@@ -7,7 +7,7 @@ const VIDEO_CONSTRAINS: MediaTrackConstraints = {
 const DEFAULT_AUDIO_CONSTRAINS = {
   echoCancellation: true,
   noiseSuppression: true,
-  autoGainControl: true,
+  // autoGainControl: true,
   sampleRate: 48000, // High quality audio
   channelCount: 1, // Mono audio
 } as const;
