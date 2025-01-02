@@ -1,50 +1,65 @@
-import { BALL_RADIUS, GRAVITY, JUMP_STRENGTH } from '../model/CanvasConstants';
+import {
+  GRAVITY,
+  PLANE_HEIGHT,
+  SMOOTHING_FACTOR,
+} from '../model/CanvasConstants';
+import { AudioFrequencyService } from './AudioFrequencyService';
 
-// If volume is above the threshold, the ball jumps up
-const setBallVelocity = (
-  smoothedVolume: number,
-  velocityRef: React.MutableRefObject<number>,
-) => {
-  if (smoothedVolume > 0) {
-    velocityRef.current = JUMP_STRENGTH * smoothedVolume;
-  } else {
-    // Apply gravity when volume is low
-    velocityRef.current += GRAVITY;
-  }
-};
-
-// Update ball position based on velocity
-const updateBallPositionByVelocity = (
-  smoothedVolume: number,
-  velocityRef: React.MutableRefObject<number>,
-  ballYRef: React.MutableRefObject<number>,
-) => {
-  setBallVelocity(smoothedVolume, velocityRef);
-
-  ballYRef.current += velocityRef.current;
-};
-
-const setBallBoundaries = (
-  ballYRef: React.MutableRefObject<number>,
+const setBallPosition = (
+  [pitch, clarity]: [number, number],
   canvas: HTMLCanvasElement,
+  ballYRef: React.MutableRefObject<number>,
   velocityRef: React.MutableRefObject<number>,
 ) => {
-  // TODO: Or maybe we want that?
-  // Prevent the ball from going above the canvas
-  if (ballYRef.current < BALL_RADIUS) {
-    ballYRef.current = BALL_RADIUS;
+  let voiceInputDetected = false;
+
+  if (
+    pitch > AudioFrequencyService.PITCH_THRESHOLD &&
+    clarity > AudioFrequencyService.CLARITY_THRESHOLD
+  ) {
+    voiceInputDetected = true;
+
+    // Map the pitch to a Y position on the canvas
+    const normalizedPitch =
+      Math.min(pitch, AudioFrequencyService.MAX_FREQUENCY) /
+      AudioFrequencyService.MAX_FREQUENCY;
+    const targetY = (1 - normalizedPitch) * canvas.height;
+
+    // Smoothly move the ball towards the Y position
+    ballYRef.current =
+      ballYRef.current + (targetY - ballYRef.current) * SMOOTHING_FACTOR;
+
+    // Reset velocity so gravity doesn't affect the ball when voice input is present
     velocityRef.current = 0;
   }
 
-  // Prevent the ball from falling below the canvas
-  const maxY = canvas.height - BALL_RADIUS;
-  if (ballYRef.current > maxY) {
-    ballYRef.current = maxY;
+  if (!voiceInputDetected) {
+    // Apply gravity to make the ball fall slowly
+    velocityRef.current += GRAVITY;
+    ballYRef.current += velocityRef.current;
+  }
+};
+
+const setPlaneBoundaries = (
+  planeYRef: React.MutableRefObject<number>,
+  canvas: HTMLCanvasElement,
+  velocityRef: React.MutableRefObject<number>,
+) => {
+  // Prevent the plane from going above the canvas
+  if (planeYRef.current < 0) {
+    planeYRef.current = 0;
+    velocityRef.current = 0;
+  }
+
+  // Prevent the plane from falling below the canvas
+  const maxY = canvas.height - PLANE_HEIGHT;
+  if (planeYRef.current > maxY) {
+    planeYRef.current = maxY;
     velocityRef.current = 0;
   }
 };
 
 export const CanvasBallService = {
-  updateBallPositionByVelocity,
-  setBallBoundaries,
+  setBallPosition,
+  setPlaneBoundaries,
 };

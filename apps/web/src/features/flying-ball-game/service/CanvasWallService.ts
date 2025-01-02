@@ -1,6 +1,7 @@
 import {
-  BALL_RADIUS,
-  BALL_X_POS_MULTIPLIER,
+  PLANE_HEIGHT,
+  PLANE_WIDTH,
+  PLANE_X_POS_MULTIPLIER,
   WALL_FREQUENCY,
   WALL_GAP,
   WALL_SPEED,
@@ -15,9 +16,9 @@ const addWall = (
 ) => {
   frameCountRef.current++;
   if (frameCountRef.current % WALL_FREQUENCY === 0) {
-    // Determine the position of the gap between the top and bottom walls
-    const minGapY = BALL_RADIUS;
-    const maxGapY = canvas.height - WALL_GAP - BALL_RADIUS;
+    // Adjust gap position considering plane height
+    const minGapY = PLANE_HEIGHT;
+    const maxGapY = canvas.height - WALL_GAP - PLANE_HEIGHT;
     const gapY = Math.random() * (maxGapY - minGapY) + minGapY;
 
     // Top wall
@@ -49,12 +50,12 @@ const moveWalls = (
   wallsRef.current.forEach((wall) => {
     wall.x -= WALL_SPEED;
 
-    // Check if the wall has passed the ball and hasn't been counted yet
-    const ballX = BALL_RADIUS * BALL_X_POS_MULTIPLIER;
+    // Check if wall has passed the plane
+    const planeX = PLANE_WIDTH * PLANE_X_POS_MULTIPLIER;
     if (
       !wall.passed &&
-      wall.isUpperWall &&
-      wall.x + wall.width < ballX - BALL_RADIUS
+      wall.isUpperWall && // Otherwise wallsPassed would be increased by 2
+      wall.x + wall.width < planeX
     ) {
       wall.passed = true;
       wallsPassedRef.current += 1;

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { observer } from 'mobx-react';
 import { useRootStore } from '@/stores/hooks/useRootStore';
 import { Canvas } from '../component/Canvas';
@@ -13,12 +13,17 @@ export const PlayerContainer = observer(function PlayerContainer() {
 
   const draw = useCanvasDraw();
 
+  const getPitch = useCallback(
+    () => gameStore.audioFrequencyService?.getPitch(),
+    [gameStore.audioFrequencyService],
+  );
+
   const onGameOver = (score: number) => {
     gameStore.roundGameOver(score);
   };
 
   useCanvasResize(canvasRef, containerRef);
-  useCanvasAnimate({ canvasRef, draw, onGameOver });
+  useCanvasAnimate({ canvasRef, draw, onGameOver, getPitch });
 
   useEffect(() => {
     gameStore.sendCanvasStream(canvasRef.current?.captureStream(30));

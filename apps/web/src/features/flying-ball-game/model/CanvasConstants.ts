@@ -1,19 +1,6 @@
-/** Ball size */
-export const BALL_RADIUS = 25;
-/** To calc ball x position on canvas */
-export const BALL_X_POS_MULTIPLIER = 3;
 /** Gap between top and bottom walls */
 export const WALL_GAP = 200;
 export const WALL_WIDTH = 40;
-
-/** Dont make it too sensitive to volume changes */
-export const SMOOTHING_FRAMES = 35;
-/** Cancel out small noises */
-export const VOLUME_THRESHOLD = 0.1;
-/** Scale volume relative to canvas height (both are ~0-1) */
-export const VOLUME_SCALE = 1.5;
-
-/** Walls */
 
 /** Speed at which walls move towards the ball */
 export const WALL_SPEED = 2;
@@ -21,5 +8,15 @@ export const WALL_SPEED = 2;
 export const WALL_FREQUENCY = 150;
 
 /** Physics */
-export const GRAVITY = 0.1;
-export const JUMP_STRENGTH = -10;
+export const GRAVITY = 0.05;
+/** Dont make it too sensitive to pitch changes */
+export const SMOOTHING_FACTOR = 0.02;
+
+const PLANE_SVG_WIDTH = 200;
+const PLANE_SVG_HEIGHT = 113;
+
+export const PLANE_WIDTH = 100; // Base width
+export const PLANE_HEIGHT = Math.floor(
+  PLANE_WIDTH / (PLANE_SVG_WIDTH / PLANE_SVG_HEIGHT),
+); // maintain ratio
+export const PLANE_X_POS_MULTIPLIER = 3;

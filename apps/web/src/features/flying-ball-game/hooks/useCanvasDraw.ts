@@ -1,6 +1,11 @@
 import { useCallback } from 'react';
-import { BALL_RADIUS, BALL_X_POS_MULTIPLIER } from '../model/CanvasConstants';
+import PaperPlane from '@/assets/paper_plane.svg';
 import { DrawProps } from '../model/DrawProps';
+import {
+  PLANE_HEIGHT,
+  PLANE_WIDTH,
+  PLANE_X_POS_MULTIPLIER,
+} from '../model/CanvasConstants';
 
 export const useCanvasDraw = () => {
   const draw = useCallback(({ ctx, yPos, walls, score }: DrawProps) => {
@@ -8,15 +13,12 @@ export const useCanvasDraw = () => {
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Draw the ball
-    const ballX = BALL_RADIUS * BALL_X_POS_MULTIPLIER;
-    const y = yPos;
+    const planeX = PLANE_WIDTH * PLANE_X_POS_MULTIPLIER;
+    const planeY = yPos;
 
-    ctx.beginPath();
-    ctx.arc(ballX, y, BALL_RADIUS, 0, 2 * Math.PI);
-    ctx.fillStyle = '#1E3A8A'; // Tailwind CSS blue-900
-    ctx.fill();
-    ctx.closePath();
+    const paperPlane = new Image();
+    paperPlane.src = PaperPlane;
+    ctx.drawImage(paperPlane, planeX, planeY, PLANE_WIDTH, PLANE_HEIGHT);
 
     // Draw walls
     walls.forEach((wall) => {
