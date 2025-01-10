@@ -98,12 +98,48 @@ module.exports = {
           '0%, 100%': { backgroundPosition: '50% 0, 60% 60%' },
           '50%': { backgroundPosition: '50% 0, 60% 50%' },
         },
+        glow: {
+          '0%, 100%': {
+            boxShadow:
+              '0 0 20px rgba(255, 255, 255, 0.7), 0 0 30px rgba(255, 255, 255, 0.5)',
+          },
+          '50%': {
+            boxShadow:
+              '0 0 30px rgba(255, 255, 255, 0.9), 0 0 40px rgba(255, 255, 255, 0.7)',
+          },
+        },
+        'pulse-wave': {
+          '0%': {
+            transform: 'scale(1)',
+            opacity: '0.8',
+          },
+          '100%': {
+            transform: 'scale(1.5)',
+            opacity: '0',
+          },
+        },
+        moveToCenter: {
+          '0%': {
+            transform: 'translate(var(--tx), var(--ty))',
+            opacity: '1',
+          },
+          '60%': {
+            opacity: '0',
+          },
+          '100%': {
+            transform: 'translate(0, 0)',
+            opacity: '0',
+          },
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
         'loading-pulse': 'loading-pulse 2s ease-in-out infinite',
         'video-noice': 'video-noice 0.2s infinite alternate',
+        glow: 'glow 2s ease-in-out infinite',
+        'pulse-wave': 'pulse-wave 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        moveToCenter: 'moveToCenter 1.5s linear infinite',
       },
     },
   },
