@@ -1,50 +1,74 @@
-import { BALL_RADIUS, GRAVITY, JUMP_STRENGTH } from '../model/CanvasConstants';
+import {
+  GRAVITY,
+  PLANE_HEIGHT,
+  SMOOTHING_FACTOR,
+} from '../model/CanvasConstants';
+import { AudioFrequencyService } from './AudioFrequencyService';
 
-// If volume is above the threshold, the ball jumps up
-const setBallVelocity = (
-  smoothedVolume: number,
+const calculateRotation = (velocity: number) => {
+  // Convert velocity to rotation angle in radians
+  // Clamp the rotation between -30 and +30 degrees (converted to radians)
+  const maxRotation = (30 * Math.PI) / 180;
+  return Math.max(-maxRotation, Math.min(maxRotation, velocity * 2));
+};
+
+const setBallPosition = (
+  [pitch, clarity]: [number, number],
+  canvas: HTMLCanvasElement,
+  ballYRef: React.MutableRefObject<number>,
   velocityRef: React.MutableRefObject<number>,
 ) => {
-  if (smoothedVolume > 0) {
-    velocityRef.current = JUMP_STRENGTH * smoothedVolume;
-  } else {
-    // Apply gravity when volume is low
+  let voiceInputDetected = false;
+
+  if (
+    pitch > AudioFrequencyService.PITCH_THRESHOLD &&
+    clarity > AudioFrequencyService.CLARITY_THRESHOLD
+  ) {
+    voiceInputDetected = true;
+
+    // Map the pitch to a Y position on the canvas
+    const normalizedPitch =
+      Math.min(pitch, AudioFrequencyService.MAX_FREQUENCY) /
+      AudioFrequencyService.MAX_FREQUENCY;
+    const targetY = (1 - normalizedPitch) * canvas.height;
+
+    // Calculate velocity based on position change
+    const previousY = ballYRef.current;
+    ballYRef.current =
+      ballYRef.current + (targetY - ballYRef.current) * SMOOTHING_FACTOR;
+
+    // Update velocity based on movement direction
+    velocityRef.current = (ballYRef.current - previousY) / 5; // Divide by 5 to dampen the effect
+  }
+
+  if (!voiceInputDetected) {
+    // Apply gravity to make the ball fall slowly
     velocityRef.current += GRAVITY;
+    ballYRef.current += velocityRef.current;
   }
 };
 
-// Update ball position based on velocity
-const updateBallPositionByVelocity = (
-  smoothedVolume: number,
-  velocityRef: React.MutableRefObject<number>,
-  ballYRef: React.MutableRefObject<number>,
-) => {
-  setBallVelocity(smoothedVolume, velocityRef);
-
-  ballYRef.current += velocityRef.current;
-};
-
-const setBallBoundaries = (
-  ballYRef: React.MutableRefObject<number>,
+const setPlaneBoundaries = (
+  planeYRef: React.MutableRefObject<number>,
   canvas: HTMLCanvasElement,
   velocityRef: React.MutableRefObject<number>,
 ) => {
-  // TODO: Or maybe we want that?
-  // Prevent the ball from going above the canvas
-  if (ballYRef.current < BALL_RADIUS) {
-    ballYRef.current = BALL_RADIUS;
+  // Prevent the plane from going above the canvas
+  if (planeYRef.current < 0) {
+    planeYRef.current = 0;
     velocityRef.current = 0;
   }
 
-  // Prevent the ball from falling below the canvas
-  const maxY = canvas.height - BALL_RADIUS;
-  if (ballYRef.current > maxY) {
-    ballYRef.current = maxY;
+  // Prevent the plane from falling below the canvas
+  const maxY = canvas.height - PLANE_HEIGHT;
+  if (planeYRef.current > maxY) {
+    planeYRef.current = maxY;
     velocityRef.current = 0;
   }
 };
 
 export const CanvasBallService = {
-  updateBallPositionByVelocity,
-  setBallBoundaries,
+  setBallPosition,
+  setPlaneBoundaries,
+  calculateRotation,
 };

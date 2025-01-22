@@ -2,7 +2,7 @@ import { makeAutoObservable, observable } from 'mobx';
 import { toast } from 'sonner';
 import { Maybe } from '@mono/common-dto';
 import { GameType } from '@/common/model/GameType';
-import { AudioAnalyserService } from '../features/flying-ball-game/service/AudioAnalyserService';
+import { AudioFrequencyService } from '../features/flying-ball-game/service/AudioFrequencyService';
 import { RootStore } from './RootStore';
 import { GameData } from './model/GameData';
 import { RoundData } from './model/RoundData';
@@ -24,6 +24,7 @@ export class GameStore {
   userScore = 0;
   partnerScore = 0;
 
+  audioFrequencyService: Maybe<AudioFrequencyService> = null;
   remoteCanvasStream: Maybe<MediaStream> = null;
   localCanvasAudioStream: Maybe<MediaStream> = null;
   localCanvasStream: Maybe<MediaStream> = null;
@@ -33,6 +34,7 @@ export class GameStore {
       remoteCanvasStream: observable.ref,
       localCanvasAudioStream: observable.ref,
       localCanvasStream: observable.ref,
+      audioFrequencyService: observable.ref, // TODO: False?
 
       gameType: false,
     });
@@ -129,6 +131,9 @@ export class GameStore {
   setLocalCanvasAudioStream(stream: Maybe<MediaStream>) {
     this.localCanvasAudioStream = stream;
   }
+  setAudioFrequencyService(audioFrequencyService: AudioFrequencyService) {
+    this.audioFrequencyService = audioFrequencyService;
+  }
   toggleResultDialog(open: boolean) {
     this.resultDialogOpen = open;
   }
@@ -141,10 +146,9 @@ export class GameStore {
 
   async startNewRound(this: GameStore) {
     const stream = await this.rootStore.mediaStore.requestGameAudioStream();
-
-    AudioAnalyserService.init(stream);
-
+    const audioFrequencyService = new AudioFrequencyService(stream);
     this.setLocalCanvasAudioStream(stream);
+    this.setAudioFrequencyService(audioFrequencyService);
     this.incrementRound();
   }
 
@@ -169,7 +173,7 @@ export class GameStore {
     });
   }
   cleanupGameRound() {
-    AudioAnalyserService.stop();
+    this.audioFrequencyService?.close();
 
     if (this.remoteCanvasStream) {
       this.remoteCanvasStream.getTracks().forEach((track) => track.stop());

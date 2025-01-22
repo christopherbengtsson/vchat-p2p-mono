@@ -1,55 +1,45 @@
-import { BALL_RADIUS } from '../model/CanvasConstants';
+import { PLANE_HEIGHT, PLANE_WIDTH } from '../model/CanvasConstants';
 import { Wall } from '../model/Wall';
 
-// Helper function to clamp a value between min and max
-const clamp = (value: number, min: number, max: number): number => {
-  return Math.max(min, Math.min(max, value));
-};
-
-// Circle-Rectangle collision detection
-const isCircleRectCollision = (
-  circleX: number,
-  circleY: number,
-  radius: number,
-  rectX: number,
-  rectY: number,
-  rectWidth: number,
-  rectHeight: number,
+const isRectCollision = (
+  rect1X: number,
+  rect1Y: number,
+  rect1Width: number,
+  rect1Height: number,
+  rect2X: number,
+  rect2Y: number,
+  rect2Width: number,
+  rect2Height: number,
 ): boolean => {
-  // Find the closest point to the circle within the rectangle
-  const closestX = clamp(circleX, rectX, rectX + rectWidth);
-  const closestY = clamp(circleY, rectY, rectY + rectHeight);
-
-  // Calculate the distance between the circle's center and this closest point
-  const distanceX = circleX - closestX;
-  const distanceY = circleY - closestY;
-
-  // If the distance is less than the circle's radius, a collision occurs
-  const distanceSquared = distanceX * distanceX + distanceY * distanceY;
-
-  return distanceSquared < radius * radius;
+  return (
+    rect1X < rect2X + rect2Width &&
+    rect1X + rect1Width > rect2X &&
+    rect1Y < rect2Y + rect2Height &&
+    rect1Y + rect1Height > rect2Y
+  );
 };
 
 const isCollision = ({
-  ballX,
-  ballY,
+  planeX,
+  planeY,
   walls,
 }: {
   walls: Wall[];
-  ballX: number;
-  ballY: number;
+  planeX: number;
+  planeY: number;
 }): boolean =>
-  walls.some((wall) => {
-    return isCircleRectCollision(
-      ballX,
-      ballY,
-      BALL_RADIUS,
+  walls.some((wall) =>
+    isRectCollision(
+      planeX,
+      planeY,
+      PLANE_WIDTH,
+      PLANE_HEIGHT,
       wall.x,
       wall.y,
       wall.width,
       wall.height,
-    );
-  });
+    ),
+  );
 
 export const CanvasCollisionService = {
   isCollision,

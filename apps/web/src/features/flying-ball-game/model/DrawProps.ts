@@ -5,4 +5,5 @@ export interface DrawProps {
   yPos: number;
   walls: Wall[];
   score: number;
+  velocity: number;
 }

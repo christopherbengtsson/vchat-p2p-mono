@@ -1,13 +1,13 @@
 import { useEffect } from 'react';
 import { observer } from 'mobx-react';
 import { useNavigate } from 'react-router-dom';
-import { MdTravelExplore } from 'react-icons/md';
 import { Assert } from '@/common/utils/Assert';
 import { Button } from '@/common/components/ui/button';
 import { useRootStore } from '@/stores/hooks/useRootStore';
 import { CallState } from '@/stores/model/CallState';
 import { UserAvatar } from '../component/UserAvatar';
 import { MatchedUserText } from '../component/MatchedUserText';
+import { QueueAnimationContainer } from './QueueAnimationContainer';
 
 export const QueueContainer = observer(function QueuePage() {
   const { callStore, socketStore } = useRootStore();
@@ -30,8 +30,8 @@ export const QueueContainer = observer(function QueuePage() {
 
   if (callStore.callState === CallState.IN_QUEUE) {
     return (
-      <div className="flex flex-col justify-center items-center gap-16 ">
-        <MdTravelExplore className="text-white rounded-full text-[10em] animate-loading-pulse" />
+      <div className="flex flex-col justify-center items-center gap-16 relative min-h-[400px]">
+        <QueueAnimationContainer />
 
         <Button variant="link" onClick={handleCancel}>
           Cancel
