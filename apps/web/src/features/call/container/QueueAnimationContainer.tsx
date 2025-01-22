@@ -12,7 +12,7 @@ export function QueueAnimationContainer() {
       </div>
 
       {[...particlesArray].map((_, i) => (
-        <AnimatedParticle key={`particle-${i}`} index={i} />
+        <AnimatedParticle key={`particle-${i}`} />
       ))}
     </div>
   );

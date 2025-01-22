@@ -5,6 +5,13 @@ import {
 } from '../model/CanvasConstants';
 import { AudioFrequencyService } from './AudioFrequencyService';
 
+const calculateRotation = (velocity: number) => {
+  // Convert velocity to rotation angle in radians
+  // Clamp the rotation between -30 and +30 degrees (converted to radians)
+  const maxRotation = (30 * Math.PI) / 180;
+  return Math.max(-maxRotation, Math.min(maxRotation, velocity * 2));
+};
+
 const setBallPosition = (
   [pitch, clarity]: [number, number],
   canvas: HTMLCanvasElement,
@@ -25,12 +32,13 @@ const setBallPosition = (
       AudioFrequencyService.MAX_FREQUENCY;
     const targetY = (1 - normalizedPitch) * canvas.height;
 
-    // Smoothly move the ball towards the Y position
+    // Calculate velocity based on position change
+    const previousY = ballYRef.current;
     ballYRef.current =
       ballYRef.current + (targetY - ballYRef.current) * SMOOTHING_FACTOR;
 
-    // Reset velocity so gravity doesn't affect the ball when voice input is present
-    velocityRef.current = 0;
+    // Update velocity based on movement direction
+    velocityRef.current = (ballYRef.current - previousY) / 5; // Divide by 5 to dampen the effect
   }
 
   if (!voiceInputDetected) {
@@ -62,4 +70,5 @@ const setPlaneBoundaries = (
 export const CanvasBallService = {
   setBallPosition,
   setPlaneBoundaries,
+  calculateRotation,
 };

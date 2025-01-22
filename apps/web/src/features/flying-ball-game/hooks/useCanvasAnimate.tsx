@@ -77,6 +77,7 @@ export const useCanvasAnimate = ({
       yPos: ballYRef.current,
       walls: wallsRef.current,
       score: wallsPassedRef.current,
+      velocity: velocityRef.current,
     });
 
     requestRef.current = requestAnimationFrame(animate);
