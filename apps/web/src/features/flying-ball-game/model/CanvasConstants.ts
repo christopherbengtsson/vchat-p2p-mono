@@ -7,7 +7,7 @@ export const WALL_WIDTH = 40;
 /** Speed at which walls move towards the ball */
 export const WALL_SPEED = 2;
 /** Gap (frames) between walls */
-export const WALL_FREQUENCY = 150;
+export const WALL_FREQUENCY = 200;
 
 /** Physics */
 export const GRAVITY = 0.05;
