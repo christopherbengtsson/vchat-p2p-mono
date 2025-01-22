@@ -2,7 +2,6 @@ import { makeAutoObservable, observable } from 'mobx';
 import { toast } from 'sonner';
 import { Maybe } from '@mono/common-dto';
 import { GameType } from '@/common/model/GameType';
-import { AudioAnalyserService } from '../features/flying-ball-game/service/AudioAnalyserService';
 import { AudioFrequencyService } from '../features/flying-ball-game/service/AudioFrequencyService';
 import { RootStore } from './RootStore';
 import { GameData } from './model/GameData';
@@ -174,7 +173,6 @@ export class GameStore {
     });
   }
   cleanupGameRound() {
-    AudioAnalyserService.stop();
     this.audioFrequencyService?.close();
 
     if (this.remoteCanvasStream) {
