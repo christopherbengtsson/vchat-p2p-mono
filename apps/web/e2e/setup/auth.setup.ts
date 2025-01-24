@@ -2,8 +2,8 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { test as setup, expect } from '@playwright/test';
 
-const __filename = fileURLToPath(import.meta.url); // get the resolved path to the file
-const __dirname = path.dirname(__filename); // get the name of the directory
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const authFile = path.join(__dirname, '../../playwright/.auth/user.json');
 
@@ -23,7 +23,7 @@ setup('authenticate', async ({ page }) => {
   await page.getByRole('button', { name: 'Fast login' }).click();
 
   // Auhenticated
-  await expect(page.getByRole('link', { name: 'Find match' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Find match' })).toBeVisible();
 
   // End of authentication steps.
   await page.context().storageState({ path: authFile });

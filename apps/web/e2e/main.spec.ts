@@ -13,32 +13,31 @@ test('happy flow', async ({ browser }) => {
 
   /** Start page */
   await user.goto('/');
-  await expect(
-    user.getByText('Currently 0 more users online', { exact: true }),
-  ).toBeVisible({ timeout: SERVER_THROTTLE_TIMEOUT });
+  await expect(user.getByRole('button', { name: 'Find match' })).toBeVisible({
+    timeout: SERVER_THROTTLE_TIMEOUT,
+  });
 
   await partner.goto('/');
-  await expect(
-    partner.getByText('Currently 1 more users online', { exact: true }),
-  ).toBeVisible({ timeout: SERVER_THROTTLE_TIMEOUT });
-  await expect(
-    user.getByText('Currently 1 more users online', { exact: true }),
-  ).toBeVisible({ timeout: SERVER_THROTTLE_TIMEOUT });
+  await expect(partner.getByRole('button', { name: 'Find match' })).toBeVisible(
+    {
+      timeout: SERVER_THROTTLE_TIMEOUT,
+    },
+  );
 
   /** Start and cancel queue */
 
-  await user.getByRole('link', { name: 'Find match' }).click();
+  await user.getByRole('button', { name: 'Find match' }).click();
   await user.getByRole('button', { name: 'Cancel' }).click();
 
-  await partner.getByRole('link', { name: 'Find match' }).click();
+  await partner.getByRole('button', { name: 'Find match' }).click();
   await partner.getByRole('button', { name: 'Cancel' }).click();
 
   /** Start call and match */
 
-  await user.getByRole('link', { name: 'Find match' }).click();
+  await user.getByRole('button', { name: 'Find match' }).click();
   await expect(user.getByRole('button', { name: 'Cancel' })).toBeVisible();
 
-  await partner.getByRole('link', { name: 'Find match' }).click();
+  await partner.getByRole('button', { name: 'Find match' }).click();
 
   await expect(user.getByText(/Match with/)).toBeVisible({ timeout: 20_000 });
   await expect(partner.getByText(/Match with/)).toBeVisible();

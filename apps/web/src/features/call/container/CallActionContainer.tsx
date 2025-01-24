@@ -31,7 +31,7 @@ export const CallActionContainer = observer(function CallActionContainer() {
     <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex space-x-4 z-50">
       <ToggleCameraButton
         localStream={mediaStore.stream}
-        videoEnabled={mediaStore.stream?.getVideoTracks()[0].enabled ?? false}
+        videoEnabled={mediaStore.videoEnabled}
         onToggle={toggleVideo}
       />
       <ToggleMuteButton
