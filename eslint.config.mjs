@@ -10,7 +10,9 @@ import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended'
 
 export default tseslint.config(
   /* Ignore linting on all these files */
-  { ignores: ['**/*/dist', '**/*/components/ui/*.tsx'] },
+  {
+    ignores: ['**/*/dist', '**/*/components/ui/*.tsx', '**/generated/**/*.ts'],
+  },
 
   /* Top level general config */
   {
