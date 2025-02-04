@@ -88,7 +88,7 @@ export class SocketStore {
 
   handleBan = async () => {
     this.disconnect();
-    ClientAuthService.logout(SupabaseClient.instance);
+    ClientAuthService.logout(SupabaseClient.instance, 'global');
     this.rootStore.authStore.setBanned(true);
   };
 

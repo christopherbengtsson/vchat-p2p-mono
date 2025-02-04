@@ -18,7 +18,6 @@ export class AuthStore {
 
     SupabaseClient.instance.auth.onAuthStateChange((_event, session) => {
       this.setSession(session);
-      console.log(_event, session);
 
       const authenticated = !!session;
       if (authenticated !== this.authenticated) {
