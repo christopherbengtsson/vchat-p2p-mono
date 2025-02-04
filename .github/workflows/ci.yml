@@ -5,7 +5,7 @@ on:
   push:
 
 jobs:
-  tests:
+  mono-ci:
     runs-on: ubuntu-latest
 
     steps:
