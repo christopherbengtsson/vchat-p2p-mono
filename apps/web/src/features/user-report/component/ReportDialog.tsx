@@ -9,7 +9,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/common/components/ui/alert-dialog';
-import { LoadingButton } from '../../../common/components/loading-button/LoadingButton';
+import { LoadingButton } from '@/common/components/loading-button/LoadingButton';
 
 interface Props {
   open: boolean;

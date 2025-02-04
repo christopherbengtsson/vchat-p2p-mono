@@ -1,10 +1,10 @@
 import { useEffect, useRef } from 'react';
 import { observer } from 'mobx-react';
 import { useRootStore } from '@/stores/hooks/useRootStore';
-import { FlyingBallContainer } from '../../flying-ball-game/container/FlyingBallContainer';
+import { ReportContainer } from '@/features/user-report/container/ReportContainer';
+import { FlyingBallContainer } from '@/features/flying-ball-game/container/FlyingBallContainer';
 import { CallActionContainer } from './CallActionContainer';
 import { UserVideoContainer } from './UserVideoContainer';
-import { ReportContainer } from './ReportContainer';
 
 export const InCallContainer = observer(function InCallPage() {
   const { mediaStore, callStore } = useRootStore();

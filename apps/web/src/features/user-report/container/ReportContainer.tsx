@@ -1,12 +1,12 @@
 import { useCallback, useState } from 'react';
 import { observer } from 'mobx-react';
 import type { PostgrestSingleResponse } from '@supabase/supabase-js';
+import { Assert } from '@/common/utils/Assert';
+import { DeviceSignatureUtil } from '@/common/utils/DeviceSignatureUtil';
+import { useRootStore } from '@/stores/hooks/useRootStore';
 import { ReportButton } from '../component/ReportButton';
 import { ReportDialog } from '../component/ReportDialog';
 import { useReportUser } from '../hooks/useReportUser';
-import { useRootStore } from '../../../stores/hooks/useRootStore';
-import { Assert } from '../../../common/utils/Assert';
-import { DeviceSignatureUtil } from '../../../common/utils/DeviceSignatureUtil';
 
 export const ReportContainer = observer(function ReportContainer() {
   const { callStore, authStore, socketStore } = useRootStore();
