@@ -1,7 +1,7 @@
 import { DatabaseService } from '@mono/common-supabase';
 import { CustomError, CustomErrorType } from '@mono/common-dto';
 import { ClientAuthService } from '@mono/fe-supabase';
-import { SupabaseClient } from '@/common/supabase/client';
+import { SupabaseClient } from '@/common/clients/supabase';
 import { DeviceSignatureUtil } from '../../../common/utils/DeviceSignatureUtil';
 import { axiosClient } from '../../../common/clients/axios';
 

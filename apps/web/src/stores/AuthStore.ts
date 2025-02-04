@@ -1,7 +1,7 @@
 import { makeAutoObservable } from 'mobx';
 import type { Session } from '@supabase/supabase-js';
 import { CustomError, type Maybe } from '@mono/common-dto';
-import { SupabaseClient } from '@/common/supabase/client';
+import { SupabaseClient } from '@/common/clients/supabase';
 
 export class AuthStore {
   session: Maybe<Session>;

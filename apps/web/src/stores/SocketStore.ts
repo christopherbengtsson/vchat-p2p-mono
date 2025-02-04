@@ -7,7 +7,7 @@ import {
   ErrorToastState,
 } from '@/common/utils/toast/model/ToastState';
 import { showToast } from '@/common/utils/toast/showToast';
-import { SupabaseClient } from '@/common/supabase/client';
+import { SupabaseClient } from '@/common/clients/supabase';
 import type { ChatSocket } from './model/SocketModel';
 import type { RootStore } from './RootStore';
 
