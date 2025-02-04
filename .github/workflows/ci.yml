@@ -40,7 +40,7 @@ jobs:
           pnpm run web lint
 
       - name: Setup test environment
-        run: cp apps/server/env.test .env
+        run: cp apps/server/.env.test .env
 
       - name: Server tests + typecheck
         run: |
