@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken';
+import { CustomError, CustomErrorType } from '@mono/common-dto';
 import logger from '../../utils/logger.js';
-import { validateJwtMiddleware } from '../authMiddleware.js';
+import { validateJwtMiddleware } from '../validateJwtMiddleware.js';
 import type { IncomingMessage } from '../../model/IncomingMessage.js';
 
 vi.mock('jsonwebtoken');
@@ -29,14 +30,18 @@ describe('validateJwtMiddleware', () => {
 
   it('should return error if no token is provided', () => {
     validateJwtMiddleware(mockReq as IncomingMessage, mockNext);
-    expect(mockNext).toHaveBeenCalledWith(new Error('No token provided'));
+    expect(mockNext).toHaveBeenCalledWith(
+      new CustomError(CustomErrorType.FORBIDDEN, 'No token provided'),
+    );
     expect(logger.error).toHaveBeenCalled();
   });
 
   it('should return error if token format is invalid', () => {
     mockReq.headers = { authorization: 'Invalid Token' };
     validateJwtMiddleware(mockReq as IncomingMessage, mockNext);
-    expect(mockNext).toHaveBeenCalledWith(new Error('Invalid token format'));
+    expect(mockNext).toHaveBeenCalledWith(
+      new CustomError(CustomErrorType.FORBIDDEN, 'Invalid token format'),
+    );
     expect(logger.error).toHaveBeenCalled();
   });
 
@@ -44,11 +49,16 @@ describe('validateJwtMiddleware', () => {
     mockReq.headers = { authorization: 'Bearer invalidtoken' };
     vi.mocked(jwt.verify).mockImplementation(
       (_token, _secret, callback: any) => {
-        callback(new Error('Invalid token'), null);
+        callback(
+          new CustomError(CustomErrorType.FORBIDDEN, 'Invalid token'),
+          null,
+        );
       },
     );
     validateJwtMiddleware(mockReq as IncomingMessage, mockNext);
-    expect(mockNext).toHaveBeenCalledWith(new Error('Invalid token'));
+    expect(mockNext).toHaveBeenCalledWith(
+      new CustomError(CustomErrorType.FORBIDDEN, 'Invalid token'),
+    );
     expect(logger.error).toHaveBeenCalled();
   });
 

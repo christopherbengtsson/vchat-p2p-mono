@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken';
+import { CustomError, CustomErrorType } from '@mono/common-dto';
 import logger from '../utils/logger.js';
 import type { IncomingMessage } from '../model/IncomingMessage.js';
 
@@ -18,12 +19,16 @@ export const validateJwtMiddleware = (
 
   if (!header) {
     logger.error({ header }, 'No token provided');
-    return next(new Error('No token provided'));
+    return next(
+      new CustomError(CustomErrorType.FORBIDDEN, 'No token provided'),
+    );
   }
 
   if (!header.toLocaleLowerCase().startsWith('bearer ')) {
     logger.error({ header }, 'Invalid token format');
-    return next(new Error('Invalid token format'));
+    return next(
+      new CustomError(CustomErrorType.FORBIDDEN, 'Invalid token format'),
+    );
   }
 
   const token = header.substring(7);
@@ -34,7 +39,7 @@ export const validateJwtMiddleware = (
         // TODO: Emit to socket to refresh token??
       }
       logger.error({ err }, 'Invalid token');
-      return next(new Error('Invalid token'));
+      return next(new CustomError(CustomErrorType.FORBIDDEN, 'Invalid token'));
     }
 
     req.user = decoded;

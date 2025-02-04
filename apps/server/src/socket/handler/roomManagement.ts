@@ -1,5 +1,6 @@
 import logger from '../../utils/logger.js';
 import type { VChatSocket } from '../../model/VChatSocket.js';
+import { SupabaseService } from '../../supabase/service/SupabaseService.js';
 
 export function setupRoomManagement(
   socket: VChatSocket,
@@ -30,7 +31,7 @@ export function setupRoomManagement(
   socket.on(
     'audio-toggle',
     wrapHandler((enabled, roomId) => {
-      logger.debug({ enabled, roomId }, 'Recevied audio toggle');
+      logger.debug({ enabled, roomId }, 'Received audio toggle');
       socket.to(roomId).emit('audio-toggle', enabled);
     }),
   );
@@ -38,8 +39,34 @@ export function setupRoomManagement(
   socket.on(
     'video-toggle',
     wrapHandler((enabled, roomId) => {
-      logger.debug({ enabled, roomId }, 'Recevied video toggle');
+      logger.debug({ enabled, roomId }, 'Received video toggle');
       socket.to(roomId).emit('video-toggle', enabled);
     }),
+  );
+
+  socket.on(
+    'user-banned',
+    wrapHandler(
+      async ({
+        partnerUserId,
+        partnerSocketId,
+        banDuration,
+        deviceSignature,
+      }) => {
+        logger.debug(
+          { partnerSocketId, partnerUserId, banDuration, deviceSignature },
+          'Received user banned',
+        );
+
+        socket.to(partnerSocketId).emit('user-banned');
+
+        SupabaseService.handleUserBan(
+          socket,
+          partnerUserId,
+          banDuration,
+          deviceSignature,
+        );
+      },
+    ),
   );
 }

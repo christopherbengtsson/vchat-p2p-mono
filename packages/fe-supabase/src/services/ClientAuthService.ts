@@ -1,9 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 async function loginAnonymously(client: SupabaseClient) {
-  const { error } = await client.auth.signInAnonymously({
-    options: { data: { warnings: 0, blocked: false } },
-  });
+  const { error } = await client.auth.signInAnonymously();
 
   if (error) {
     throw error;
@@ -33,9 +31,6 @@ async function upgradeAnonymousAccount(
   const { error } = await client.auth.updateUser({
     email,
     password,
-    data: {
-      is_anonymous: false,
-    },
   });
 
   if (error) {
@@ -43,15 +38,14 @@ async function upgradeAnonymousAccount(
   }
 }
 
-async function reportUser(_userId: string, _client: SupabaseClient) {
-  //TODO: pass userId to server => ban for x period of time
-  throw new Error('Not implemented');
-}
-
-async function logout(client: SupabaseClient) {
+async function logout(
+  client: SupabaseClient,
+  scope: 'global' | 'local' | 'others' = 'local',
+) {
   const { error } = await client.auth.signOut({
-    scope: 'local',
+    scope,
   });
+
   if (error) {
     throw error;
   }
@@ -61,6 +55,5 @@ export const ClientAuthService = {
   loginAnonymously,
   loginWithEmail,
   upgradeAnonymousAccount,
-  reportUser,
   logout,
 };

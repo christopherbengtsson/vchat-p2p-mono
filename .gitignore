@@ -9,3 +9,5 @@ ssh.md
 .env
 CD.md
 config.alloy
+
+playwright/.auth

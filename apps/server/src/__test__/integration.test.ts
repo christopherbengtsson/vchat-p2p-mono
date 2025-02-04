@@ -4,7 +4,7 @@ import { RedisMemoryServer } from 'redis-memory-server';
 import { Server, type Socket as ServerSocket } from 'socket.io';
 import { io as ioc, type Socket as ClientSocket } from 'socket.io-client';
 import { Redis } from 'ioredis';
-import { WaitingQueueService } from '../socket/service/WaitingQueueService.js';
+import { WaitingQueueService } from '../service/WaitingQueueService.js';
 import { setupMatchmaking } from '../socket/handler/matchmaking.js';
 import { wrapSocketHandler } from '../utils/wrapSocketHandler.js';
 
@@ -44,7 +44,7 @@ describe('Client to Server', () => {
 
     return new Promise<void>((resolve) => {
       firstClientSocket.on('disconnecting', () => {
-        redisQueue.removeFromQueue(firstClientSocket.id!);
+        redisQueue.removeFromQueue(firstClientSocket.id!, CLIENT_ID);
       });
 
       firstClientSocket.on('connect', resolve);
@@ -70,12 +70,15 @@ describe('Client to Server', () => {
   it('should remove from queue on disconnect', async () => {
     await expect.poll(() => redisQueue.getQueueCount()).toEqual(0);
 
-    firstClientSocket.emit('find-match', CLIENT_ID);
+    firstClientSocket.emit('find-match', firstClientSocket.id, CLIENT_ID);
 
     await expect.poll(() => redisQueue.getQueueCount()).toEqual(1);
     await expect
       .poll(() => redisQueue.getFirstInQueue())
-      .toEqual(firstClientSocket.id);
+      .toEqual({
+        socketId: firstClientSocket.id,
+        userId: CLIENT_ID,
+      });
 
     firstClientSocket.disconnect();
     await expect.poll(() => redisQueue.getQueueCount()).toEqual(0);

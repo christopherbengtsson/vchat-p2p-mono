@@ -1,5 +1,6 @@
 import { makeAutoObservable, observable, runInAction } from 'mobx';
 import { toast } from 'sonner';
+import type { Maybe } from '@mono/common-dto';
 import { Assert } from '@/common/utils/Assert';
 import { WebRTCService } from '../features/call/service/WebRTCService';
 import type { RootStore } from './RootStore';
@@ -12,12 +13,13 @@ export class CallStore {
 
   callState: CallState = CallState.START;
   isPolite = false;
-  roomId: string | undefined = undefined;
-  partnerId: string | undefined = undefined;
+  roomId: Maybe<string>;
+  partnerSocketId: Maybe<string>;
+  partnerUserId: Maybe<string>;
   remoteVideoEnabled = true;
   remoteAudioEnabled = true;
 
-  webRtcService: WebRTCService | undefined = undefined;
+  webRtcService: Maybe<WebRTCService>;
   remoteStream: MediaStream | null = null;
 
   constructor(rootStore: RootStore) {
@@ -51,15 +53,21 @@ export class CallStore {
     this.resetCallState();
     this.rootStore.socketStore.socket?.emit(
       'cancel-match',
-      this.rootStore.socketStore.id,
+      this.rootStore.authStore.userId,
     );
   }
 
-  initNewCall(roomId: string, partnerId: string, isPolite: boolean) {
+  initNewCall(
+    roomId: string,
+    partnerSocketId: string,
+    partnerUserId: string,
+    isPolite: boolean,
+  ) {
     this.setupListeners();
 
     this.roomId = roomId;
-    this.partnerId = partnerId;
+    this.partnerSocketId = partnerSocketId;
+    this.partnerUserId = partnerUserId;
     this.isPolite = isPolite;
     this.webRtcService = new WebRTCService(this.rootStore);
 
@@ -106,7 +114,7 @@ export class CallStore {
     this.webRtcService = undefined;
     this.remoteStream = null;
     this.roomId = undefined;
-    this.partnerId = undefined;
+    this.partnerSocketId = undefined;
   }
 
   resetCallState() {
@@ -123,6 +131,7 @@ export class CallStore {
     this.rootStore.socketStore.socket?.emit(
       'find-match',
       this.rootStore.socketStore.id,
+      this.rootStore.authStore.userId,
     );
   }
 

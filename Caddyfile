@@ -21,8 +21,11 @@
                         lb_policy cookie
                 }
 
+                reverse_proxy /api/v1/* {$CADDY_PROXY_ADDRESS}
+
                 @not_proxy {
                         not path /socket.io/*
+                        not path /api/v1/*
                 }
 
                 respond @not_proxy 404 {

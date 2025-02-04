@@ -1,17 +1,25 @@
+import { DeviceSignature } from './DeviceSignature.js';
 import { PeerMessage } from './PeerMessage.js';
 
 export interface ClientToServerEvents {
   'send-message': (roomId: string, message: string) => void;
 
-  'find-match': (userId: string) => void;
-  'skip-user': (roomId: string, userId: string) => void;
+  'find-match': (socketId: string, userId: string) => void;
+  'skip-user': (roomId: string, socketId: string) => void;
   'cancel-match': (userId: string) => void;
 
-  'join-room': (roomId: string, userId: string) => void;
-  'leave-room': (roomId: string, userId: string) => void;
+  'join-room': (roomId: string, socketId: string) => void;
+  'leave-room': (roomId: string, socketId: string) => void;
 
-  'peer-message': (data: PeerMessage, roomId: string, userId: string) => void;
+  'peer-message': (data: PeerMessage, roomId: string, socketId: string) => void;
 
   'audio-toggle': (enabled: boolean, roomId: string) => void;
   'video-toggle': (enabled: boolean, roomId: string) => void;
+
+  'user-banned': (args: {
+    partnerUserId: string;
+    partnerSocketId: string;
+    banDuration: number;
+    deviceSignature: DeviceSignature;
+  }) => void;
 }

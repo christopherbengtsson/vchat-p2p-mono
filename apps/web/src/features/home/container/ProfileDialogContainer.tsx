@@ -1,4 +1,5 @@
 import { observer } from 'mobx-react';
+import { toast } from 'sonner';
 import { useRootStore } from '@/stores/hooks/useRootStore';
 import { DrawerDialog } from '@/common/components/drawer-dialog/DrawerDialog';
 import { AnonymousUpgradeFormSchema } from '../model/AnonymousUpgradeForm';
@@ -27,7 +28,9 @@ export const ProfileDialogContainer = observer(function ProfileDialogContainer({
       { email, password },
       {
         onSuccess: () => {
-          authStore.userUpgraded = true;
+          authStore.setUserUpgraded(true);
+          toast.success('Account upgraded successfully');
+          handleProfileOpen();
         },
       },
     );

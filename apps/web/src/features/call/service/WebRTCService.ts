@@ -78,7 +78,7 @@ export class WebRTCService {
   private handleNegotiationNeeded = async () => {
     Assert.isDefined(this.rootStore.callStore.roomId, 'roomId is not defined');
     Assert.isDefined(
-      this.rootStore.callStore.partnerId,
+      this.rootStore.callStore.partnerSocketId,
       'partnerId is not defined',
     );
     try {
@@ -94,7 +94,7 @@ export class WebRTCService {
         'peer-message',
         { description: this.peerConnection.localDescription },
         this.rootStore.callStore.roomId,
-        this.rootStore.callStore.partnerId,
+        this.rootStore.callStore.partnerSocketId,
       );
     } catch (err) {
       console.error(err);
@@ -112,14 +112,14 @@ export class WebRTCService {
   private handleIceCandidate = (event: RTCPeerConnectionIceEvent) => {
     Assert.isDefined(this.rootStore.socketStore.socket);
     Assert.isDefined(this.rootStore.callStore.roomId);
-    Assert.isDefined(this.rootStore.callStore.partnerId);
+    Assert.isDefined(this.rootStore.callStore.partnerSocketId);
 
     if (event.candidate) {
       this.rootStore.socketStore.socket.emit(
         'peer-message',
         { candidate: event.candidate },
         this.rootStore.callStore.roomId,
-        this.rootStore.callStore.partnerId,
+        this.rootStore.callStore.partnerSocketId,
       );
     }
   };
@@ -150,7 +150,7 @@ export class WebRTCService {
   private handleOffer = async (peerMessage: PeerMessage, _userId: string) => {
     Assert.isDefined(this.rootStore.socketStore.socket);
     Assert.isDefined(this.rootStore.callStore.roomId);
-    Assert.isDefined(this.rootStore.callStore.partnerId);
+    Assert.isDefined(this.rootStore.callStore.partnerSocketId);
 
     if (!this.peerConnection) {
       console.warn(
@@ -176,7 +176,7 @@ export class WebRTCService {
             'peer-message',
             { description: this.peerConnection.localDescription },
             this.rootStore.callStore.roomId,
-            this.rootStore.callStore.partnerId,
+            this.rootStore.callStore.partnerSocketId,
           );
         }
       } else if (

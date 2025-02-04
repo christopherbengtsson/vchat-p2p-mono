@@ -1,7 +1,6 @@
-import { v4 as uuid } from 'uuid';
-import logger from '../../utils/logger.js';
 import type { VChatSocket } from '../../model/VChatSocket.js';
-import type { WaitingQueueService } from '../service/WaitingQueueService.js';
+import type { WaitingQueueService } from '../../service/WaitingQueueService.js';
+import { MatchService } from '../../service/MatchService.js';
 
 /**
  * TODO:
@@ -19,54 +18,22 @@ export function setupMatchmaking(
 ) {
   socket.on(
     'find-match',
-    wrapHandler(async (userId) => {
-      const [partnerId, queueCount] = await Promise.all([
-        redisQueue.getFirstInQueue(),
-        redisQueue.getQueueCount(),
-      ]);
-
-      if (queueCount > 0 && partnerId !== userId) {
-        if (!partnerId || !userId) {
-          logger.error(
-            { partnerId, userId },
-            'No partnerId or userId, cannot create room',
-          );
-          return;
-        }
-
-        const roomId = uuid();
-
-        socket.to(partnerId).emit('match-found', roomId, userId, false); // Inform parter
-        socket.emit('match-found', roomId, partnerId, true); // Inform current user
-      } else {
-        await redisQueue.addToQueue(socket.id);
-      }
-    }),
-  );
-
-  socket.on(
-    'skip-user',
-    wrapHandler((roomId, userId) => {
-      console.log('skip-user', roomId, userId);
-      socket.leave(roomId);
-      socket.to(roomId).emit('user-skipped');
-      socket.emit('find-match', userId);
-
-      logger.debug({ roomId, userId }, 'User skipped');
+    wrapHandler(async (socketId, userId) => {
+      await MatchService.findMatch(redisQueue, socket, socketId, userId);
     }),
   );
 
   socket.on(
     'cancel-match',
-    wrapHandler(async () => {
-      await redisQueue.removeFromQueue(socket.id);
+    wrapHandler(async (userId) => {
+      await redisQueue.removeFromQueue(socket.id, userId);
     }),
   );
 
   socket.on(
     'disconnect',
     wrapHandler(async () => {
-      await redisQueue.removeFromQueue(socket.id);
+      await redisQueue.removeFromQueue(socket.id, undefined);
     }),
   );
 }

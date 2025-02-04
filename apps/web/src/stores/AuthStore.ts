@@ -1,9 +1,10 @@
 import { makeAutoObservable } from 'mobx';
 import type { Session } from '@supabase/supabase-js';
-import { SupabaseClient } from '../common/supabase/client';
+import { CustomError, type Maybe } from '@mono/common-dto';
+import { SupabaseClient } from '@/common/supabase/client';
 
 export class AuthStore {
-  session: Session | null = null;
+  session: Maybe<Session>;
   authenticated = false;
   userUpgraded = false;
 
@@ -24,11 +25,23 @@ export class AuthStore {
     });
   }
 
-  setSession(session: Session | null) {
+  get userId() {
+    if (!this.session?.user.id) {
+      throw CustomError.unauthorized('User ID is not defined');
+    }
+
+    return this.session.user.id;
+  }
+
+  setSession(session: Maybe<Session>) {
     this.session = session;
   }
 
   setAuthenticated(authenticated: boolean) {
     this.authenticated = authenticated;
+  }
+
+  setUserUpgraded(userUpgraded: boolean) {
+    this.userUpgraded = userUpgraded;
   }
 }

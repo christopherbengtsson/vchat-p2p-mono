@@ -1,6 +1,8 @@
+import { CustomError } from '@mono/common-dto';
+
 function isTrue(state: boolean, message?: string): asserts state {
   if (!state) {
-    throw new Error(message);
+    throw CustomError.badState(message);
   }
 }
 

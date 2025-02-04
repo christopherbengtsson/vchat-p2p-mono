@@ -3,7 +3,8 @@ import helmet from 'helmet';
 import { createAdapter } from '@socket.io/redis-streams-adapter';
 import { Server as SocketIoServer } from 'socket.io';
 import type { Redis } from 'ioredis';
-import { RateLimiterMemory } from 'rate-limiter-flexible';
+import { RateLimiterRedis } from 'rate-limiter-flexible';
+import { CustomError, CustomErrorType } from '@mono/common-dto';
 import logger from '../utils/logger.js';
 import { VideoNsp } from './namespace/video-nsp/index.js';
 import { AdminUiNsp } from './namespace/admin-ui/index.js';
@@ -23,10 +24,13 @@ const init = (httpServer: Server, redisClient: Redis) => {
 
   io.engine.use(helmet());
 
-  const rateLimiter = new RateLimiterMemory({
-    points: 15,
-    duration: 1,
+  const rateLimiter = new RateLimiterRedis({
+    keyPrefix: 'socket-rate-limit-middleware',
+    storeClient: redisClient,
+    points: 15, // 15 requests
+    duration: 1, // per 1 second by IP
   });
+
   io.use((socket, next) => {
     rateLimiter
       .consume(socket.id) // TODO: or socket.handshake.address?
@@ -35,7 +39,12 @@ const init = (httpServer: Server, redisClient: Redis) => {
       })
       .catch(() => {
         logger.warn('[io rate limiter]: Too many requests');
-        next(new Error('Too many requests'));
+        next(
+          new CustomError(
+            CustomErrorType.TOO_MANY_REQUESTS,
+            'Too many requests',
+          ),
+        );
       });
   });
 

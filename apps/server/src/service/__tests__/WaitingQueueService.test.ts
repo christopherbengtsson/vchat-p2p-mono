@@ -51,61 +51,87 @@ describe('RedisQueue', () => {
   describe('addToQueue', () => {
     it('should add an item to the queue', async () => {
       const redisQueue = new WaitingQueueService(redisClient);
-      await redisQueue.addToQueue('id1');
+      await redisQueue.addToQueue('socketId1', 'userId1');
       const queue = await redisQueue.getQueue();
-      expect(queue).toEqual(['id1']);
+      expect(queue).toEqual(['socketId1__:__userId1']);
     });
 
     it('should add multiple items to the queue', async () => {
       const redisQueue = new WaitingQueueService(redisClient);
-      await redisQueue.addToQueue('id1');
-      await redisQueue.addToQueue('id2');
+      await redisQueue.addToQueue('socketId1', 'userId1');
+      await redisQueue.addToQueue('socketId2', 'userId2');
       const queue = await redisQueue.getQueue();
-      expect(queue).toEqual(['id1', 'id2']);
+      expect(queue).toEqual(['socketId1__:__userId1', 'socketId2__:__userId2']);
     });
 
     it('should be put last in queue if already present', async () => {
       const redisQueue = new WaitingQueueService(redisClient);
-      await redisQueue.addToQueue('id1');
+      await redisQueue.addToQueue('socketId1', 'userId1');
       vi.advanceTimersByTime(1);
-      await redisQueue.addToQueue('id2');
+      await redisQueue.addToQueue('socketId2', 'userId2');
       vi.advanceTimersByTime(1);
-      await redisQueue.addToQueue('id3');
+      await redisQueue.addToQueue('socketId3', 'userId3');
       vi.advanceTimersByTime(1);
 
       const first = await redisQueue.getFirstInQueue();
-      expect(first).toEqual('id1');
+      expect(first?.socketId).toEqual('socketId1');
+      expect(first?.userId).toEqual('userId1');
 
-      await redisQueue.addToQueue('id1');
+      await redisQueue.addToQueue('socketId1', 'userId1');
       const firstStill = await redisQueue.getFirstInQueue();
-      expect(firstStill).toEqual('id2');
+      expect(firstStill).toStrictEqual({
+        socketId: 'socketId2',
+        userId: 'userId2',
+      });
     });
   });
 
   describe('removeFromQueue', () => {
-    it('should remove an item from the queue', async () => {
+    it('should remove an item from queue when both socketId and userId are provided', async () => {
       const redisQueue = new WaitingQueueService(redisClient);
-      await redisQueue.addToQueue('id1');
-      await redisQueue.addToQueue('id2');
-      await redisQueue.removeFromQueue('id1');
+      await redisQueue.addToQueue('socketId1', 'userId1');
+      await redisQueue.addToQueue('socketId2', 'userId2');
+
+      await redisQueue.removeFromQueue('socketId1', 'userId1');
       const queue = await redisQueue.getQueue();
-      expect(queue).toEqual(['id2']);
+      expect(queue).toEqual(['socketId2__:__userId2']);
     });
 
-    it('should not affect the queue if the item does not exist', async () => {
+    it('should remove an item from queue when only socketId is provided', async () => {
       const redisQueue = new WaitingQueueService(redisClient);
-      await redisQueue.addToQueue('id1');
-      await redisQueue.removeFromQueue('id2');
+      await redisQueue.addToQueue('socketId1', 'userId1');
+      await redisQueue.addToQueue('socketId2', 'userId2');
+
+      await redisQueue.removeFromQueue('socketId1', null);
       const queue = await redisQueue.getQueue();
-      expect(queue).toEqual(['id1']);
+      expect(queue).toEqual(['socketId2__:__userId2']);
+    });
+
+    it('should handle removal when socketId is not found and userId is not provided', async () => {
+      const redisQueue = new WaitingQueueService(redisClient);
+      await redisQueue.addToQueue('socketId1', 'userId1');
+
+      await redisQueue.removeFromQueue('nonexistentSocket', null);
+      const queue = await redisQueue.getQueue();
+      expect(queue).toEqual(['socketId1__:__userId1']);
+    });
+
+    it('should handle multiple items with same socketId but different userIds', async () => {
+      const redisQueue = new WaitingQueueService(redisClient);
+      await redisQueue.addToQueue('socketId1', 'userId1');
+      await redisQueue.addToQueue('socketId1', 'userId2');
+
+      await redisQueue.removeFromQueue('socketId1', 'userId1');
+      const queue = await redisQueue.getQueue();
+      expect(queue).toEqual(['socketId1__:__userId2']);
     });
   });
 
   describe('getQueueCount', () => {
     it('should return the correct count of items in the queue', async () => {
       const redisQueue = new WaitingQueueService(redisClient);
-      await redisQueue.addToQueue('id1');
-      await redisQueue.addToQueue('id2');
+      await redisQueue.addToQueue('socketId1', 'userId1');
+      await redisQueue.addToQueue('socketId2', 'userId2');
       const count = await redisQueue.getQueueCount();
       expect(count).toBe(2);
     });
@@ -120,10 +146,13 @@ describe('RedisQueue', () => {
   describe('getFirstInQueue', () => {
     it('should return the first item in the queue', async () => {
       const redisQueue = new WaitingQueueService(redisClient);
-      await redisQueue.addToQueue('id1');
-      await redisQueue.addToQueue('id2');
+      await redisQueue.addToQueue('socketId1', 'userId1');
+      await redisQueue.addToQueue('socketId2', 'userId2');
       const first = await redisQueue.getFirstInQueue();
-      expect(first).toBe('id1');
+      expect(first).toStrictEqual({
+        socketId: 'socketId1',
+        userId: 'userId1',
+      });
     });
 
     it('should return null for an empty queue', async () => {
@@ -136,11 +165,15 @@ describe('RedisQueue', () => {
   describe('getQueue', () => {
     it('should return all items in the queue in order', async () => {
       const redisQueue = new WaitingQueueService(redisClient);
-      await redisQueue.addToQueue('id1');
-      await redisQueue.addToQueue('id2');
-      await redisQueue.addToQueue('id3');
+      await redisQueue.addToQueue('socketId1', 'userId1');
+      await redisQueue.addToQueue('socketId2', 'userId2');
+      await redisQueue.addToQueue('socketId3', 'userId3');
       const queue = await redisQueue.getQueue();
-      expect(queue).toEqual(['id1', 'id2', 'id3']);
+      expect(queue).toEqual([
+        'socketId1__:__userId1',
+        'socketId2__:__userId2',
+        'socketId3__:__userId3',
+      ]);
     });
 
     it('should return an empty array for an empty queue', async () => {

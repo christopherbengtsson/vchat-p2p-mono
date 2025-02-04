@@ -4,6 +4,7 @@ import { useRootStore } from '@/stores/hooks/useRootStore';
 import { FlyingBallContainer } from '../../flying-ball-game/container/FlyingBallContainer';
 import { CallActionContainer } from './CallActionContainer';
 import { UserVideoContainer } from './UserVideoContainer';
+import { ReportContainer } from './ReportContainer';
 
 export const InCallContainer = observer(function InCallPage() {
   const { mediaStore, callStore } = useRootStore();
@@ -21,6 +22,8 @@ export const InCallContainer = observer(function InCallPage() {
 
   return (
     <>
+      <ReportContainer />
+
       <div className="absolute top-4 right-4 w-auto h-auto max-w-32 md:max-w-64 rounded-lg overflow-hidden shadow-lg">
         <UserVideoContainer
           videoRef={localVideoRef}
