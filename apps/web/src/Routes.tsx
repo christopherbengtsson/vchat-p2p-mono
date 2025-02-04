@@ -2,7 +2,9 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import { withFaroRouterInstrumentation } from '@grafana/faro-react';
 import { LayoutContainer } from './common/layout/container/LayoutContainer';
 import { AuthenticatedRoutesContainer } from './features/auth/container/AuthenticatedRoutesContainer';
+import { RoutePath } from './RoutePath';
 import { AuthPage } from './features/auth/page/AuthPage';
+import { UserBannedPage } from './features/user-report/page/UserBannedPage';
 import { HomePage } from './features/home/page/HomePage';
 import { RandomCallPage } from './features/call/page/RandomCallPage';
 
@@ -13,8 +15,12 @@ export function Routes() {
       errorElement: <div>Root error</div>,
       children: [
         {
-          path: 'auth',
+          path: RoutePath.AUTH,
           element: <AuthPage />,
+        },
+        {
+          path: RoutePath.BANNED,
+          element: <UserBannedPage />,
         },
         {
           element: <AuthenticatedRoutesContainer />,
@@ -24,7 +30,7 @@ export function Routes() {
               element: <HomePage />,
             },
             {
-              path: 'call',
+              path: RoutePath.CALL,
               element: <RandomCallPage />,
             },
           ],

@@ -7,6 +7,7 @@ export class AuthStore {
   session: Maybe<Session>;
   authenticated = false;
   userUpgraded = false;
+  banned = false;
 
   constructor() {
     makeAutoObservable(this);
@@ -17,6 +18,7 @@ export class AuthStore {
 
     SupabaseClient.instance.auth.onAuthStateChange((_event, session) => {
       this.setSession(session);
+      console.log(_event, session);
 
       const authenticated = !!session;
       if (authenticated !== this.authenticated) {
@@ -43,5 +45,9 @@ export class AuthStore {
 
   setUserUpgraded(userUpgraded: boolean) {
     this.userUpgraded = userUpgraded;
+  }
+
+  setBanned(banned: boolean) {
+    this.banned = banned;
   }
 }
