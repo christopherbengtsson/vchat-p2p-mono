@@ -15,11 +15,6 @@ const mockDeviceSignature: DeviceSignature = {
 };
 
 describe('FingerprintUtil', () => {
-  beforeAll(() => {
-    logger.error = vi.fn();
-    logger.warn = vi.fn();
-  });
-
   describe('extractIpFromHeaders', () => {
     it('should extract first IP from x-forwarded-for header with single IP', () => {
       const result = FingerprintUtil.extractIpFromHeaders({

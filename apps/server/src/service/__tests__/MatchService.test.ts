@@ -7,7 +7,6 @@ import { MatchService } from '../MatchService.js';
 import { SupabaseService } from '../../supabase/service/SupabaseService.js';
 import type { VChatSocket } from '../../model/VChatSocket.js';
 import { WaitingQueueService } from '../WaitingQueueService.js';
-import logger from '../../utils/logger.js';
 
 describe('MatchService', () => {
   let container: StartedTestContainer;
@@ -16,8 +15,6 @@ describe('MatchService', () => {
   let mockSocket: VChatSocket;
 
   beforeAll(async () => {
-    logger.error = vi.fn();
-    logger.warn = vi.fn();
     container = await new GenericContainer('redis')
       .withExposedPorts(6379)
       .start();
