@@ -1,6 +1,10 @@
 FROM node:22.10-slim AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
+
+# https://github.com/pnpm/pnpm/issues/9029#issuecomment-2629866277
+RUN npm i -g corepack@latest
+
 RUN corepack enable
 
 FROM base AS deps
