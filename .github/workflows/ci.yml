@@ -27,6 +27,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile --ignore-scripts
 
+      - name: Setup test environment
+        run: cp apps/server/.env.test apps/server/.env
+
       - name: Build packages
         run: |
           pnpm common-dto build
@@ -38,9 +41,6 @@ jobs:
         run: |
           pnpm run web test
           pnpm run web lint
-
-      - name: Setup test environment
-        run: cp apps/server/.env.test .env
 
       - name: Server tests + typecheck
         run: |
