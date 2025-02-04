@@ -39,6 +39,9 @@ jobs:
           pnpm run web test
           pnpm run web lint
 
+      - name: Setup test environment
+        run: cp apps/server/env.test .env
+
       - name: Server tests + typecheck
         run: |
           pnpm run server test
