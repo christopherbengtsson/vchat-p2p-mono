@@ -27,6 +27,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile --ignore-scripts
 
+      - name: Build packages
+        run: pnpm --filter "./packages/**" build
+
       - name: Web tests + lint
         run: |
           pnpm run web test
