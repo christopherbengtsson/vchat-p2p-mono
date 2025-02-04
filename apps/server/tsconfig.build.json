@@ -1,6 +1,6 @@
 {
   "extends": "./tsconfig.json",
-  "exclude": ["**/*.test.ts", "**/__tests__/*"],
+  "exclude": ["**/*.test.ts", "**/__tests__/*", "**/setupTest.ts"],
   "compilerOptions": {
     "types": ["node"]
   }
