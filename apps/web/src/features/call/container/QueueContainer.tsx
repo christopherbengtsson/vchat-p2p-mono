@@ -40,7 +40,7 @@ export const QueueContainer = observer(function QueuePage() {
     );
   }
 
-  Assert.isDefined(callStore.partnerId);
+  Assert.isDefined(callStore.partnerSocketId);
 
   return (
     <div className="flex flex-col justify-center items-center gap-6">
@@ -57,7 +57,7 @@ export const QueueContainer = observer(function QueuePage() {
         />
       </div>
 
-      <MatchedUserText partnerId={callStore.partnerId} />
+      <MatchedUserText partnerId={callStore.partnerSocketId} />
     </div>
   );
 });

@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  workflow_dispatch:
+  push:
+
+jobs:
+  mono-ci:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        name: Install pnpm
+        with:
+          version: 9
+          run_install: false
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --ignore-scripts
+
+      - name: Setup test environment
+        run: cp apps/server/.env.test apps/server/.env
+
+      - name: Build packages
+        run: |
+          pnpm common-dto build
+          pnpm common-supabase build
+          pnpm be-supabase build
+          pnpm fe-supabase build
+
+      - name: Web tests + lint
+        run: |
+          pnpm run web test
+          pnpm run web lint
+
+      - name: Server tests + typecheck
+        run: |
+          pnpm run server test
+          pnpm run server typecheck

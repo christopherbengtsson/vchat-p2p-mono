@@ -12,11 +12,16 @@
     "server": "pnpm --filter server",
     "common-dto": "pnpm --filter common-dto",
     "common-supabase": "pnpm --filter common-supabase",
+    "be-supabase": "pnpm --filter be-supabase",
+    "fe-supabase": "pnpm --filter fe-supabase",
     "prepare": "husky",
     "server:run:docker": "docker-compose -f docker-compose.local.yml up",
     "server:close:docker": "docker-compose -f docker-compose.local.yml down",
     "deploy:nginx": "docker build -f nginx.Dockerfile -t bengostar/nginx:latest .; docker push bengostar/nginx:latest",
     "deploy:server": "docker build -f server.Dockerfile -t bengostar/vchat-service:latest .; docker push bengostar/vchat-service:latest"
+  },
+  "lint-staged": {
+    "*": "eslint"
   },
   "keywords": [],
   "author": "",
@@ -37,7 +42,9 @@
     "eslint-plugin-react-hooks": "^5.1.0-rc.0",
     "globals": "^15.9.0",
     "husky": "^9.1.6",
+    "lint-staged": "^15.4.3",
     "prettier": "^3.3.3",
+    "supabase": "^2.9.6",
     "typescript": "^5.6.2",
     "typescript-eslint": "^8.7.0"
   }

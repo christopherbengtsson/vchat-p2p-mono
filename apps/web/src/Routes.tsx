@@ -1,21 +1,26 @@
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import { withFaroRouterInstrumentation } from '@grafana/faro-react';
-import { observer } from 'mobx-react';
 import { LayoutContainer } from './common/layout/container/LayoutContainer';
 import { AuthenticatedRoutesContainer } from './features/auth/container/AuthenticatedRoutesContainer';
+import { RoutePath } from './RoutePath';
 import { AuthPage } from './features/auth/page/AuthPage';
+import { UserBannedPage } from './features/user-report/page/UserBannedPage';
 import { HomePage } from './features/home/page/HomePage';
 import { RandomCallPage } from './features/call/page/RandomCallPage';
 
-export const Routes = observer(function Routes() {
+export function Routes() {
   const router = createBrowserRouter([
     {
       element: <LayoutContainer />,
       errorElement: <div>Root error</div>,
       children: [
         {
-          path: 'auth',
+          path: RoutePath.AUTH,
           element: <AuthPage />,
+        },
+        {
+          path: RoutePath.BANNED,
+          element: <UserBannedPage />,
         },
         {
           element: <AuthenticatedRoutesContainer />,
@@ -25,7 +30,7 @@ export const Routes = observer(function Routes() {
               element: <HomePage />,
             },
             {
-              path: 'call',
+              path: RoutePath.CALL,
               element: <RandomCallPage />,
             },
           ],
@@ -37,4 +42,4 @@ export const Routes = observer(function Routes() {
   const routerWithAnalytics = withFaroRouterInstrumentation(router);
 
   return <RouterProvider router={routerWithAnalytics} />;
-});
+}

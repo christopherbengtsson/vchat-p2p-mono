@@ -1,7 +1,7 @@
 import type { AuthError } from '@supabase/supabase-js';
 import { useMutation } from '@tanstack/react-query';
-import { ClientAuthService } from '@mono/common-supabase';
-import { SupabaseClient } from '@/common/supabase/client';
+import { ClientAuthService } from '@mono/fe-supabase';
+import { SupabaseClient } from '@/common/clients/supabase';
 
 const client = SupabaseClient.instance;
 

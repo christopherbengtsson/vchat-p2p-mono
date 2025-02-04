@@ -8,9 +8,12 @@
   "scripts": {
     "build": "tsc"
   },
+  "dependencies": {
+    "@mono/common-dto": "workspace:*"
+  },
   "devDependencies": {
-    "typescript": "^5.5.3",
-    "@supabase/supabase-js": "^2.45.4"
+    "@supabase/supabase-js": "^2.45.4",
+    "typescript": "^5.5.3"
   },
   "peerDependencies": {
     "@supabase/supabase-js": "^2.45.4"

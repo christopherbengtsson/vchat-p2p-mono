@@ -27,11 +27,15 @@ export const CallActionContainer = observer(function CallActionContainer() {
     toast.success('Invitation to game sent!');
   }, [gameStore]);
 
+  const endCall = useCallback(() => {
+    callStore.endCall();
+  }, [callStore]);
+
   return (
     <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex space-x-4 z-50">
       <ToggleCameraButton
         localStream={mediaStore.stream}
-        videoEnabled={mediaStore.stream?.getVideoTracks()[0].enabled ?? false}
+        videoEnabled={mediaStore.videoEnabled}
         onToggle={toggleVideo}
       />
       <ToggleMuteButton
@@ -39,7 +43,7 @@ export const CallActionContainer = observer(function CallActionContainer() {
         audioEnabled={mediaStore.audioEnabled}
         onToggle={toggleAudio}
       />
-      <EndCallButton onClick={() => callStore.endCall()} />
+      <EndCallButton onClick={endCall} />
 
       <GameInviteButton
         gameActive={gameStore.gameActive}

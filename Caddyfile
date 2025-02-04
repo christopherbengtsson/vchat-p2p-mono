@@ -1,55 +1,58 @@
 {
-        email {$CADDY_EMAIL}
+	email {$CADDY_EMAIL}
 
-        # For testing to avoid rate limits
-        #ca https://acme-staging-v02.api.letsencrypt.org/directory
+	# For testing to avoid rate limits
+	#ca https://acme-staging-v02.api.letsencrypt.org/directory
 
-        # Enable debug mode
-        #debug
+	# Enable debug mode
+	#debug
 }
 
 {$CADDY_DOMAIN:localhost} {
-        log {
-                format filter {
-                        request>remote_ip ip_mask 16 32
-                        request>client_ip ip_mask 16 32
-                }
-        }
+	log {
+		format filter {
+			request>remote_ip ip_mask 16 32
+			request>client_ip ip_mask 16 32
+		}
+	}
 
-        route {
-                reverse_proxy /socket.io/* {$CADDY_PROXY_ADDRESS} {
-                        lb_policy cookie
-                }
+	route {
+		reverse_proxy /socket.io/* {$CADDY_PROXY_ADDRESS} {
+			lb_policy cookie
+		}
 
-                @not_proxy {
-                        not path /socket.io/*
-                }
+		reverse_proxy /api/v1/* {$CADDY_PROXY_ADDRESS}
 
-                respond @not_proxy 404 {
-                        close
-                }
-        }
+		@not_proxy {
+			not path /socket.io/*
+			not path /api/v1/*
+		}
 
-        header {
-                # Enforce HTTPS
-                Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
-                # Content Security Policy
-                Content-Security-Policy
-                default-src 'self';
-                connect-src 'self' {$CADDY_FRONTEND_URL} wss://{$CADDY_DOMAIN} https://{$CADDY_DOMAIN};
-                script-src 'self' 'unsafe-inline';
-                style-src 'self' 'unsafe-inline';
-                img-src 'self' data:;
-                media-src 'self';
-                # Prevent MIME-type sniffing
-                X-Content-Type-Options nosniff
-                # Prevent the site from being framed
-                X-Frame-Options DENY
-                # Control referrer information
-                Referrer-Policy no-referrer-when-downgrade
-                # Disallow stuff
-                Permissions-Policy "camera=(), microphone=(), geolocation=()"
-                # Omit server information
-                -Server
-        }
+		respond @not_proxy 404 {
+			close
+		}
+	}
+
+	header {
+		# Enforce HTTPS
+		Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+		# Content Security Policy
+		Content-Security-Policy
+		default-src 'self';
+		connect-src 'self' {$CADDY_FRONTEND_URL} wss://{$CADDY_DOMAIN} https://{$CADDY_DOMAIN};
+		script-src 'self' 'unsafe-inline';
+		style-src 'self' 'unsafe-inline';
+		img-src 'self' data:;
+		media-src 'self';
+		# Prevent MIME-type sniffing
+		X-Content-Type-Options nosniff
+		# Prevent the site from being framed
+		X-Frame-Options DENY
+		# Control referrer information
+		Referrer-Policy no-referrer-when-downgrade
+		# Disallow stuff
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		# Omit server information
+		-Server
+	}
 }

@@ -2,15 +2,16 @@ import { Server } from 'socket.io';
 import type { NextFunction } from 'express';
 import type { Redis } from 'ioredis';
 import type { IncomingMessage } from '../../../model/IncomingMessage.js';
-import { validateJwtMiddleware } from '../../../middleware/authMiddleware.js';
+import { validateJwtMiddleware } from '../../../middleware/validateJwtMiddleware.js';
 import { nspEmitters } from '../../handler/nspEmitters.js';
 import logger from '../../../utils/logger.js';
 import { setupMatchmaking } from '../../handler/matchmaking.js';
-import { setupChat } from '../../handler/chat.js';
 import { setupWebRTC } from '../../handler/webRtc.js';
 import { setupRoomManagement } from '../../handler/roomManagement.js';
-import { WaitingQueueService } from '../../service/WaitingQueueService.js';
 import { wrapSocketHandler } from '../../../utils/wrapSocketHandler.js';
+import type { VChatSocket } from '../../../model/VChatSocket.js';
+import { WaitingQueueService } from '../../../service/WaitingQueueService.js';
+// import { AdminService } from '../../../service/AdminService.js';
 
 const bootstrap = (io: Server, redisClient: Redis) => {
   const redisQueue = new WaitingQueueService(redisClient);
@@ -24,20 +25,21 @@ const bootstrap = (io: Server, redisClient: Redis) => {
     );
   });
 
-  videoChat.on('connection', (socket) => {
+  // void AdminService.deleteAllUsers();
+
+  videoChat.on('connection', (socket: VChatSocket) => {
     logger.debug(
       { socketId: socket.id },
       'User connected to video-chat namespace',
     );
 
     setupMatchmaking(socket, redisQueue, wrapSocketHandler);
-    setupChat(socket, wrapSocketHandler);
     setupWebRTC(socket, wrapSocketHandler);
     setupRoomManagement(socket, wrapSocketHandler);
 
     socket.on('disconnecting', async () => {
       Array.from(socket.rooms.values()).forEach((roomId) => {
-        socket.to(roomId).emit('partner-disconnected', socket.id);
+        socket.to(roomId).emit('partner-disconnected');
       });
     });
 

@@ -1,17 +1,20 @@
 import { makeAutoObservable } from 'mobx';
 import { io } from 'socket.io-client';
+import { CustomError, type Maybe } from '@mono/common-dto';
+import { ClientAuthService } from '@mono/fe-supabase';
 import {
   DefaultToastState,
   ErrorToastState,
 } from '@/common/utils/toast/model/ToastState';
 import { showToast } from '@/common/utils/toast/showToast';
-import { ChatSocket } from './model/SocketModel';
+import { SupabaseClient } from '@/common/clients/supabase';
+import type { ChatSocket } from './model/SocketModel';
 import type { RootStore } from './RootStore';
 
 export class SocketStore {
   private rootStore: RootStore;
 
-  socket: ChatSocket | null = null;
+  socket: Maybe<ChatSocket>;
   connected = false;
 
   constructor(rootStore: RootStore) {
@@ -21,10 +24,10 @@ export class SocketStore {
   }
 
   get id() {
-    const id = this.socket?.id ?? null;
+    const id = this.socket?.id;
     if (!id) {
       showToast(ErrorToastState.CONNECT_ERROR);
-      throw new Error('Socket id not defined');
+      throw CustomError.httpCommunication('Socket id not defined');
     }
     return id;
   }
@@ -54,6 +57,8 @@ export class SocketStore {
     this.socket.on('connect', this.handleConnect);
     this.socket.on('disconnect', this.handleDisconnect);
     this.socket.on('connect_error', this.handleConnectError);
+
+    this.socket.on('user-banned', this.handleBan);
   }
 
   handleConnect = () => {
@@ -81,14 +86,14 @@ export class SocketStore {
     showToast(DefaultToastState.CONNECTION_RESTORED);
   };
 
+  handleBan = async () => {
+    this.disconnect();
+    ClientAuthService.logout(SupabaseClient.instance, 'global');
+    this.rootStore.authStore.setBanned(true);
+  };
+
   disconnect() {
-    this.socket?.disconnect();
-    this.socket?.io.engine.off('error');
-    this.socket?.io.engine.off('upgradeError');
-    this.socket?.io.off('reconnect_error');
-    this.socket?.io.off('error');
-    this.socket?.off('connect');
-    this.socket?.off('disconnect');
     this.rootStore.callStore.resetCallState();
+    this.socket?.disconnect();
   }
 }

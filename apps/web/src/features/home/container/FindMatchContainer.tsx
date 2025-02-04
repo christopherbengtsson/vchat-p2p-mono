@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { observer } from 'mobx-react';
 import { showToast } from '@/common/utils/toast/showToast';
 import { useRootStore } from '@/stores/hooks/useRootStore';
+import { RoutePath } from '@/RoutePath';
 import { PermissionsDialog } from '../component/PermissionsDialog';
 import { FindMatchButton } from '../component/FindMatchButton';
 
@@ -34,7 +35,7 @@ export const FindMatchContainer = observer(function FindMatchContainer() {
     }
 
     callStore.findMatch();
-    navigate('/call');
+    navigate(RoutePath.CALL);
   };
 
   const requestMedia = async () => {
