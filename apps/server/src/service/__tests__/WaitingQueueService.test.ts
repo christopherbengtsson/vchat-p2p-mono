@@ -8,6 +8,7 @@ describe('RedisQueue', () => {
 
   beforeAll(async () => {
     redisServer = new RedisMemoryServer();
+    await redisServer.ensureInstance();
     const host = await redisServer.getHost();
     const port = await redisServer.getPort();
 
@@ -22,6 +23,7 @@ describe('RedisQueue', () => {
 
   afterAll(async () => {
     vi.useRealTimers();
+    redisClient?.disconnect();
     await redisServer.stop();
   });
 

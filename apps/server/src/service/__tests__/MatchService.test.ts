@@ -13,6 +13,7 @@ describe('MatchService', () => {
 
   beforeAll(async () => {
     redisServer = new RedisMemoryServer();
+    await redisServer.ensureInstance();
     const host = await redisServer.getHost();
     const port = await redisServer.getPort();
 
@@ -35,6 +36,7 @@ describe('MatchService', () => {
   });
 
   afterAll(async () => {
+    redisClient?.disconnect();
     await redisServer.stop();
   });
 

@@ -11,16 +11,18 @@ import { wrapSocketHandler } from '../utils/wrapSocketHandler.js';
 const CLIENT_ID = 'clientId';
 
 describe('Client to Server', () => {
+  let redisClient: Redis;
   let io: Server, serverSocket: ServerSocket, firstClientSocket: ClientSocket;
   let redisQueue: WaitingQueueService;
   let redisServer: RedisMemoryServer;
 
   beforeAll(async () => {
     redisServer = new RedisMemoryServer();
+    await redisServer.ensureInstance();
     const host = await redisServer.getHost();
     const port = await redisServer.getPort();
 
-    const redisClient = new Redis({ host, port, lazyConnect: true });
+    redisClient = new Redis({ host, port, lazyConnect: true });
     await redisClient.connect();
 
     redisQueue = new WaitingQueueService(redisClient);
@@ -63,8 +65,9 @@ describe('Client to Server', () => {
   });
 
   afterAll(async () => {
-    io.close();
     await redisServer.stop();
+    io?.close();
+    redisClient?.quit();
   });
 
   it('should remove from queue on disconnect', async () => {
