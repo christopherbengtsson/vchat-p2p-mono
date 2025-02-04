@@ -1,9 +1,12 @@
-import { createServer } from 'node:http';
 import { type AddressInfo } from 'node:net';
-import { RedisMemoryServer } from 'redis-memory-server';
+import { createServer } from 'node:http';
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+import RedisMock from 'ioredis-mock';
+import { type Redis } from 'ioredis';
+import { GenericContainer, type StartedTestContainer } from 'testcontainers';
 import { Server, type Socket as ServerSocket } from 'socket.io';
 import { io as ioc, type Socket as ClientSocket } from 'socket.io-client';
-import { Redis } from 'ioredis';
 import { WaitingQueueService } from '../service/WaitingQueueService.js';
 import { setupMatchmaking } from '../socket/handler/matchmaking.js';
 import { wrapSocketHandler } from '../utils/wrapSocketHandler.js';
@@ -14,15 +17,18 @@ describe('Client to Server', () => {
   let redisClient: Redis;
   let io: Server, serverSocket: ServerSocket, firstClientSocket: ClientSocket;
   let redisQueue: WaitingQueueService;
-  let redisServer: RedisMemoryServer;
+  let container: StartedTestContainer;
 
   beforeAll(async () => {
-    redisServer = new RedisMemoryServer();
-    await redisServer.ensureInstance();
-    const host = await redisServer.getHost();
-    const port = await redisServer.getPort();
+    container = await new GenericContainer('redis')
+      .withExposedPorts(6379)
+      .start();
 
-    redisClient = new Redis({ host, port, lazyConnect: true });
+    redisClient = new RedisMock({
+      host: container.getHost(),
+      port: container.getMappedPort(6379),
+      lazyConnect: true,
+    });
     await redisClient.connect();
 
     redisQueue = new WaitingQueueService(redisClient);
@@ -65,7 +71,7 @@ describe('Client to Server', () => {
   });
 
   afterAll(async () => {
-    await redisServer.stop();
+    await container.stop();
     io?.close();
     redisClient?.quit();
   });

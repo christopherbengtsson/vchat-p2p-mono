@@ -1,23 +1,29 @@
-import { Redis } from 'ioredis';
-import { RedisMemoryServer } from 'redis-memory-server';
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+import RedisMock from 'ioredis-mock';
+import { type Redis } from 'ioredis';
+import { GenericContainer, type StartedTestContainer } from 'testcontainers';
 import { MatchService } from '../MatchService.js';
 import { SupabaseService } from '../../supabase/service/SupabaseService.js';
 import type { VChatSocket } from '../../model/VChatSocket.js';
 import { WaitingQueueService } from '../WaitingQueueService.js';
 
 describe('MatchService', () => {
-  let redisServer: RedisMemoryServer;
+  let container: StartedTestContainer;
   let redisClient: Redis;
   let redisQueue: WaitingQueueService;
   let mockSocket: VChatSocket;
 
   beforeAll(async () => {
-    redisServer = new RedisMemoryServer();
-    await redisServer.ensureInstance();
-    const host = await redisServer.getHost();
-    const port = await redisServer.getPort();
+    container = await new GenericContainer('redis')
+      .withExposedPorts(6379)
+      .start();
 
-    redisClient = new Redis({ host, port, lazyConnect: true });
+    redisClient = new RedisMock({
+      host: container.getHost(),
+      port: container.getMappedPort(6379),
+      lazyConnect: true,
+    });
     await redisClient.connect();
     redisQueue = new WaitingQueueService(redisClient);
   });
@@ -37,7 +43,7 @@ describe('MatchService', () => {
 
   afterAll(async () => {
     redisClient?.disconnect();
-    await redisServer.stop();
+    await container.stop();
   });
 
   describe('findMatch', () => {

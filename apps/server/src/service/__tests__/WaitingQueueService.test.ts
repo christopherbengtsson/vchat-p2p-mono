@@ -1,18 +1,24 @@
-import { RedisMemoryServer } from 'redis-memory-server';
-import { Redis } from 'ioredis';
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+import RedisMock from 'ioredis-mock';
+import { type Redis } from 'ioredis';
+import { GenericContainer, type StartedTestContainer } from 'testcontainers';
 import { WaitingQueueService } from '../WaitingQueueService.js';
 
 describe('RedisQueue', () => {
-  let redisServer: RedisMemoryServer;
+  let container: StartedTestContainer;
   let redisClient: Redis;
 
   beforeAll(async () => {
-    redisServer = new RedisMemoryServer();
-    await redisServer.ensureInstance();
-    const host = await redisServer.getHost();
-    const port = await redisServer.getPort();
+    container = await new GenericContainer('redis')
+      .withExposedPorts(6379)
+      .start();
 
-    redisClient = new Redis({ host, port, lazyConnect: true });
+    redisClient = new RedisMock({
+      host: container.getHost(),
+      port: container.getMappedPort(6379),
+      lazyConnect: true,
+    });
     await redisClient.connect();
   });
 
@@ -24,7 +30,7 @@ describe('RedisQueue', () => {
   afterAll(async () => {
     vi.useRealTimers();
     redisClient?.disconnect();
-    await redisServer.stop();
+    await container.stop();
   });
 
   describe('queueKey', () => {
