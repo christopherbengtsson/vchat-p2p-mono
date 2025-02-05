@@ -11,7 +11,7 @@ export const useReportUser = () => {
     unknown,
     { reporterId: string; toReportId: string }
   >({
-    mutationFn: async ({ reporterId, toReportId }) =>
+    mutationFn: ({ reporterId, toReportId }) =>
       DatabaseService.reportUser(client, reporterId, toReportId),
     onError: (error) => {
       console.error(error); // TODO: handle error

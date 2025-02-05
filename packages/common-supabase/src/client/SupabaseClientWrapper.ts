@@ -1,5 +1,5 @@
 import { CustomError, type Database } from '@mono/common-dto';
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import type { SupabaseClientConfig } from '../model/SupabaseClientConfig.js';
 
 export class SupabaseClientWrapper {

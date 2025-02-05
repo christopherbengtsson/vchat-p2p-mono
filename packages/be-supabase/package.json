@@ -12,10 +12,10 @@
     "build": "tsc"
   },
   "devDependencies": {
-    "@supabase/supabase-js": "^2.45.4",
+    "@supabase/supabase-js": "^2.48.1",
     "typescript": "^5.5.3"
   },
   "peerDependencies": {
-    "@supabase/supabase-js": "^2.45.4"
+    "@supabase/supabase-js": "^2.48.1"
   }
 }
