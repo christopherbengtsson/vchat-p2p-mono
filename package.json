@@ -23,6 +23,7 @@
   "lint-staged": {
     "*": "eslint"
   },
+  "packageManager": "pnpm@9.8.0",
   "keywords": [],
   "author": "",
   "license": "ISC",
