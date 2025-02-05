@@ -1,24 +1,17 @@
 FROM node:22.13.1-slim AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
+RUN npm install -g pnpm@9.8
 
-# TODO: Temp fix: https://github.com/pnpm/pnpm/issues/9029#issuecomment-2629866277
-RUN npm i -g corepack@latest
-RUN corepack enable
-
-FROM base AS deps
+FROM base AS build
+COPY . /usr/src/app
 WORKDIR /usr/src/app
-COPY pnpm-lock.yaml ./
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm fetch --ignore-scripts
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
+RUN pnpm --filter=server^... --filter=server run build
+RUN pnpm deploy --filter=server --prod /prod/server
 
-FROM deps AS builder
-COPY . .
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile --ignore-scripts
-RUN pnpm --filter server... run build
-RUN pnpm deploy --filter server --prod /prod/server
-
-FROM base AS server
-COPY --from=builder /prod/server /app
+FROM base
+COPY --from=build /prod/server /app
 WORKDIR /app
 EXPOSE 8000
 CMD [ "pnpm", "start" ]
