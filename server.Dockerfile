@@ -4,7 +4,6 @@ ENV PATH="$PNPM_HOME:$PATH"
 
 # TODO: Temp fix: https://github.com/pnpm/pnpm/issues/9029#issuecomment-2629866277
 RUN npm i -g corepack@latest
-
 RUN corepack enable
 
 FROM base AS deps
@@ -16,8 +15,7 @@ FROM deps AS builder
 COPY . .
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile --ignore-scripts
 RUN pnpm --filter server... run build
-RUN pnpm deploy --filter server --prod /prod/server --ignore-scripts
-
+RUN pnpm deploy --filter server --prod /prod/server
 
 FROM base AS server
 COPY --from=builder /prod/server /app
