@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 import { observer } from 'mobx-react';
 import { toast } from 'sonner';
 import { useRootStore } from '@/stores/hooks/useRootStore';
+import { FeatureFlagUtil } from '@/common/utils/FeatureFlagUtil';
 import { ToggleCameraButton } from '../component/ToggleCameraButton';
 import { ToggleMuteButton } from '../component/ToggleMuteButton';
 import { EndCallButton } from '../component/EndCallButton';
@@ -9,6 +10,7 @@ import { GameInviteButton } from '../component/GameInviteButton';
 
 export const CallActionContainer = observer(function CallActionContainer() {
   const { callStore, mediaStore, gameStore } = useRootStore();
+  const isGameEnabled = FeatureFlagUtil.isGamesEnabled();
 
   const toggleVideo = useCallback(() => {
     const toggle = !mediaStore.videoEnabled;
@@ -45,10 +47,12 @@ export const CallActionContainer = observer(function CallActionContainer() {
       />
       <EndCallButton onClick={endCall} />
 
-      <GameInviteButton
-        gameActive={gameStore.gameActive}
-        onToggle={handleCanvasStream}
-      />
+      {isGameEnabled && (
+        <GameInviteButton
+          gameActive={gameStore.gameActive}
+          onToggle={handleCanvasStream}
+        />
+      )}
     </div>
   );
 });
