@@ -1,7 +1,6 @@
 import type { Redis } from 'ioredis';
 import type { Maybe } from '@mono/common-dto';
 import type { SocketId } from '../model/SocketId.js';
-import logger from '../utils/logger.js';
 
 export class WaitingQueueService {
   private readonly queueKey = 'waiting_queue';
@@ -28,10 +27,6 @@ export class WaitingQueueService {
       const match = await this.findBySocketId(socketId);
 
       if (!match) {
-        logger.warn(
-          { socketId },
-          'Failed to remove member in queue by only socketId',
-        );
         return;
       }
 

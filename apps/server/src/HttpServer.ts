@@ -37,9 +37,13 @@ const init = () => {
     rateLimiterMiddleware,
     apiKeyMiddleware,
     (req, res) => {
-      const deviceSignature = req.body.deviceSignature;
+      const browserSignature = req.body.browserSignature;
 
-      if (req.ip && deviceSignature) {
+      if (req.ip && browserSignature) {
+        const deviceSignature = FingerprintUtil.getDeviceSignature(
+          browserSignature,
+          req.headers,
+        );
         const fingerprint = FingerprintUtil.generateHash(
           deviceSignature,
           req.ip,

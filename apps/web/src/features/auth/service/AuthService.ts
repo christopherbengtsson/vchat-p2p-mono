@@ -10,7 +10,7 @@ const client = SupabaseClient.instance;
 async function loginAnonymously() {
   const { data } = await axiosClient.post<{
     fingerprint: string;
-  }>('/signature', { deviceSignature: BrowserSignatureUtil.get() });
+  }>('/signature', { browserSignature: BrowserSignatureUtil.get() });
 
   const { data: isBlacklisted } = await DatabaseService.isBlacklisted(
     SupabaseClient.instance,
