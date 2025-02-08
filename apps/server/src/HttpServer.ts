@@ -4,8 +4,8 @@ import cors from 'cors';
 import helmet from 'helmet';
 import { register } from 'prom-client';
 import { apiKeyMiddleware } from './middleware/apiKeyMiddleware.js';
-import { FingerprintUtil } from './utils/FingerprintUtil.js';
 import rateLimiterMiddleware from './middleware/rateLimiterMiddleware.js';
+import { FingerprintService } from './service/FingerprintService.js';
 import logger from './utils/logger.js';
 
 const BASE_API_PATH = '/api/v1';
@@ -37,12 +37,12 @@ const init = () => {
     rateLimiterMiddleware,
     apiKeyMiddleware,
     (req, res) => {
-      const deviceSignature = req.body.deviceSignature;
+      const browserSignature = req.body.browserSignature;
 
-      if (req.ip && deviceSignature) {
-        const fingerprint = FingerprintUtil.generateHash(
-          deviceSignature,
-          req.ip,
+      if (req.ip && browserSignature) {
+        const fingerprint = FingerprintService.generate(
+          browserSignature,
+          req.headers,
         );
 
         if (!fingerprint) {

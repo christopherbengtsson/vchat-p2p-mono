@@ -1,4 +1,5 @@
 export * from './generated/models/Database.js';
+export * from './models/BrowserSignature.js';
 export * from './models/ClientToServerEvents.js';
 export * from './models/CustomError.js';
 export * from './models/CustomErrorType.js';

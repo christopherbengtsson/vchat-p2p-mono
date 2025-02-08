@@ -1,0 +1,88 @@
+name: Local E2E
+
+on:
+  workflow_dispatch:
+  push:
+
+jobs:
+  mono-local-e2e:
+    runs-on: ubuntu-latest
+    env:
+      CI: true
+    services:
+      redis:
+        image: redis:7.0-alpine
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        name: Install pnpm
+        with:
+          version: 9.8.0
+          run_install: false
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.1
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --ignore-scripts
+
+      - name: Setup environment variables
+        run: |
+          touch apps/server/.env
+          echo SUPABASE_URL=${{ secrets.SUPABASE_URL }} >> apps/server/.env
+          echo SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY }} >> apps/server/.env
+          echo SUPABASE_JWT_SECRET=${{ secrets.SUPABASE_JWT_SECRET }} >> apps/server/.env
+          echo API_KEY=testapikey >> apps/server/.env
+          echo CORS_ORIGINS=http://localhost:3000 >> apps/server/.env
+          echo NODE_ENV=development >> apps/server/.env
+          echo PINO_LOG_LEVEL=debug >> apps/server/.env
+          cat apps/server/.env
+
+          touch apps/web/.env
+          echo VITE_SUPABASE_URL=${{ secrets.SUPABASE_URL }} >> apps/web/.env
+          echo VITE_SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }} >> apps/web/.env
+          echo VITE_BASE_URL=http://localhost:3000 >> apps/web/.env
+          echo VITE_SERVER_URL=http://localhost:8000 >> apps/web/.env
+          echo VITE_API_KEY=testapikey >> apps/web/.env
+          cat apps/web/.env
+
+          touch apps/web/.env.e2e
+          echo TEST_SUPABASE_URL=${{ secrets.SUPABASE_URL }} >> apps/web/.env.e2e
+          echo TEST_SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY }} >> apps/web/.env.e2e
+          echo TEST_USER_PASSWORD=${{ secrets.TEST_USER_PASSWORD }} >> apps/web/.env.e2e
+          cat apps/web/.env.e2e
+
+      - name: Build packages
+        run: |
+          pnpm common-dto build
+          pnpm common-supabase build
+          pnpm be-supabase build
+          pnpm fe-supabase build
+
+      - name: Server start
+        run: |
+          nohup pnpm run server dev > server.log 2>&1 &
+          while ! grep -q "Server is running on port 8000" server.log; do
+            echo "Waiting for server to be ready..."
+            sleep 1
+          done
+          echo "Server is ready!"
+
+      - name: Web E2E tests
+        run: pnpm run web e2e
+
+      - name: Upload reports to GitHub Actions Artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-${{ matrix.shardIndex }}
+          path: apps/web/e2e/failed-e2e-results
+          retention-days: 1

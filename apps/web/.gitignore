@@ -27,5 +27,8 @@ tsconfig.*.tsbuildinfo
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+failed-e2e-results
 
-playwright/.auth
+.env
+.env.e2e
+.env.local

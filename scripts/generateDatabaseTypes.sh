@@ -8,3 +8,4 @@ if [ -z "$SUPABASE_PROJECT_ID" ]; then
 fi
 
 npx supabase gen types typescript --project-id "$SUPABASE_PROJECT_ID" --schema public > packages/common-dto/src/generated/models/Database.ts
+pnpm prettier --write packages/common-dto/src/generated/models/Database.ts

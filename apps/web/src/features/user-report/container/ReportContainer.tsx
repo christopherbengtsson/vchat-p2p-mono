@@ -2,7 +2,6 @@ import { useCallback, useState } from 'react';
 import { observer } from 'mobx-react';
 import type { PostgrestSingleResponse } from '@supabase/supabase-js';
 import { Assert } from '@/common/utils/Assert';
-import { DeviceSignatureUtil } from '@/common/utils/DeviceSignatureUtil';
 import { useRootStore } from '@/stores/hooks/useRootStore';
 import { ReportButton } from '../component/ReportButton';
 import { ReportDialog } from '../component/ReportDialog';
@@ -32,11 +31,10 @@ export const ReportContainer = observer(function ReportContainer() {
 
       const banDuration = response?.data ?? 0;
       if (banDuration > 0) {
-        socketStore.socket?.emit('user-banned', {
+        socketStore.socket?.emit('ban-user', {
           partnerUserId,
           partnerSocketId,
           banDuration,
-          deviceSignature: DeviceSignatureUtil.get(),
         });
       }
     },

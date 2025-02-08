@@ -1,4 +1,4 @@
-name: CI
+name: Test + Lint
 
 on:
   workflow_dispatch:
@@ -26,9 +26,6 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile --ignore-scripts
-
-      - name: Setup test environment
-        run: cp apps/server/.env.test apps/server/.env
 
       - name: Build packages
         run: |

@@ -1,41 +1,25 @@
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import RedisMock from 'ioredis-mock';
-import { type Redis } from 'ioredis';
-import { GenericContainer, type StartedTestContainer } from 'testcontainers';
+import { GenericContainer } from 'testcontainers';
 import { MatchService } from '../MatchService.js';
-import { SupabaseService } from '../../supabase/service/SupabaseService.js';
-import type { VChatSocket } from '../../model/VChatSocket.js';
+import { SupabaseService } from '../SupabaseService.js';
 import { WaitingQueueService } from '../WaitingQueueService.js';
 
-describe('MatchService', () => {
-  let container: StartedTestContainer;
-  let redisClient: Redis;
-  let redisQueue: WaitingQueueService;
-  let mockSocket: VChatSocket;
+describe('MatchService', async () => {
+  const container = await new GenericContainer('redis')
+    .withExposedPorts(6379)
+    .start();
 
-  beforeAll(async () => {
-    container = await new GenericContainer('redis')
-      .withExposedPorts(6379)
-      .start();
-
-    redisClient = new RedisMock({
-      host: container.getHost(),
-      port: container.getMappedPort(6379),
-      lazyConnect: true,
-    });
-    await redisClient.connect();
-    redisQueue = new WaitingQueueService(redisClient);
+  const redisClient = await new RedisMock({
+    host: container.getHost(),
+    port: container.getMappedPort(6379),
   });
+
+  const redisQueue = new WaitingQueueService(redisClient);
 
   beforeEach(async () => {
     vi.clearAllMocks();
-
-    mockSocket = {
-      id: 'socket1',
-      emit: vi.fn(),
-      to: vi.fn().mockReturnValue({ emit: vi.fn() }),
-    } as unknown as VChatSocket;
 
     vi.spyOn(SupabaseService, 'partnersNotIgnored').mockResolvedValue(true);
     await redisClient.flushall();
@@ -48,7 +32,7 @@ describe('MatchService', () => {
 
   describe('findMatch', () => {
     it('should add user to queue when queue is empty', async () => {
-      await MatchService.findMatch(redisQueue, mockSocket, 'socket1', 'user1');
+      await MatchService.findMatch(redisQueue, 'socket1', 'user1');
 
       await expect.poll(() => redisQueue.getQueueCount()).toBe(1);
 
@@ -62,45 +46,59 @@ describe('MatchService', () => {
     it('should match users when queue has waiting user', async () => {
       await redisQueue.addToQueue('socket2', 'user2');
 
-      await MatchService.findMatch(redisQueue, mockSocket, 'socket1', 'user1');
-
-      expect(mockSocket.emit).toHaveBeenCalledWith(
-        'match-found',
-        expect.any(String),
-        'socket2',
-        'user2',
-        true,
+      const roomData = await MatchService.findMatch(
+        redisQueue,
+        'socket1',
+        'user1',
       );
+
+      expect(roomData).toEqual({
+        roomId: expect.any(String),
+        partnerSocketId: 'socket2',
+        partnerUserId: 'user2',
+      });
+      await expect.poll(() => redisQueue.getQueueCount()).toBe(0);
     });
 
     it('should skip ignored partners and continue matching', async () => {
       vi.spyOn(SupabaseService, 'partnersNotIgnored')
         .mockResolvedValueOnce(false) // First partner ignored
         .mockResolvedValueOnce(true); // Second partner accepted
+      const spyer = vi.spyOn(redisQueue, 'getFirstInQueue');
 
       await redisQueue.addToQueue('socket2', 'user2');
       await redisQueue.addToQueue('socket3', 'user3');
 
-      await MatchService.findMatch(redisQueue, mockSocket, 'socket1', 'user1');
+      const roomData = await MatchService.findMatch(
+        redisQueue,
+        'socket1',
+        'user1',
+      );
 
       // Should match with socket3 after skipping socket2
-      expect(mockSocket.emit).toHaveBeenCalledWith(
-        'match-found',
-        expect.any(String),
-        'socket3',
-        'user3',
-        true,
-      );
+      expect(roomData).toEqual({
+        roomId: expect.any(String),
+        partnerSocketId: 'socket3',
+        partnerUserId: 'user3',
+      });
+      await expect.poll(() => redisQueue.getQueueCount()).toBe(1);
+
+      // expect recursive findMatch call
+      expect(spyer).toHaveBeenCalledTimes(2);
+      expect(spyer).toHaveBeenNthCalledWith(2, 1);
     });
 
     it('should add to queue if all potential matches are ignored', async () => {
       vi.spyOn(SupabaseService, 'partnersNotIgnored').mockResolvedValue(false);
+      const spyer = vi.spyOn(redisQueue, 'getFirstInQueue');
 
       await redisQueue.addToQueue('socket2', 'user2');
-      await MatchService.findMatch(redisQueue, mockSocket, 'socket1', 'user1');
+      await MatchService.findMatch(redisQueue, 'socket1', 'user1');
 
       await expect.poll(() => redisQueue.getQueueCount()).toBe(2);
-      expect(mockSocket.emit).not.toHaveBeenCalled();
+
+      // should not call getFirstInQueue again since it's only one one queue
+      expect(spyer).toHaveBeenCalledTimes(1);
     });
 
     it('should handle invalid match data when socketId is undefined', async () => {
@@ -112,9 +110,8 @@ describe('MatchService', () => {
         socketId: undefined as any,
         userId: 'user2',
       });
-      await MatchService.findMatch(redisQueue, mockSocket, 'socket1', 'user1');
+      await MatchService.findMatch(redisQueue, 'socket1', 'user1');
 
-      expect(mockSocket.emit).not.toHaveBeenCalled();
       await expect.poll(() => redisQueue.getQueueCount()).toBe(1);
     });
 
@@ -127,9 +124,7 @@ describe('MatchService', () => {
         socketId: 'socket2',
         userId: undefined as any,
       });
-      await MatchService.findMatch(redisQueue, mockSocket, 'socket1', 'user1');
-
-      expect(mockSocket.emit).not.toHaveBeenCalled();
+      await MatchService.findMatch(redisQueue, 'socket1', 'user1');
       await expect.poll(() => redisQueue.getQueueCount()).toBe(1);
     });
 
@@ -138,12 +133,11 @@ describe('MatchService', () => {
 
       await MatchService.findMatch(
         redisQueue,
-        mockSocket,
+
         undefined as any,
         'user1',
       );
 
-      expect(mockSocket.emit).not.toHaveBeenCalled();
       await expect.poll(() => redisQueue.getQueueCount()).toBe(1);
     });
 
@@ -152,20 +146,18 @@ describe('MatchService', () => {
 
       await MatchService.findMatch(
         redisQueue,
-        mockSocket,
+
         'socket1',
         undefined as any,
       );
 
-      expect(mockSocket.emit).not.toHaveBeenCalled();
       await expect.poll(() => redisQueue.getQueueCount()).toBe(1);
     });
 
     it('should not match user with themselves', async () => {
       await redisQueue.addToQueue('socket1', 'user1');
-      await MatchService.findMatch(redisQueue, mockSocket, 'socket1', 'user1');
+      await MatchService.findMatch(redisQueue, 'socket1', 'user1');
 
-      expect(mockSocket.emit).not.toHaveBeenCalled();
       await expect.poll(() => redisQueue.getQueueCount()).toBe(1);
     });
 
@@ -178,11 +170,10 @@ describe('MatchService', () => {
       // Make all potential matches ignored
       vi.spyOn(SupabaseService, 'partnersNotIgnored').mockResolvedValue(false);
 
-      await MatchService.findMatch(redisQueue, mockSocket, 'socket1', 'user1');
+      await MatchService.findMatch(redisQueue, 'socket1', 'user1');
 
       // Verify user was added to queue after checking all positions
       await expect.poll(() => redisQueue.getQueueCount()).toBe(4);
-      expect(mockSocket.emit).not.toHaveBeenCalled();
     });
 
     it('should try all queue positions until finding valid match', async () => {
@@ -195,16 +186,19 @@ describe('MatchService', () => {
         .mockResolvedValueOnce(false) // Second partner ignored
         .mockResolvedValueOnce(true); // Third partner accepted
 
-      await MatchService.findMatch(redisQueue, mockSocket, 'socket1', 'user1');
+      const roomData = await MatchService.findMatch(
+        redisQueue,
+        'socket1',
+        'user1',
+      );
 
       // Should match with socket4 after skipping socket2 and socket3
-      expect(mockSocket.emit).toHaveBeenCalledWith(
-        'match-found',
-        expect.any(String),
-        'socket4',
-        'user4',
-        true,
-      );
+      expect(roomData).toEqual({
+        roomId: expect.any(String),
+        partnerSocketId: 'socket4',
+        partnerUserId: 'user4',
+      });
+      await expect.poll(() => redisQueue.getQueueCount()).toBe(2);
     });
   });
 });
