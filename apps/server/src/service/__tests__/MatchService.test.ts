@@ -3,7 +3,7 @@
 import RedisMock from 'ioredis-mock';
 import { GenericContainer } from 'testcontainers';
 import { MatchService } from '../MatchService.js';
-import { SupabaseService } from '../../supabase/service/SupabaseService.js';
+import { SupabaseService } from '../SupabaseService.js';
 import { WaitingQueueService } from '../WaitingQueueService.js';
 
 describe('MatchService', async () => {

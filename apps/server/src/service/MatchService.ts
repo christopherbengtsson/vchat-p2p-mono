@@ -1,8 +1,7 @@
 import { v4 as uuid } from 'uuid';
 import type { Maybe } from '@mono/common-dto';
-
-import { SupabaseService } from '../supabase/service/SupabaseService.js';
 import logger from '../utils/logger.js';
+import { SupabaseService } from './SupabaseService.js';
 import type { WaitingQueueService } from './WaitingQueueService.js';
 
 const handleNoValidMatch = async (

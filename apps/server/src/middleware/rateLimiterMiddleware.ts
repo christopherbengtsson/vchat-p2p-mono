@@ -1,6 +1,6 @@
 import { RateLimiterRedis } from 'rate-limiter-flexible';
 import type { Request, Response, NextFunction } from 'express';
-import redisClient from '../redis/client.js';
+import redisClient from '../clients/redis.js';
 
 const rateLimiter = new RateLimiterRedis({
   keyPrefix: 'api-rate-limit-middleware',

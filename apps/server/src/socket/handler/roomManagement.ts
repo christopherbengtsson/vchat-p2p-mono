@@ -1,6 +1,6 @@
 import logger from '../../utils/logger.js';
 import type { VChatSocket } from '../../model/VChatSocket.js';
-import { SupabaseService } from '../../supabase/service/SupabaseService.js';
+import { SupabaseService } from '../../service/SupabaseService.js';
 
 export function setupRoomManagement(
   socket: VChatSocket,

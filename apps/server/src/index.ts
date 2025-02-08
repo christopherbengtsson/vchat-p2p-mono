@@ -3,7 +3,7 @@ import { collectDefaultMetrics } from 'prom-client';
 import { HttpServer } from './HttpServer.js';
 import { SocketServer } from './socket/SocketServer.js';
 import logger from './utils/logger.js';
-import redisClient from './redis/client.js';
+import redisClient from './clients/redis.js';
 
 collectDefaultMetrics();
 

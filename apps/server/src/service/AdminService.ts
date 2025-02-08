@@ -1,5 +1,5 @@
 import { AdminAuthService } from '@mono/be-supabase';
-import { SupabaseClient } from '../supabase/client.js';
+import { SupabaseClient } from '../clients/supabase.js';
 import logger from '../utils/logger.js';
 
 const client = SupabaseClient.instance;

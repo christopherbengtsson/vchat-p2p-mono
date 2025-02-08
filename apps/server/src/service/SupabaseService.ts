@@ -2,9 +2,10 @@ import type { IncomingHttpHeaders } from 'node:http';
 import { AdminAuthService } from '@mono/be-supabase';
 import type { BrowserSignature } from '@mono/common-dto';
 import { DatabaseService } from '@mono/common-supabase';
-import { SupabaseClient } from '../client.js';
-import { FingerprintUtil } from '../../utils/FingerprintUtil.js';
-import logger from '../../utils/logger.js';
+import { SupabaseClient } from '../clients/supabase.js';
+
+import logger from '../utils/logger.js';
+import { FingerprintService } from './FingerprintService.js';
 
 async function partnersNotIgnored(userId1: string, userId2: string) {
   return await DatabaseService.partnersNotIgnored(
@@ -28,19 +29,13 @@ async function blacklistDeviceSignature(
   headers: IncomingHttpHeaders,
   browserSignature: BrowserSignature,
 ) {
-  const deviceSignature = FingerprintUtil.getDeviceSignature(
-    browserSignature,
-    headers,
-  );
-  const ip = FingerprintUtil.extractIpFromHeaders(headers);
+  const fingerprint = FingerprintService.generate(browserSignature, headers);
 
-  if (!ip) {
+  if (!fingerprint) {
     return logger.warn(
-      'Failed to extract IP address from forwarded header, will not blacklist fingerprint',
+      '[SupabaseService]: No fingerprint generated, will not blacklist fingerprint',
     );
   }
-
-  const fingerprint = FingerprintUtil.generateHash(deviceSignature, ip);
 
   await DatabaseService.blacklistFingerprint(
     SupabaseClient.instance,

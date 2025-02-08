@@ -11,7 +11,7 @@ import { setupMatchmaking } from '../handler/matchmaking.js';
 import { setupRoomManagement } from '../handler/roomManagement.js';
 import { MatchService } from '../../service/MatchService.js';
 import { wrapSocketHandler } from '../../utils/wrapSocketHandler.js';
-import { SupabaseService } from '../../supabase/service/SupabaseService.js';
+import { SupabaseService } from '../../service/SupabaseService.js';
 
 const ROOM_CLIENT1 = 'roomClient1';
 const ROOM_CLIENT2 = 'roomClient2';
