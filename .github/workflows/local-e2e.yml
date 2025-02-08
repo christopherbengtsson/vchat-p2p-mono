@@ -68,7 +68,7 @@ jobs:
           pnpm fe-supabase build
 
       - name: Server start
-        run: pnpm run server dev
+        run: nohup pnpm run server dev > server.log 2>&1 &
 
       - name: Web E2E tests
         run: pnpm run web e2e
