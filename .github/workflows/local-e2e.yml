@@ -37,30 +37,28 @@ jobs:
       - name: Setup environment variables
         run: |
           touch apps/server/.env
-          echo SUPABASE_URL=${{ secrets.SUPABASE_URL }} >> .env
-          echo SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY }} >> .env
-          echo SUPABASE_JWT_SECRET=${{ secrets.SUPABASE_JWT_SECRET }} >> .env
-          echo PINO_LOG_LEVEL=debug >> .env
-          echo CORS_ORIGINS=http://localhost:3000 >> .env
-          echo API_KEY=${{ secrets.API_KEY }} >> .env
-          cat .env
+          echo SUPABASE_URL=${{ secrets.SUPABASE_URL }} >> apps/server/.env
+          echo SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY }} >> apps/server/.env
+          echo SUPABASE_JWT_SECRET=${{ secrets.SUPABASE_JWT_SECRET }} >> apps/server/.env
+          echo API_KEY=testapikey >> apps/server/.env
+          echo CORS_ORIGINS=http://localhost:3000 >> apps/server/.env
+          echo NODE_ENV=development >> apps/server/.env
+          echo PINO_LOG_LEVEL=debug >> apps/server/.env
+          cat apps/server/.env
 
           touch apps/web/.env
-          echo VITE_SUPABASE_URL=${{ secrets.VITE_SUPABASE_URL }} >> .env
-          echo VITE_SUPABASE_ANON_KEY=${{ secrets.VITE_SUPABASE_ANON_KEY }} >> .env
-          echo VITE_BASE_URL=${{ secrets.VITE_BASE_URL }} >> .env
-          echo VITE_SERVER_URL=${{ secrets.VITE_SERVER_URL }} >> .env
-          echo VITE_API_KEY=${{ secrets.VITE_API_KEY }} >> .env
-          echo TEST_SUPABASE_URL=${{ secrets.TEST_SUPABASE_URL }} >> .env
-          echo TEST_SUPABASE_SERVICE_ROLE_KEY=${{ secrets.TEST_SUPABASE_SERVICE_ROLE_KEY }} >> .env
-          echo TEST_USER_PASSWORD=${{ secrets.TEST_USER_PASSWORD }} >> .env
-          cat .env
+          echo VITE_SUPABASE_URL=${{ secrets.SUPABASE_URL }} >> apps/web/.env
+          echo VITE_SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }} >> apps/web/.env
+          echo VITE_BASE_URL=http://localhost:3000 >> apps/web/.env
+          echo VITE_SERVER_URL=http://localhost:8000 >> apps/web/.env
+          echo VITE_API_KEY=testapikey >> apps/web/.env
+          cat apps/web/.env
 
           touch apps/web/.env.e2e
-          echo TEST_SUPABASE_URL=${{ secrets.TEST_SUPABASE_URL }} >> .env
-          echo TEST_SUPABASE_SERVICE_ROLE_KEY=${{ secrets.TEST_SUPABASE_SERVICE_ROLE_KEY }} >> .env
-          echo TEST_USER_PASSWORD=${{ secrets.TEST_USER_PASSWORD }} >> .env
-          cat .env.e2e
+          echo TEST_SUPABASE_URL=${{ secrets.SUPABASE_URL }} >> apps/web/.env.e2e
+          echo TEST_SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY }} >> apps/web/.env.e2e
+          echo TEST_USER_PASSWORD=${{ secrets.TEST_USER_PASSWORD }} >> apps/web/.env.e2e
+          cat apps/web/.env.e2e
 
       - name: Build packages
         run: |
