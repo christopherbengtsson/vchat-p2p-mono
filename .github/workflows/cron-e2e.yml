@@ -1,6 +1,7 @@
 name: Cron E2E
 
 on:
+  workflow_dispatch:
   schedule:
     - cron: '0 3 * * 1,4' # Every Monday and Thursday at 3:00 UTC
 
