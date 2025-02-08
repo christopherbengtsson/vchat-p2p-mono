@@ -56,6 +56,12 @@ jobs:
           echo TEST_USER_PASSWORD=${{ secrets.TEST_USER_PASSWORD }} >> .env
           cat .env
 
+          touch apps/web/.env.e2e
+          echo TEST_SUPABASE_URL=${{ secrets.TEST_SUPABASE_URL }} >> .env
+          echo TEST_SUPABASE_SERVICE_ROLE_KEY=${{ secrets.TEST_SUPABASE_SERVICE_ROLE_KEY }} >> .env
+          echo TEST_USER_PASSWORD=${{ secrets.TEST_USER_PASSWORD }} >> .env
+          cat .env.e2e
+
       - name: Build packages
         run: |
           pnpm common-dto build
