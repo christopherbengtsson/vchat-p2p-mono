@@ -24,6 +24,7 @@ dist-ssr
 *.sw?
 
 .env
+.env.local
 TODO.md
 secrets.md
 queue.md

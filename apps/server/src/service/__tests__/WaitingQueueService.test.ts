@@ -1,25 +1,17 @@
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import RedisMock from 'ioredis-mock';
-import { type Redis } from 'ioredis';
-import { GenericContainer, type StartedTestContainer } from 'testcontainers';
+import { GenericContainer } from 'testcontainers';
 import { WaitingQueueService } from '../WaitingQueueService.js';
 
-describe('RedisQueue', () => {
-  let container: StartedTestContainer;
-  let redisClient: Redis;
+describe('RedisQueue', async () => {
+  const container = await new GenericContainer('redis')
+    .withExposedPorts(6379)
+    .start();
 
-  beforeAll(async () => {
-    container = await new GenericContainer('redis')
-      .withExposedPorts(6379)
-      .start();
-
-    redisClient = new RedisMock({
-      host: container.getHost(),
-      port: container.getMappedPort(6379),
-      lazyConnect: true,
-    });
-    await redisClient.connect();
+  const redisClient = new RedisMock({
+    host: container.getHost(),
+    port: container.getMappedPort(6379),
   });
 
   beforeEach(async () => {
@@ -30,7 +22,7 @@ describe('RedisQueue', () => {
   afterAll(async () => {
     vi.useRealTimers();
     redisClient?.disconnect();
-    await container.stop();
+    await container?.stop();
   });
 
   describe('queueKey', () => {

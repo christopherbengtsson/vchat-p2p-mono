@@ -8,6 +8,7 @@ import {
 } from '@/common/utils/toast/model/ToastState';
 import { showToast } from '@/common/utils/toast/showToast';
 import { SupabaseClient } from '@/common/clients/supabase';
+import { BrowserSignatureUtil } from '../common/utils/BrowserSignatureUtil';
 import type { ChatSocket } from './model/SocketModel';
 import type { RootStore } from './RootStore';
 
@@ -58,7 +59,10 @@ export class SocketStore {
     this.socket.on('disconnect', this.handleDisconnect);
     this.socket.on('connect_error', this.handleConnectError);
 
-    this.socket.on('user-banned', this.handleBan);
+    this.socket.on(
+      'request-browser-signature',
+      this.handleBrowserSignatureRequest,
+    );
   }
 
   handleConnect = () => {
@@ -83,10 +87,12 @@ export class SocketStore {
 
   handleSocketReconnect = () => {
     this.connected = true;
-    showToast(DefaultToastState.CONNECTION_RESTORED);
+    showToast(DefaultToastState.CONNECTION_RESTORED); // TODO: Remove or keep using this showToast util?
   };
 
-  handleBan = async () => {
+  handleBrowserSignatureRequest = async () => {
+    this.socket?.emit('browser-signature', BrowserSignatureUtil.get());
+
     this.disconnect();
     ClientAuthService.logout(SupabaseClient.instance, 'global');
     this.rootStore.authStore.setBanned(true);

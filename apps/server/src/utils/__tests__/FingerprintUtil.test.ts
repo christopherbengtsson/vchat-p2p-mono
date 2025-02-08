@@ -3,12 +3,8 @@ import logger from '../logger.js';
 import { FingerprintUtil } from '../FingerprintUtil.js';
 
 const mockDeviceSignature: DeviceSignature = {
-  browser: 'Chrome',
   os: 'Windows',
   device: 'desktop',
-  cpu: 'Intel',
-  engine: 'Blink',
-  ua: 'Chrome',
   screen: '1920x1080',
   language: 'en-US',
   timezone: 'America/New_York',
@@ -41,7 +37,7 @@ describe('FingerprintUtil', () => {
       const result = FingerprintUtil.extractIpFromHeaders({});
       expect(result).toBeUndefined();
       expect(logger.warn).toHaveBeenCalledWith(
-        'X-Forwarded-For header not found',
+        '[FingerprintUtil]: X-Forwarded-For header not found',
       );
     });
 
@@ -49,7 +45,7 @@ describe('FingerprintUtil', () => {
       const result = FingerprintUtil.extractIpFromHeaders({});
       expect(result).toBeUndefined();
       expect(logger.warn).toHaveBeenCalledWith(
-        'X-Forwarded-For header not found',
+        '[FingerprintUtil]: X-Forwarded-For header not found',
       );
     });
   });

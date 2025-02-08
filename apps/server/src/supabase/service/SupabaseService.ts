@@ -1,8 +1,8 @@
+import type { IncomingHttpHeaders } from 'node:http';
 import { AdminAuthService } from '@mono/be-supabase';
-import type { DeviceSignature } from '@mono/common-dto';
+import type { BrowserSignature } from '@mono/common-dto';
 import { DatabaseService } from '@mono/common-supabase';
 import { SupabaseClient } from '../client.js';
-import type { VChatSocket } from '../../model/VChatSocket.js';
 import { FingerprintUtil } from '../../utils/FingerprintUtil.js';
 import logger from '../../utils/logger.js';
 
@@ -14,21 +14,25 @@ async function partnersNotIgnored(userId1: string, userId2: string) {
   );
 }
 
-function handleUserBan(
-  socket: VChatSocket,
-  partnerUserId: string,
-  banDuration: number,
-  deviceSignature: DeviceSignature,
-) {
-  void AdminAuthService.banUser(
+async function banUserUntilDuration(userId: string, banDuration: number) {
+  await AdminAuthService.banUser(
     SupabaseClient.instance,
-    partnerUserId,
+    userId,
     banDuration,
   ).catch((err) => {
     logger.error({ err }, 'Failed to ban user');
   });
+}
 
-  const ip = FingerprintUtil.extractIpFromHeaders(socket.request.headers);
+async function blacklistDeviceSignature(
+  headers: IncomingHttpHeaders,
+  browserSignature: BrowserSignature,
+) {
+  const deviceSignature = FingerprintUtil.getDeviceSignature(
+    browserSignature,
+    headers,
+  );
+  const ip = FingerprintUtil.extractIpFromHeaders(headers);
 
   if (!ip) {
     return logger.warn(
@@ -37,7 +41,8 @@ function handleUserBan(
   }
 
   const fingerprint = FingerprintUtil.generateHash(deviceSignature, ip);
-  void DatabaseService.blacklistFingerprint(
+
+  await DatabaseService.blacklistFingerprint(
     SupabaseClient.instance,
     fingerprint,
   );
@@ -45,5 +50,6 @@ function handleUserBan(
 
 export const SupabaseService = {
   partnersNotIgnored,
-  handleUserBan,
+  banUserUntilDuration,
+  blacklistDeviceSignature,
 };

@@ -3,29 +3,7 @@ import type { Maybe } from '@mono/common-dto';
 
 import { SupabaseService } from '../supabase/service/SupabaseService.js';
 import logger from '../utils/logger.js';
-import type { VChatSocket } from '../model/VChatSocket.js';
 import type { WaitingQueueService } from './WaitingQueueService.js';
-
-const createRoom = (
-  socket: VChatSocket,
-  currentUser: { socketId: string; userId: string },
-  partner: { socketId: string; userId: string },
-) => {
-  const roomId = uuid();
-
-  // Inform the user that a match was found
-  socket.emit('match-found', roomId, partner.socketId, partner.userId, true);
-  // Inform the partner that a match was found
-  socket
-    .to(partner.socketId)
-    .emit(
-      'match-found',
-      roomId,
-      currentUser.socketId,
-      currentUser.userId,
-      false,
-    );
-};
 
 const handleNoValidMatch = async (
   redisQueue: WaitingQueueService,
@@ -45,11 +23,16 @@ const handleNoValidMatch = async (
 
 const findMatch = async (
   redisQueue: WaitingQueueService,
-  socket: VChatSocket,
   socketId: string,
   userId: string,
   position = 0,
-) => {
+): Promise<
+  Maybe<{
+    roomId: string;
+    partnerSocketId: string;
+    partnerUserId: string;
+  }>
+> => {
   const [match, queueCount] = await Promise.all([
     redisQueue.getFirstInQueue(position),
     redisQueue.getQueueCount(),
@@ -57,12 +40,14 @@ const findMatch = async (
 
   // Queue is empty or no more matches available
   if (queueCount <= 0 || (position > 0 && !match)) {
-    return await redisQueue.addToQueue(socketId, userId);
+    await redisQueue.addToQueue(socketId, userId);
+    return undefined;
   }
 
   // Invalid match data
   if (!match?.userId || !match?.socketId || !socketId || !userId) {
-    return await handleNoValidMatch(redisQueue, socketId, userId);
+    await handleNoValidMatch(redisQueue, socketId, userId);
+    return undefined;
   }
 
   const partnersCanMatch = await SupabaseService.partnersNotIgnored(
@@ -78,32 +63,29 @@ const findMatch = async (
     );
 
     // Try finding a new match
-    if (position < queueCount) {
-      return await findMatch(
-        redisQueue,
-        socket,
-        socketId,
-        userId,
-        position + 1,
-      );
+    if (position < queueCount && queueCount > 1) {
+      return await findMatch(redisQueue, socketId, userId, position + 1);
     }
 
     logger.debug(
       { userId, partnerId: match.userId },
       'No more matches available, adding to queue',
     );
-    return await redisQueue.addToQueue(socketId, userId);
+    await redisQueue.addToQueue(socketId, userId);
+    return undefined;
   }
 
   // Valid match found
   if (match.socketId !== socketId) {
-    createRoom(
-      socket,
-      { socketId, userId },
-      { socketId: match.socketId, userId: match.userId },
-    );
+    await redisQueue.removeFromQueue(match.socketId, match.userId);
+    return {
+      roomId: uuid(),
+      partnerSocketId: match.socketId,
+      partnerUserId: match.userId,
+    };
   } else {
     await redisQueue.addToQueue(socketId, userId);
+    return undefined;
   }
 };
 

@@ -3,8 +3,7 @@ import { createServer } from 'node:http';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import RedisMock from 'ioredis-mock';
-import { type Redis } from 'ioredis';
-import { GenericContainer, type StartedTestContainer } from 'testcontainers';
+import { GenericContainer } from 'testcontainers';
 import { Server, type Socket as ServerSocket } from 'socket.io';
 import { io as ioc, type Socket as ClientSocket } from 'socket.io-client';
 import { WaitingQueueService } from '../service/WaitingQueueService.js';
@@ -13,37 +12,30 @@ import { wrapSocketHandler } from '../utils/wrapSocketHandler.js';
 
 const CLIENT_ID = 'clientId';
 
-describe('Client to Server', () => {
-  let redisClient: Redis;
+describe('Client to Server', async () => {
   let io: Server, serverSocket: ServerSocket, firstClientSocket: ClientSocket;
-  let redisQueue: WaitingQueueService;
-  let container: StartedTestContainer;
 
-  beforeAll(async () => {
-    container = await new GenericContainer('redis')
-      .withExposedPorts(6379)
-      .start();
+  const container = await new GenericContainer('redis')
+    .withExposedPorts(6379)
+    .start();
 
-    redisClient = new RedisMock({
-      host: container.getHost(),
-      port: container.getMappedPort(6379),
-      lazyConnect: true,
-    });
-    await redisClient.connect();
+  const redisClient = new RedisMock({
+    host: container.getHost(),
+    port: container.getMappedPort(6379),
+  });
 
-    redisQueue = new WaitingQueueService(redisClient);
+  const redisQueue = new WaitingQueueService(redisClient);
 
-    return new Promise<void>((resolve) => {
-      const httpServer = createServer();
-      io = new Server(httpServer);
-      httpServer.listen(() => {
-        const port = (httpServer.address() as AddressInfo).port;
-        firstClientSocket = ioc(`http://localhost:${port}`, {
-          autoConnect: false,
-        });
-
-        resolve();
+  await new Promise<void>((resolve) => {
+    const httpServer = createServer();
+    io = new Server(httpServer);
+    httpServer.listen(() => {
+      const port = (httpServer.address() as AddressInfo).port;
+      firstClientSocket = ioc(`http://localhost:${port}`, {
+        autoConnect: false,
       });
+
+      resolve();
     });
   });
 
@@ -71,9 +63,11 @@ describe('Client to Server', () => {
   });
 
   afterAll(async () => {
-    await container.stop();
-    io?.close();
-    redisClient?.quit();
+    await Promise.all([
+      redisClient?.disconnect(),
+      io?.close(),
+      container?.stop(),
+    ]);
   });
 
   it('should remove from queue on disconnect', async () => {

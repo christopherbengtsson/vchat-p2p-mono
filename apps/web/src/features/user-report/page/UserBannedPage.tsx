@@ -23,7 +23,7 @@ export function UserBannedPage() {
         </Button>
       ) : (
         <p className="text-lg mb-8 text-center max-w-lg">
-          Thank you for you understanding.
+          Thank you for your understanding.
         </p>
       )}
     </div>

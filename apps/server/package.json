@@ -10,7 +10,7 @@
   "type": "module",
   "packageManager": "pnpm@9.8.0",
   "scripts": {
-    "dev": "./start-redis.sh",
+    "dev": "./dev-server-with-redis.sh",
     "dev:server": "tsx watch src/index.ts | npx pino-pretty",
     "debug": "tsx --inspect-brk src/index.ts | npx pino-pretty",
     "build": "tsc -p tsconfig.build.json",
@@ -40,6 +40,7 @@
     "prom-client": "^15.1.3",
     "rate-limiter-flexible": "^5.0.5",
     "socket.io": "^4.8.1",
+    "ua-parser-js": "^2.0.1",
     "uuid": "^11.0.5"
   },
   "devDependencies": {

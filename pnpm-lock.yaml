@@ -111,6 +111,9 @@ importers:
       socket.io:
         specifier: ^4.8.1
         version: 4.8.1
+      ua-parser-js:
+        specifier: ^2.0.1
+        version: 2.0.1
       uuid:
         specifier: ^11.0.5
         version: 11.0.5
@@ -265,9 +268,6 @@ importers:
       tailwindcss-animate:
         specifier: ^1.0.7
         version: 1.0.7(tailwindcss@3.4.17(ts-node@10.9.2(@types/node@22.13.1)(typescript@5.7.3)))
-      ua-parser-js:
-        specifier: ^2.0.1
-        version: 2.0.1
       uuid:
         specifier: ^11.0.5
         version: 11.0.5
@@ -314,6 +314,9 @@ importers:
       axios-mock-adapter:
         specifier: ^2.1.0
         version: 2.1.0(axios@1.7.9)
+      dotenv:
+        specifier: ^16.4.7
+        version: 16.4.7
       eslint:
         specifier: ^9.19.0
         version: 9.19.0(jiti@1.21.7)

@@ -1,4 +1,4 @@
-import { DeviceSignature } from './DeviceSignature.js';
+import { BrowserSignature } from './BrowserSignature.js';
 import { PeerMessage } from './PeerMessage.js';
 
 export interface ClientToServerEvents {
@@ -16,10 +16,11 @@ export interface ClientToServerEvents {
   'audio-toggle': (enabled: boolean, roomId: string) => void;
   'video-toggle': (enabled: boolean, roomId: string) => void;
 
-  'user-banned': (args: {
+  'ban-user': (args: {
     partnerUserId: string;
     partnerSocketId: string;
     banDuration: number;
-    deviceSignature: DeviceSignature;
   }) => void;
+
+  'browser-signature': (browserSignature: BrowserSignature) => void;
 }

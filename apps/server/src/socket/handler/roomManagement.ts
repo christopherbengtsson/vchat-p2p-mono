@@ -6,7 +6,7 @@ export function setupRoomManagement(
   socket: VChatSocket,
   wrapHandler: <T extends unknown[], R extends Promise<void> | void>(
     handler: (...args: T) => R,
-  ) => (...args: T) => void,
+  ) => (...args: T) => Promise<void>,
 ) {
   socket.on(
     'join-room',
@@ -45,28 +45,27 @@ export function setupRoomManagement(
   );
 
   socket.on(
-    'user-banned',
-    wrapHandler(
-      async ({
-        partnerUserId,
-        partnerSocketId,
-        banDuration,
-        deviceSignature,
-      }) => {
-        logger.debug(
-          { partnerSocketId, partnerUserId, banDuration, deviceSignature },
-          'Received user banned',
-        );
+    'ban-user',
+    wrapHandler(async ({ partnerUserId, partnerSocketId, banDuration }) => {
+      logger.debug(
+        { partnerSocketId, partnerUserId, banDuration },
+        'Received ban user',
+      );
 
-        socket.to(partnerSocketId).emit('user-banned');
+      await SupabaseService.banUserUntilDuration(partnerUserId, banDuration);
+      socket.to(partnerSocketId).emit('request-browser-signature');
+    }),
+  );
 
-        SupabaseService.handleUserBan(
-          socket,
-          partnerUserId,
-          banDuration,
-          deviceSignature,
-        );
-      },
-    ),
+  socket.on(
+    'browser-signature',
+    wrapHandler(async (browserSignature) => {
+      logger.debug({ browserSignature }, 'Received browser signature');
+
+      await SupabaseService.blacklistDeviceSignature(
+        socket.request.headers,
+        browserSignature,
+      );
+    }),
   );
 }
