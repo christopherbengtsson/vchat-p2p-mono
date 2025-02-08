@@ -3,6 +3,7 @@ import { observer } from 'mobx-react';
 import { useRootStore } from '@/stores/hooks/useRootStore';
 import { ReportContainer } from '@/features/user-report/container/ReportContainer';
 import { FlyingBallContainer } from '@/features/flying-ball-game/container/FlyingBallContainer';
+import { FeatureFlagUtil } from '@/common/utils/FeatureFlagUtil';
 import { CallActionContainer } from './CallActionContainer';
 import { UserVideoContainer } from './UserVideoContainer';
 
@@ -10,6 +11,7 @@ export const InCallContainer = observer(function InCallPage() {
   const { mediaStore, callStore } = useRootStore();
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
+  const isGameEnabled = FeatureFlagUtil.isGamesEnabled();
 
   useEffect(() => {
     if (localVideoRef.current) {
@@ -38,7 +40,7 @@ export const InCallContainer = observer(function InCallPage() {
       />
 
       <CallActionContainer />
-      <FlyingBallContainer />
+      {isGameEnabled && <FlyingBallContainer />}
     </>
   );
 });
