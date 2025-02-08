@@ -5,7 +5,7 @@ on:
   push:
 
 jobs:
-  mono-ci:
+  mono-local-e2e:
     runs-on: ubuntu-latest
     env:
       CI: true
