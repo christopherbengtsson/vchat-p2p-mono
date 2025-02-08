@@ -58,6 +58,7 @@ jobs:
           echo TEST_SUPABASE_URL=${{ secrets.SUPABASE_URL }} >> apps/web/.env.e2e
           echo TEST_SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY }} >> apps/web/.env.e2e
           echo TEST_USER_PASSWORD=${{ secrets.TEST_USER_PASSWORD }} >> apps/web/.env.e2e
+          echo CI=true >> apps/web/.env.e2e
           cat apps/web/.env.e2e
 
       - name: Build packages
