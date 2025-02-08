@@ -34,7 +34,7 @@ export const SettingsMenuContainer = observer(function SettingsMenuContainer() {
       <Header>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="secondary">
+            <Button variant="secondary" aria-label="Open settings">
               <Settings className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>

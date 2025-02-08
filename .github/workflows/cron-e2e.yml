@@ -1,0 +1,57 @@
+name: Cron E2E
+
+on:
+  schedule:
+    - cron: '0 3 * * 1,4' # Every Monday and Thursday at 3:00 UTC
+
+jobs:
+  mono-cron-e2e:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        name: Install pnpm
+        with:
+          version: 9.8.0
+          run_install: false
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.1
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --ignore-scripts
+
+      - name: Setup environment variables
+        run: |
+          touch apps/web/.env.e2e
+          echo TEST_SUPABASE_URL=${{ secrets.SUPABASE_URL }} >> apps/web/.env.e2e
+          echo TEST_SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY }} >> apps/web/.env.e2e
+          echo TEST_USER_PASSWORD=${{ secrets.TEST_USER_PASSWORD }} >> apps/web/.env.e2e
+          echo TEST_FRONTEND_URL=${{ secrets.TEST_FRONTEND_URL }} >> apps/web/.env.e2e
+          echo TEST_REMOTE=true >> apps/web/.env.e2e
+          echo CI=true >> apps/web/.env.e2e
+          cat apps/web/.env.e2e
+
+      - name: Build packages
+        run: |
+          pnpm common-dto build
+          pnpm common-supabase build
+          pnpm be-supabase build
+          pnpm fe-supabase build
+
+      - name: Web E2E tests
+        run: pnpm run web e2e supabaseKeepAlive.test
+
+      - name: Upload reports to GitHub Actions Artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-${{ matrix.shardIndex }}
+          path: apps/web/e2e/failed-e2e-results
+          retention-days: 1
