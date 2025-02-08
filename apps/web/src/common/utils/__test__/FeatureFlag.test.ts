@@ -18,4 +18,11 @@ describe('FeatureFlagUtil', () => {
 
     expect(isEnabled).toBe(false);
   });
+
+  it('should return false when env variable is not set', () => {
+    vi.stubEnv('VITE_GAMES_FEATURE_ENABLED', undefined);
+    const isEnabled = FeatureFlagUtil.isGamesEnabled();
+
+    expect(isEnabled).toBe(false);
+  });
 });
