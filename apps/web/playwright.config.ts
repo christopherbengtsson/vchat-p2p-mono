@@ -67,7 +67,7 @@ export default defineConfig({
   ],
 
   /* Run your local dev server before starting the tests */
-  webServer: !process.env.TEST_REMOTE
+  webServer: !process.env.TEST_FRONTEND_URL
     ? {
         command: 'pnpm run dev',
         url: 'http://localhost:3000',
