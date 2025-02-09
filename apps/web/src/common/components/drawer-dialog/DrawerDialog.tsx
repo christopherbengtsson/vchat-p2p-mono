@@ -63,7 +63,7 @@ export const DrawerDialog = observer(function DrawerDialog({
   }
 
   return (
-    <Drawer open={open} onOpenChange={toggle}>
+    <Drawer open={open} onOpenChange={toggle} repositionInputs={false}>
       <DrawerContent className="p-6 sm:px-32 md:px-64">
         <DrawerHeader className="text-left">
           <DrawerTitle>{title}</DrawerTitle>
