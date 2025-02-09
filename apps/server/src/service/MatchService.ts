@@ -39,7 +39,7 @@ const findMatch = async (
   ]);
 
   // Match with self, add to queue if not already in queue
-  if (match?.userId === userId && MODE === 'production') {
+  if (match?.userId === userId && MODE !== 'development') {
     const match = await redisQueue.findByMatchPattern(
       redisQueue.composeKey({ userId, socketId: undefined }),
     );

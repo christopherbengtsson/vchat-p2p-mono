@@ -201,7 +201,7 @@ describe('MatchService', async () => {
       await expect.poll(() => redisQueue.getQueueCount()).toBe(2);
     });
 
-    it('should not add to queue if userId already exists in queue', async () => {
+    it('should not add to queue if userId already exists in queue in production', async () => {
       await MatchService.findMatch(redisQueue, 'socket1', 'user1');
 
       await expect.poll(() => redisQueue.getQueueCount()).toBe(1);
