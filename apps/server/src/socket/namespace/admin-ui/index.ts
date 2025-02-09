@@ -15,7 +15,7 @@ const bootstrap = (io: Server, redisClient: Redis) => {
             password: process.env.ADMIN_UI_PASSWORD ?? '',
           }
         : false,
-    mode: MODE,
+    mode: MODE === 'production' ? 'production' : 'development',
     store: new RedisStore(redisClient),
     serverId: `${hostname()}#${process.pid}`,
   });
