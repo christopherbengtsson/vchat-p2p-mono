@@ -13,7 +13,7 @@ export class WaitingQueueService {
 
   async addToQueue(socketId: SocketId, userId: string) {
     const score = Date.now();
-    const member = this.composeKey(socketId, userId);
+    const member = this.composeKey({ socketId, userId });
 
     await this.redisClient.zadd(this.queueKey, score, member);
   }
@@ -22,15 +22,20 @@ export class WaitingQueueService {
     let member: Maybe<string>;
 
     if (userId) {
-      member = this.composeKey(socketId, userId);
+      member = this.composeKey({ socketId, userId });
     } else {
-      const match = await this.findBySocketId(socketId);
+      const match = await this.findByMatchPattern(
+        this.composeKey({ socketId, userId: undefined }),
+      );
 
       if (!match) {
         return;
       }
 
-      member = this.composeKey(match.socketId, match.userId);
+      member = this.composeKey({
+        socketId: match.socketId,
+        userId: match.userId,
+      });
     }
 
     await this.redisClient.zrem(this.queueKey, member);
@@ -56,21 +61,8 @@ export class WaitingQueueService {
     return this.splitRedisKey(result[0]);
   }
 
-  private composeKey(socketId: SocketId, userId: Maybe<string>) {
-    if (userId) {
-      return `${socketId}${this.delimiter}${userId}`;
-    }
-
-    return `${socketId}${this.delimiter}*`;
-  }
-
-  private splitRedisKey(key: string) {
-    const [socketId, userId] = key.split(this.delimiter);
-    return { socketId, userId };
-  }
-
-  private async findBySocketId(
-    socketId: SocketId,
+  async findByMatchPattern(
+    pattern: string,
   ): Promise<Maybe<{ socketId: string; userId: string }>> {
     let cursor = '0';
     do {
@@ -78,7 +70,7 @@ export class WaitingQueueService {
         this.queueKey,
         cursor,
         'MATCH',
-        this.composeKey(socketId, undefined),
+        pattern,
       );
 
       if (results.length > 0) {
@@ -89,6 +81,29 @@ export class WaitingQueueService {
     } while (cursor !== '0');
 
     return null;
+  }
+
+  composeKey({
+    socketId,
+    userId,
+  }:
+    | { socketId: SocketId; userId: string }
+    | { socketId: SocketId; userId: Maybe<string> }
+    | { socketId: Maybe<SocketId>; userId: string }) {
+    if (!userId && socketId) {
+      return `${socketId}${this.delimiter}*`;
+    }
+
+    if (userId && !socketId) {
+      return `*${this.delimiter}${userId}*`;
+    }
+
+    return `${socketId}${this.delimiter}${userId}`;
+  }
+
+  private splitRedisKey(key: string) {
+    const [socketId, userId] = key.split(this.delimiter);
+    return { socketId, userId };
   }
 
   // Only for debug purposes

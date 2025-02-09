@@ -182,4 +182,66 @@ describe('RedisQueue', async () => {
       expect(queue).toEqual([]);
     });
   });
+
+  describe('composeKey', () => {
+    it('should compose a key with the provided socketId and userId', () => {
+      const redisQueue = new WaitingQueueService(redisClient);
+      const key = redisQueue.composeKey({
+        socketId: 'socketId1',
+        userId: 'userId1',
+      });
+      expect(key).toBe('socketId1__:__userId1');
+    });
+
+    it('should compose a key with only the provided socketId', () => {
+      const redisQueue = new WaitingQueueService(redisClient);
+      const key = redisQueue.composeKey({
+        socketId: 'socketId1',
+        userId: undefined,
+      });
+      expect(key).toBe('socketId1__:__*');
+    });
+
+    it('should compose a key with only the provided userId', () => {
+      const redisQueue = new WaitingQueueService(redisClient);
+      const key = redisQueue.composeKey({
+        userId: 'userId',
+        socketId: undefined,
+      });
+      expect(key).toBe('*__:__userId*');
+    });
+  });
+
+  describe('findByMatchPattern', () => {
+    it('should return the item with the matching sockerId', async () => {
+      const redisQueue = new WaitingQueueService(redisClient);
+      await redisQueue.addToQueue('socketId1', 'userId1');
+      await redisQueue.addToQueue('socketId2', 'userId2');
+
+      await expect.poll(() => redisQueue.getQueueCount()).toBe(2);
+
+      const match = await redisQueue.findByMatchPattern(
+        redisQueue.composeKey({ userId: undefined, socketId: 'socketId1' }),
+      );
+      expect(match).toStrictEqual({
+        socketId: 'socketId1',
+        userId: 'userId1',
+      });
+    });
+    it('should return the item with the matching userId', async () => {
+      const redisQueue = new WaitingQueueService(redisClient);
+      await redisQueue.addToQueue('socketId1', 'userId1');
+      await redisQueue.addToQueue('socketId2', 'userId2');
+
+      await expect.poll(() => redisQueue.getQueueCount()).toBe(2);
+
+      const match = await redisQueue.findByMatchPattern(
+        redisQueue.composeKey({ userId: 'userId1', socketId: undefined }),
+      );
+      expect(match).toStrictEqual({
+        socketId: 'socketId1',
+        userId: 'userId1',
+      });
+    });
+  });
 });

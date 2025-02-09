@@ -1,6 +1,7 @@
 import { v4 as uuid } from 'uuid';
 import type { Maybe } from '@mono/common-dto';
 import logger from '../utils/logger.js';
+import { MODE } from '../model/ServerConstants.js';
 import { SupabaseService } from './SupabaseService.js';
 import type { WaitingQueueService } from './WaitingQueueService.js';
 
@@ -36,6 +37,17 @@ const findMatch = async (
     redisQueue.getFirstInQueue(position),
     redisQueue.getQueueCount(),
   ]);
+
+  // Match with self, add to queue if not already in queue
+  if (match?.userId === userId && MODE === 'production') {
+    const match = await redisQueue.findByMatchPattern(
+      redisQueue.composeKey({ userId, socketId: undefined }),
+    );
+    if (!match) {
+      await redisQueue.addToQueue(socketId, userId);
+    }
+    return undefined;
+  }
 
   // Queue is empty or no more matches available
   if (queueCount <= 0 || (position > 0 && !match)) {
