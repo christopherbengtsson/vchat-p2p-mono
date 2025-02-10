@@ -9,38 +9,6 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      banned_users: {
-        Row: {
-          banned_at: string;
-          banned_until: string | null;
-          id: string;
-          reason: string | null;
-          user_id: string;
-        };
-        Insert: {
-          banned_at?: string;
-          banned_until?: string | null;
-          id?: string;
-          reason?: string | null;
-          user_id: string;
-        };
-        Update: {
-          banned_at?: string;
-          banned_until?: string | null;
-          id?: string;
-          reason?: string | null;
-          user_id?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: 'banned_users_user_id_fkey';
-            columns: ['user_id'];
-            isOneToOne: false;
-            referencedRelation: 'profiles';
-            referencedColumns: ['id'];
-          },
-        ];
-      };
       blacklist: {
         Row: {
           created_at: string;
@@ -122,25 +90,57 @@ export type Database = {
         };
         Relationships: [];
       };
-      reports: {
+      user_bans: {
         Row: {
+          ban_duration: Database['public']['Enums']['ban_duration'];
           created_at: string;
           id: string;
-          reason: string | null;
+          user_id: string | null;
+        };
+        Insert: {
+          ban_duration: Database['public']['Enums']['ban_duration'];
+          created_at?: string;
+          id?: string;
+          user_id?: string | null;
+        };
+        Update: {
+          ban_duration?: Database['public']['Enums']['ban_duration'];
+          created_at?: string;
+          id?: string;
+          user_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'user_bans_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      user_reports: {
+        Row: {
+          ban_duration: string | null;
+          created_at: string;
+          id: string;
+          reason: Database['public']['Enums']['user_report_reason'] | null;
           reporter_id: string;
           user_id_to_report: string;
         };
         Insert: {
+          ban_duration?: string | null;
           created_at?: string;
           id?: string;
-          reason?: string | null;
+          reason?: Database['public']['Enums']['user_report_reason'] | null;
           reporter_id: string;
           user_id_to_report: string;
         };
         Update: {
+          ban_duration?: string | null;
           created_at?: string;
           id?: string;
-          reason?: string | null;
+          reason?: Database['public']['Enums']['user_report_reason'] | null;
           reporter_id?: string;
           user_id_to_report?: string;
         };
@@ -166,6 +166,14 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      cleanup_blacklist: {
+        Args: Record<PropertyKey, never>;
+        Returns: undefined;
+      };
+      cleanup_old_user_reports: {
+        Args: Record<PropertyKey, never>;
+        Returns: undefined;
+      };
       report_user: {
         Args: {
           p_reporter_id: string;
@@ -176,6 +184,8 @@ export type Database = {
       };
     };
     Enums: {
+      ban_duration: '24' | '72' | '168' | '-1';
+      user_report_reason: 'INAPPROPRIATE_BEHAVIOR' | 'UNDER_AGED';
       user_status: 'ACTIVE' | 'BANNED' | 'PAUSED';
     };
     CompositeTypes: {

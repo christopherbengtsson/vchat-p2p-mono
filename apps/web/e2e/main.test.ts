@@ -12,7 +12,7 @@ test.afterEach(cleanupTestUsers);
  */
 
 test('Report User', async ({ browser }, { title }) => {
-  const testUsers = await SupabaseAdmin.generateTestUsers(3, browser, title);
+  const testUsers = await SupabaseAdmin.generateTestUsers(4, browser, title);
   await reportUser(testUsers);
 });
 

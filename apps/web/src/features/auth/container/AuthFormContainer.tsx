@@ -5,8 +5,8 @@ import {
   CardHeader,
   CardTitle,
 } from '@/common/components/ui/card';
-import { FastLoginButton } from '../component/FastLoginButton';
 import { EmailLoginFormContainer } from './EmailLoginFormContainer';
+import { FastLoginContainer } from './FastLoginContainer';
 
 export function AuthFormContainer() {
   return (
@@ -32,7 +32,7 @@ export function AuthFormContainer() {
             </div>
           </div>
 
-          <FastLoginButton />
+          <FastLoginContainer />
         </div>
       </CardContent>
     </Card>

@@ -8,19 +8,17 @@ import { axiosClient } from '../../../common/clients/axios';
 const client = SupabaseClient.instance;
 
 async function loginAnonymously() {
-  if (import.meta.env.PROD) {
-    const { data } = await axiosClient.post<{
-      fingerprint: string;
-    }>('/signature', { browserSignature: BrowserSignatureUtil.get() });
+  const { data } = await axiosClient.post<{
+    fingerprint: string;
+  }>('/signature', { browserSignature: BrowserSignatureUtil.get() });
 
-    const { data: isBlacklisted } = await DatabaseService.isBlacklisted(
-      SupabaseClient.instance,
-      data.fingerprint,
-    );
+  const { data: isBlacklisted } = await DatabaseService.isBlacklisted(
+    SupabaseClient.instance,
+    data.fingerprint,
+  );
 
-    if (isBlacklisted) {
-      throw new CustomError(CustomErrorType.UNAUTHORIZED, 'User is banned');
-    }
+  if (isBlacklisted) {
+    throw new CustomError(CustomErrorType.UNAUTHORIZED, 'User is banned');
   }
 
   await ClientAuthService.loginAnonymously(client);

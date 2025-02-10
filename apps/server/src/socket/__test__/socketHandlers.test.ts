@@ -153,7 +153,7 @@ describe('Non-blocking socket handlers', async () => {
           partnerUserId: 'partnerUserId',
         };
       });
-    vi.spyOn(SupabaseService, 'banUserUntilDuration').mockImplementation(
+    vi.spyOn(SupabaseService, 'banUserLoginUntilDuration').mockImplementation(
       async () => {
         await new Promise((resolve) => setTimeout(resolve, FAST_PROMISE));
       },

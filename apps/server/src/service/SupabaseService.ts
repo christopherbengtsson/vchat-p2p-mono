@@ -1,6 +1,6 @@
 import type { IncomingHttpHeaders } from 'node:http';
 import { AdminAuthService } from '@mono/be-supabase';
-import type { BrowserSignature } from '@mono/common-dto';
+import type { BanDuration, BrowserSignature } from '@mono/common-dto';
 import { DatabaseService } from '@mono/common-supabase';
 import { SupabaseClient } from '../clients/supabase.js';
 
@@ -15,8 +15,11 @@ async function partnersNotIgnored(userId1: string, userId2: string) {
   );
 }
 
-async function banUserUntilDuration(userId: string, banDuration: number) {
-  await AdminAuthService.banUser(
+async function banUserLoginUntilDuration(
+  userId: string,
+  banDuration: BanDuration,
+) {
+  await AdminAuthService.banUserFromLogin(
     SupabaseClient.instance,
     userId,
     banDuration,
@@ -43,8 +46,13 @@ async function blacklistDeviceSignature(
   );
 }
 
+async function deleteUser(userId: string) {
+  await AdminAuthService.deleteUser(SupabaseClient.instance, userId);
+}
+
 export const SupabaseService = {
-  partnersNotIgnored,
-  banUserUntilDuration,
+  banUserLoginUntilDuration,
   blacklistDeviceSignature,
+  deleteUser,
+  partnersNotIgnored,
 };

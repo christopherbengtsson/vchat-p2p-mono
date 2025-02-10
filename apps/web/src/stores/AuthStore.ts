@@ -7,7 +7,8 @@ export class AuthStore {
   session: Maybe<Session>;
   authenticated = false;
   userUpgraded = false;
-  banned = false;
+  temporarilyBanned = false;
+  permanentlyBanned = false;
 
   constructor() {
     makeAutoObservable(this);
@@ -46,7 +47,11 @@ export class AuthStore {
     this.userUpgraded = userUpgraded;
   }
 
-  setBanned(banned: boolean) {
-    this.banned = banned;
+  setTemporarilyBanned(banned: boolean) {
+    this.temporarilyBanned = banned;
+  }
+
+  setPermanentlyBanned(banned: boolean) {
+    this.permanentlyBanned = banned;
   }
 }

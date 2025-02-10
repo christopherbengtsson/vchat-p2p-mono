@@ -11,6 +11,9 @@
   "scripts": {
     "build": "tsc"
   },
+  "dependencies": {
+    "@mono/common-dto": "workspace:*"
+  },
   "devDependencies": {
     "@supabase/supabase-js": "^2.48.1",
     "typescript": "^5.5.3"

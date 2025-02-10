@@ -1,8 +1,22 @@
 import { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { Maybe } from '@mono/common-dto';
 import { Button } from '@/common/components/ui/button';
+import { RouteParamKey, RouteParamValue } from '@/RoutePath';
+import { useBanContent } from '../hooks/useBanContent';
+
+const Paragraph = ({ content }: { content: string }) => (
+  <p className="text-lg mb-8 text-center max-w-lg">{content}</p>
+);
 
 export function UserBannedPage() {
+  const [searchParams] = useSearchParams();
+  const banType = searchParams.get(
+    RouteParamKey.BAN_TYPE,
+  ) as Maybe<RouteParamValue>;
+
   const [clicked, setClicked] = useState(false);
+  const { title, description, cta, paragraph } = useBanContent(banType);
 
   const handleOnClick = () => {
     setClicked(true);
@@ -10,21 +24,17 @@ export function UserBannedPage() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen">
-      <h1 className="text-4xl font-bold mb-4">You are banned</h1>
-      <p className="text-lg mb-8 text-center max-w-lg">
-        We've received reports about inappropriate behavior on your account.
-        You've therefore been banned from using our application. Your ban will
-        be lifted in the future and your account is not deleted.
-      </p>
+      <h1 className="text-4xl font-bold mb-4">{title}</h1>
+      <p className="text-lg mb-8 text-center max-w-lg">{description}</p>
 
-      {!clicked ? (
+      {banType === RouteParamValue.BAN_TYPE_PERMANENT ? (
+        <Paragraph content={paragraph} />
+      ) : !clicked ? (
         <Button onClick={handleOnClick} disabled={clicked}>
-          I understand and I will stop with my inappropriate behavior
+          {cta}
         </Button>
       ) : (
-        <p className="text-lg mb-8 text-center max-w-lg">
-          Thank you for your understanding.
-        </p>
+        <Paragraph content={paragraph} />
       )}
     </div>
   );
