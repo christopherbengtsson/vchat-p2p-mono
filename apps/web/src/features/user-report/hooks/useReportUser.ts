@@ -1,13 +1,13 @@
 import { DatabaseService } from '@mono/common-supabase';
-import type { PostgrestSingleResponse } from '@supabase/supabase-js';
 import { useMutation } from '@tanstack/react-query';
+import { BanDuration } from '@mono/common-dto';
 import { SupabaseClient } from '@/common/clients/supabase';
 
 const client = SupabaseClient.instance;
 
 export const useReportUser = () => {
   const reportUserMutation = useMutation<
-    PostgrestSingleResponse<number>,
+    BanDuration,
     unknown,
     { reporterId: string; toReportId: string }
   >({

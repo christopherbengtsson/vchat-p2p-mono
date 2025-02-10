@@ -1,10 +1,12 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { BanDuration } from '@mono/common-dto';
 
-async function banUser(
+async function banUserFromLogin(
   client: SupabaseClient,
   userId: string,
-  banDurationHours = 24,
+  banDurationHours: BanDuration,
 ) {
+  console.log('AdminAuthService.banUserFromLogin', userId, banDurationHours);
   return client.auth.admin.updateUserById(userId, {
     ban_duration: `${banDurationHours}h`,
   });
@@ -19,7 +21,7 @@ async function deleteUser(client: SupabaseClient, userId: string) {
 }
 
 export const AdminAuthService = {
-  banUser,
+  banUserFromLogin,
   deleteUser,
   getAllUsers,
 };

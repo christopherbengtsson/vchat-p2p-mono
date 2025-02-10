@@ -1,6 +1,7 @@
 import { expect, type Page, type BrowserContext } from '@playwright/test';
 import { loginTestUser } from '../utils/loginTestUser';
 import type { TestUser } from '../model/TestUser';
+import { fastLogin } from '../utils/fastLogin';
 
 const startNewReport = async (page: Page, context: BrowserContext) => {
   await page.goto('/');
@@ -18,7 +19,9 @@ const startNewReport = async (page: Page, context: BrowserContext) => {
 };
 
 const expectToBeReported = async (page: Page) => {
-  await expect(page.getByText('You are banned')).toBeVisible();
+  await expect(
+    page.getByText('You have been temporarily banned'),
+  ).toBeVisible();
   await page
     .getByRole('button', {
       name: 'I understand and I will stop with my inappropriate behavior',
@@ -44,7 +47,7 @@ const expectNotToBeAbleToLogin = async (page: Page, email: string) => {
 
   await page.waitForLoadState('networkidle');
 
-  await page.getByRole('button', { name: 'Fast login' }).click();
+  await fastLogin(page);
 
   await expect(page.getByText('User is banned')).toBeVisible();
 
@@ -52,14 +55,16 @@ const expectNotToBeAbleToLogin = async (page: Page, email: string) => {
 };
 
 export const reportUser = async (testUsers: TestUser[]) => {
-  const [reporter1, reporter2, toReport] = testUsers;
+  const [reporter1, reporter2, reporter3, toReport] = testUsers;
 
+  // Login user to-be-reported
   await loginTestUser(toReport.page, toReport.email);
   await expect(
     toReport.page.getByRole('button', { name: 'Find match' }),
   ).toBeVisible();
   await toReport.page.getByRole('button', { name: 'Find match' }).click();
 
+  // Login reporter 1 and report user
   await loginTestUser(reporter1.page, reporter1.email);
   await expect(
     reporter1.page.getByRole('button', { name: 'Find match' }),
@@ -70,11 +75,23 @@ export const reportUser = async (testUsers: TestUser[]) => {
     toReport.page.getByRole('button', { name: 'Cancel' }),
   ).toBeVisible();
 
+  // Login reporter 2 and report user
   await loginTestUser(reporter2.page, reporter2.email);
   await expect(
     reporter2.page.getByRole('button', { name: 'Find match' }),
   ).toBeVisible();
   await startNewReport(reporter2.page, reporter2.context);
+
+  await expect(
+    toReport.page.getByRole('button', { name: 'Cancel' }),
+  ).toBeVisible();
+
+  // Login reporter 3 and report user
+  await loginTestUser(reporter3.page, reporter3.email);
+  await expect(
+    reporter3.page.getByRole('button', { name: 'Find match' }),
+  ).toBeVisible();
+  await startNewReport(reporter3.page, reporter3.context);
 
   await expectToBeReported(toReport.page);
   await expectNotToBeAbleToLogin(toReport.page, toReport.email);

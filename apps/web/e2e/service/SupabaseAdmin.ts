@@ -32,7 +32,7 @@ const removeAllGeneratedUsers = async () => {
     await SupabaseClient.instance.auth.admin
       .deleteUser(user.id)
       .catch((err) => {
-        console.warn('Failed to remove user', user, err);
+        console.error('Failed to remove user', user, err);
       });
   }
 

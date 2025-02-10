@@ -90,12 +90,19 @@ export class SocketStore {
     showToast(DefaultToastState.CONNECTION_RESTORED); // TODO: Remove or keep using this showToast util?
   };
 
-  handleBrowserSignatureRequest = async () => {
+  handleBrowserSignatureRequest = async (permanentBan: boolean) => {
     this.socket?.emit('browser-signature', BrowserSignatureUtil.get());
 
     this.disconnect();
-    ClientAuthService.logout(SupabaseClient.instance, 'global');
-    this.rootStore.authStore.setBanned(true);
+    ClientAuthService.logout(SupabaseClient.instance, 'global').catch((err) => {
+      console.error('Failed to logout', err);
+    });
+
+    if (permanentBan) {
+      this.rootStore.authStore.setPermanentlyBanned(true);
+    } else {
+      this.rootStore.authStore.setTemporarilyBanned(true);
+    }
   };
 
   disconnect() {

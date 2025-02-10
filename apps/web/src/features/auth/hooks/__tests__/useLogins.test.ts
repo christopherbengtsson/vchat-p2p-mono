@@ -1,4 +1,4 @@
-import { cleanup, renderHook, waitFor } from '@testing-library/react';
+import { renderHook, waitFor } from '@testing-library/react';
 import { toast } from 'sonner';
 import AxiosMockAdapter from 'axios-mock-adapter';
 import type { AuthError } from '@supabase/supabase-js';
@@ -25,8 +25,6 @@ describe('useLogins', () => {
       fingerprint: 'fingerprint',
     });
   });
-
-  afterEach(cleanup);
 
   describe('loginAnonymously', () => {
     it('works', async () => {

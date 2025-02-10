@@ -1,3 +1,4 @@
+import { BanDuration } from './BanDuration.js';
 import { BrowserSignature } from './BrowserSignature.js';
 import { PeerMessage } from './PeerMessage.js';
 
@@ -19,7 +20,7 @@ export interface ClientToServerEvents {
   'ban-user': (args: {
     partnerUserId: string;
     partnerSocketId: string;
-    banDuration: number;
+    banDuration: BanDuration;
   }) => void;
 
   'browser-signature': (browserSignature: BrowserSignature) => void;

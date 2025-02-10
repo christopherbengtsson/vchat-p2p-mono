@@ -1,3 +1,4 @@
+import { BanDuration } from '@mono/common-dto';
 import logger from '../../utils/logger.js';
 import type { VChatSocket } from '../../model/VChatSocket.js';
 import { SupabaseService } from '../../service/SupabaseService.js';
@@ -52,8 +53,20 @@ export function setupRoomManagement(
         'Received ban user',
       );
 
-      await SupabaseService.banUserUntilDuration(partnerUserId, banDuration);
-      socket.to(partnerSocketId).emit('request-browser-signature');
+      const permanentBan = banDuration === BanDuration.PERMANENT;
+
+      if (permanentBan) {
+        await SupabaseService.deleteUser(partnerUserId);
+      } else {
+        await SupabaseService.banUserLoginUntilDuration(
+          partnerUserId,
+          banDuration,
+        );
+      }
+
+      socket
+        .to(partnerSocketId)
+        .emit('request-browser-signature', permanentBan);
     }),
   );
 

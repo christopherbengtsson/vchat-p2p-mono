@@ -18,5 +18,5 @@ export interface ServerToClientEvents {
   'audio-toggle': (enabled: boolean) => void;
   'video-toggle': (enabled: boolean) => void;
 
-  'request-browser-signature': VoidFunction;
+  'request-browser-signature': (permanentBan: boolean) => void;
 }

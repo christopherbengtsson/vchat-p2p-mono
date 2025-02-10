@@ -1,12 +1,13 @@
 import { useCallback, useState } from 'react';
 import { observer } from 'mobx-react';
-import type { PostgrestSingleResponse } from '@supabase/supabase-js';
+import { BanDuration } from '@mono/common-dto';
 import { Assert } from '@/common/utils/Assert';
 import { useRootStore } from '@/stores/hooks/useRootStore';
 import { ReportButton } from '../component/ReportButton';
 import { ReportDialog } from '../component/ReportDialog';
 import { useReportUser } from '../hooks/useReportUser';
 
+// TODO: Ban user with reason, e.g. harassment, spam, etc.
 export const ReportContainer = observer(function ReportContainer() {
   const { callStore, authStore, socketStore } = useRootStore();
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -23,13 +24,13 @@ export const ReportContainer = observer(function ReportContainer() {
   };
 
   const handleReportSuccess = useCallback(
-    (response: PostgrestSingleResponse<number>) => {
+    (banDuration: BanDuration) => {
+      console.log('handleReportSuccess', banDuration);
       const partnerUserId = callStore.partnerUserId;
       const partnerSocketId = callStore.partnerSocketId;
       Assert.isDefined(partnerUserId, 'partnerUserId is not defined');
       Assert.isDefined(partnerSocketId, 'partnerSocketId is not defined');
 
-      const banDuration = response?.data ?? 0;
       if (banDuration > 0) {
         socketStore.socket?.emit('ban-user', {
           partnerUserId,

@@ -6,6 +6,7 @@ import path from 'path';
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
   plugins: [react()],
+  assetsInclude: ['**/*.md'],
   define: {
     APP_VERSION: JSON.stringify(process.env.npm_package_version),
   },
@@ -22,7 +23,7 @@ export default defineConfig(({ mode }) => ({
     globals: true,
     environment: 'jsdom',
     include: ['**/*.test.{tsx,ts}'],
-    setupFiles: ['./setup.ts'],
+    setupFiles: ['./src/testSetup.ts'],
     env: loadEnv(mode, process.cwd(), ''),
     exclude: [
       '**/e2e/**',
