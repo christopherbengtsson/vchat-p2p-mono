@@ -49,9 +49,11 @@ const extractIpFromHeaders = (
 const generate = (
   browserSignature: BrowserSignature,
   headers: IncomingHttpHeaders,
+  requestIp?: string,
 ) => {
   const deviceSignature = getDeviceSignature(browserSignature, headers);
-  const ip = extractIpFromHeaders(headers);
+
+  const ip = requestIp ?? extractIpFromHeaders(headers);
 
   if (!ip) {
     logger.warn(

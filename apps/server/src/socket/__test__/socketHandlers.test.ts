@@ -3,7 +3,7 @@ import { createServer } from 'node:http';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import RedisMock from 'ioredis-mock';
-import { GenericContainer } from 'testcontainers';
+import { GenericContainer, Wait } from 'testcontainers';
 import { Server } from 'socket.io';
 import { Socket as ClientSocket, io as ioc } from 'socket.io-client';
 import { WaitingQueueService } from '../../service/WaitingQueueService.js';
@@ -30,8 +30,9 @@ describe('Non-blocking socket handlers', async () => {
 
   vi.spyOn(SupabaseService, 'partnersNotIgnored').mockResolvedValue(true);
 
-  const container = await new GenericContainer('redis')
+  const container = await new GenericContainer('redis:7.0-alpine')
     .withExposedPorts(6379)
+    .withWaitStrategy(Wait.forLogMessage('Ready to accept connections'))
     .start();
 
   const redisClient = new RedisMock({

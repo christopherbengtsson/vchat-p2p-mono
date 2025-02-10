@@ -1,12 +1,13 @@
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import RedisMock from 'ioredis-mock';
-import { GenericContainer } from 'testcontainers';
+import { GenericContainer, Wait } from 'testcontainers';
 import { WaitingQueueService } from '../WaitingQueueService.js';
 
 describe('RedisQueue', async () => {
-  const container = await new GenericContainer('redis')
+  const container = await new GenericContainer('redis:7.0-alpine')
     .withExposedPorts(6379)
+    .withWaitStrategy(Wait.forLogMessage('Ready to accept connections'))
     .start();
 
   const redisClient = new RedisMock({
