@@ -25,7 +25,6 @@ export const ReportContainer = observer(function ReportContainer() {
 
   const handleReportSuccess = useCallback(
     (banDuration: BanDuration) => {
-      console.log('handleReportSuccess', banDuration);
       const partnerUserId = callStore.partnerUserId;
       const partnerSocketId = callStore.partnerSocketId;
       Assert.isDefined(partnerUserId, 'partnerUserId is not defined');

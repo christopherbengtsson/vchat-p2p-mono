@@ -10,7 +10,7 @@ const legalDocuments: LegalDocuments = {
     versions: {
       v1: {
         docPath: termsOfServiceV1Url,
-        validFrom: '2025-01-01',
+        validFrom: '2025-02-10',
       },
     },
   },

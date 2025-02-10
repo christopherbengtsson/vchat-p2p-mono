@@ -1,6 +1,7 @@
 import { Zap } from 'lucide-react';
 import { Button } from '@/common/components/ui/button';
 import { LoadingButton } from '@/common/components/loading-button/LoadingButton';
+
 interface Props {
   isLoading: boolean;
 }

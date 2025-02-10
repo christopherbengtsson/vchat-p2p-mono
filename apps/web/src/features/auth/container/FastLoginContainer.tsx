@@ -17,7 +17,7 @@ import { useLogins } from '../hooks/useLogins';
 import { RoutePath } from '../../../RoutePath';
 
 const FormSchema = z.object({
-  privacyPolicy: z.boolean().refine((val) => val, {
+  termsOfService: z.boolean().refine((val) => val, {
     message: 'You must agree to the privacy policy to continue',
   }),
 });
@@ -28,7 +28,7 @@ export function FastLoginContainer() {
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
-      privacyPolicy: false,
+      termsOfService: false,
     },
   });
 
@@ -42,7 +42,7 @@ export function FastLoginContainer() {
         <FastLoginButton isLoading={loginAnonymouslyMutation.isPending} />
         <FormField
           control={form.control}
-          name="privacyPolicy"
+          name="termsOfService"
           render={({ field }) => (
             <>
               <FormMessage />
@@ -54,8 +54,8 @@ export function FastLoginContainer() {
                   />
                 </FormControl>
                 <div className="space-y-1 leading-none">
-                  <FormLabel>Accept terms and conditions</FormLabel>
-                  <FormDescription>
+                  <FormLabel>I confirm that I am 18 or older</FormLabel>
+                  <FormDescription className="text-xs">
                     I agree to the{' '}
                     <Link
                       to={RoutePath.TERMS}
@@ -63,8 +63,11 @@ export function FastLoginContainer() {
                       rel="noopener noreferrer"
                       className="underline hover:text-primary"
                     >
-                      Terms of Service.
-                    </Link>
+                      Terms of Service
+                    </Link>{' '}
+                    including the acceptable use policy and privacy terms. I
+                    understand my data will be processed according to GDPR/CCPA
+                    requirements.
                   </FormDescription>
                 </div>
               </FormItem>

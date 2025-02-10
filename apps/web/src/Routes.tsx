@@ -3,7 +3,7 @@ import { withFaroRouterInstrumentation } from '@grafana/faro-react';
 import { LayoutContainer } from './common/layout/container/LayoutContainer';
 import { AuthenticatedRoutesContainer } from './features/auth/container/AuthenticatedRoutesContainer';
 import { RoutePath } from './RoutePath';
-import { TermsOfServicePage } from './features/terms/page/TermsOfServicePage';
+import { TermsOfServicePage } from './features/consent/page/TermsOfServicePage';
 import { AuthPage } from './features/auth/page/AuthPage';
 import { UserBannedPage } from './features/user-report/page/UserBannedPage';
 import { HomePage } from './features/home/page/HomePage';

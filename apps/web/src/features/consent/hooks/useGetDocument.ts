@@ -18,7 +18,7 @@ export const useGetDocument = ({ documentType }: In): Out => {
   const currentVersion = DocumentsService.getCurrentVersion(documentType);
 
   const { data, error } = useQuery({
-    queryKey: ['terms-of-service', currentVersion],
+    queryKey: [documentType, currentVersion],
     queryFn: () => DocumentsService.getDocumentByType(documentType),
   });
 

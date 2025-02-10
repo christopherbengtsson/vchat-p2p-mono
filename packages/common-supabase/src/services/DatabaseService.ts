@@ -48,10 +48,7 @@ async function reportUser(
     })
     .throwOnError();
 
-  console.log('Response from report_user', data);
-
   if (isBanDuration(data, true)) {
-    console.log('Response from report_user 2', data);
     return data;
   }
 

@@ -15,8 +15,8 @@ export const useBanContent = (banType: Maybe<RouteParamValue>) =>
             ? 'Your account together with any associated data has been deleted.'
             : `Your ban will be lifted in the future and your account is not deleted.`
         }`;
-    const cta = `I understand and I will stop with my inappropriate behavior`;
-    const paragraph = `Thank you for your understanding.`;
+    const cta = 'I understand and I will stop with my inappropriate behavior';
+    const paragraph = 'Thank you for your understanding.';
 
     return {
       title,
