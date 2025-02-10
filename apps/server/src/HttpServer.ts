@@ -43,6 +43,7 @@ const init = () => {
         const fingerprint = FingerprintService.generate(
           browserSignature,
           req.headers,
+          req.ip,
         );
 
         if (!fingerprint) {
