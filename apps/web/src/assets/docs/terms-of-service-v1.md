@@ -1,4 +1,4 @@
-# Terms of Service
+# Terms of Service [WIP]
 
 Last Updated: 2025-02-10
 
