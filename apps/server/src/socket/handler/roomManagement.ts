@@ -40,7 +40,12 @@ export function setupRoomManagement(
       const permanentBan = banDuration === BanDuration.PERMANENT;
 
       if (permanentBan) {
-        await SupabaseService.deleteUser(partnerUserId);
+        // Preventing login until account gets deleted with cron job
+        await SupabaseService.banUserLoginUntilDuration(
+          partnerUserId,
+          BanDuration.TIER_3,
+          true,
+        );
       } else {
         await SupabaseService.banUserLoginUntilDuration(
           partnerUserId,

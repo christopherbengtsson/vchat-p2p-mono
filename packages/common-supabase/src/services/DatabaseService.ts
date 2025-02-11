@@ -48,7 +48,7 @@ async function reportUser(
     })
     .throwOnError();
 
-  if (isBanDuration(data, true)) {
+  if (isBanDuration(data)) {
     return data;
   }
 

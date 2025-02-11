@@ -2,7 +2,7 @@ import { expect, type Page, type BrowserContext } from '@playwright/test';
 import { loginTestUser } from '../utils/loginTestUser';
 import type { TestUser } from '../model/TestUser';
 import { fastLogin } from '../utils/fastLogin';
-import { SupabaseAdmin } from '../service/SupabaseAdmin';
+import type { SupabaseAdmin } from '../service/SupabaseAdmin';
 
 const startNewReport = async (page: Page, context: BrowserContext) => {
   await page.goto('/');
@@ -19,28 +19,36 @@ const startNewReport = async (page: Page, context: BrowserContext) => {
   await context.close();
 };
 
-const expectToBeReported = async (page: Page) => {
-  await expect(
-    page.getByText('You have been temporarily banned'),
-  ).toBeVisible();
-  await page
-    .getByRole('button', {
-      name: 'I understand and I will stop with my inappropriate behavior',
-    })
-    .click();
+const expectToBeReported = async (page: Page, permanent?: boolean) => {
+  const banType = permanent ? 'permanently' : 'temporarily';
+
+  await expect(page.getByText(`You have been ${banType} banned`)).toBeVisible();
+
+  if (!permanent) {
+    await page
+      .getByRole('button', {
+        name: 'I understand and I will stop with my inappropriate behavior',
+      })
+      .click();
+  }
+
   await expect(
     page.getByText('Thank you for your understanding.'),
   ).toBeVisible();
 };
 
-const expectNotToBeAbleToLogin = async (page: Page, email: string) => {
+const expectNotToBeAbleToLogin = async (
+  page: Page,
+  email: string,
+  supabaseAdmin: SupabaseAdmin,
+) => {
   await page.goto('/');
   await page.reload();
   await page.waitForLoadState('networkidle');
 
   expect(page.url()).toContain('/auth');
 
-  await loginTestUser(page, email);
+  await loginTestUser(page, email, supabaseAdmin);
 
   await expect(page.getByText('User is banned, try again later')).toBeVisible();
 
@@ -50,25 +58,28 @@ const expectNotToBeAbleToLogin = async (page: Page, email: string) => {
 
   const signaturePromise = page.waitForResponse('**/api/v1/signature');
   await fastLogin(page);
-  await SupabaseAdmin.saveGeneratedFingerprint(signaturePromise);
+  await supabaseAdmin.saveGeneratedFingerprint(signaturePromise);
 
   await expect(page.getByText('User is banned')).toBeVisible();
 
   await page.waitForLoadState('networkidle');
 };
 
-export const reportUser = async (testUsers: TestUser[]) => {
+export const reportUser = async (
+  testUsers: TestUser[],
+  supabaseAdmin: SupabaseAdmin,
+) => {
   const [reporter1, reporter2, reporter3, toReport] = testUsers;
 
   // Login user to-be-reported
-  await loginTestUser(toReport.page, toReport.email);
+  await loginTestUser(toReport.page, toReport.email, supabaseAdmin);
   await expect(
     toReport.page.getByRole('button', { name: 'Find match' }),
   ).toBeVisible();
   await toReport.page.getByRole('button', { name: 'Find match' }).click();
 
   // Login reporter 1 and report user
-  await loginTestUser(reporter1.page, reporter1.email);
+  await loginTestUser(reporter1.page, reporter1.email, supabaseAdmin);
   await expect(
     reporter1.page.getByRole('button', { name: 'Find match' }),
   ).toBeVisible();
@@ -79,7 +90,7 @@ export const reportUser = async (testUsers: TestUser[]) => {
   ).toBeVisible();
 
   // Login reporter 2 and report user
-  await loginTestUser(reporter2.page, reporter2.email);
+  await loginTestUser(reporter2.page, reporter2.email, supabaseAdmin);
   await expect(
     reporter2.page.getByRole('button', { name: 'Find match' }),
   ).toBeVisible();
@@ -90,13 +101,37 @@ export const reportUser = async (testUsers: TestUser[]) => {
   ).toBeVisible();
 
   // Login reporter 3 and report user
-  await loginTestUser(reporter3.page, reporter3.email);
+  await loginTestUser(reporter3.page, reporter3.email, supabaseAdmin);
   await expect(
     reporter3.page.getByRole('button', { name: 'Find match' }),
   ).toBeVisible();
   await startNewReport(reporter3.page, reporter3.context);
 
   await expectToBeReported(toReport.page);
-  await expectNotToBeAbleToLogin(toReport.page, toReport.email);
+  await expectNotToBeAbleToLogin(toReport.page, toReport.email, supabaseAdmin);
+  await toReport.context.close();
+};
+
+export const reportUserToPermanentBan = async (
+  lastReporter: TestUser,
+  toReport: TestUser,
+  supabaseAdmin: SupabaseAdmin,
+) => {
+  // Login user to-be-reported
+  await loginTestUser(toReport.page, toReport.email, supabaseAdmin);
+  await expect(
+    toReport.page.getByRole('button', { name: 'Find match' }),
+  ).toBeVisible();
+  await toReport.page.getByRole('button', { name: 'Find match' }).click();
+
+  // Login last reporter and report user
+  await loginTestUser(lastReporter.page, lastReporter.email, supabaseAdmin);
+  await expect(
+    lastReporter.page.getByRole('button', { name: 'Find match' }),
+  ).toBeVisible();
+  await startNewReport(lastReporter.page, lastReporter.context);
+
+  await expectToBeReported(toReport.page, true);
+  await expectNotToBeAbleToLogin(toReport.page, toReport.email, supabaseAdmin);
   await toReport.context.close();
 };

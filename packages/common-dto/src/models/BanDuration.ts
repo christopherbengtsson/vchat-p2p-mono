@@ -7,21 +7,16 @@ export enum BanDuration {
   TIER_2 = 72,
   TIER_3 = 168,
   PERMANENT = -1,
+  NO_BAN = 0,
 }
 
-export function isBanDuration(
-  value: number,
-  allowZero?: boolean,
-): value is BanDuration {
-  if (allowZero && value === 0) {
-    return true;
-  }
-
+export function isBanDuration(value: number): value is BanDuration {
   switch (value) {
     case BanDuration.TIER_1:
     case BanDuration.TIER_2:
     case BanDuration.TIER_3:
     case BanDuration.PERMANENT:
+    case BanDuration.NO_BAN:
       return true;
 
     default:

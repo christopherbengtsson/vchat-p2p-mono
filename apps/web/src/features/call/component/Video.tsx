@@ -27,6 +27,9 @@ export function Video({ videoRef, isLocal, videoEnabled, isPortrait }: Props) {
         >
           <BsCameraVideoOff
             className={`text-white ${isLocal ? 'text-xl' : 'text-4xl'}`}
+            aria-label={
+              isLocal ? 'Your camera is off' : "Partner's camera is off icon"
+            }
           />
           {!isLocal && (
             <TypographyP className="ml-2 text-white" noFirstMarginTop>

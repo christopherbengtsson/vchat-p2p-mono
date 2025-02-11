@@ -1,8 +1,11 @@
-import { PlaywrightTestArgs } from '@playwright/test';
-import { SupabaseAdmin } from '../service/SupabaseAdmin';
+import type { BrowserContext } from '@playwright/test';
+import type { SupabaseAdmin } from '../service/SupabaseAdmin';
 
-export const cleanupTestUsers = async ({ context }: PlaywrightTestArgs) => {
+export const cleanupTestUsers = async (
+  context: BrowserContext,
+  supabaseAdmin: SupabaseAdmin,
+) => {
   context.close();
-  await SupabaseAdmin.removeAllGeneratedUsers();
-  await SupabaseAdmin.removeAllTestGeneratedFingerprints();
+  await supabaseAdmin.removeAllGeneratedUsers();
+  await supabaseAdmin.removeAllTestGeneratedFingerprints();
 };

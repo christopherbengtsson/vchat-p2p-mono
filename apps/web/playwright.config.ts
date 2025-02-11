@@ -57,12 +57,7 @@ export default defineConfig({
   /* Configure projects for major browsers */
   projects: [
     {
-      name: 'VChat E2E',
-      testMatch: /main.test\.ts/,
-    },
-    {
-      name: 'Supabase keep alive',
-      testMatch: /supabaseKeepAlive.test\.ts/,
+      name: 'Chrome',
     },
   ],
 

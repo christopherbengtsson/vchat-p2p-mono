@@ -18,11 +18,13 @@ async function partnersNotIgnored(userId1: string, userId2: string) {
 async function banUserLoginUntilDuration(
   userId: string,
   banDuration: BanDuration,
+  permanentBan?: boolean,
 ) {
   await AdminAuthService.banUserFromLogin(
     SupabaseClient.instance,
     userId,
     banDuration,
+    permanentBan,
   ).catch((err) => {
     logger.error({ err }, 'Failed to ban user');
   });
@@ -46,13 +48,8 @@ async function blacklistDeviceSignature(
   );
 }
 
-async function deleteUser(userId: string) {
-  await AdminAuthService.deleteUser(SupabaseClient.instance, userId);
-}
-
 export const SupabaseService = {
   banUserLoginUntilDuration,
   blacklistDeviceSignature,
-  deleteUser,
   partnersNotIgnored,
 };
