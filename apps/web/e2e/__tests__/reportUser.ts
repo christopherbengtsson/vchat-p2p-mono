@@ -2,6 +2,7 @@ import { expect, type Page, type BrowserContext } from '@playwright/test';
 import { loginTestUser } from '../utils/loginTestUser';
 import type { TestUser } from '../model/TestUser';
 import { fastLogin } from '../utils/fastLogin';
+import { SupabaseAdmin } from '../service/SupabaseAdmin';
 
 const startNewReport = async (page: Page, context: BrowserContext) => {
   await page.goto('/');
@@ -47,7 +48,9 @@ const expectNotToBeAbleToLogin = async (page: Page, email: string) => {
 
   await page.waitForLoadState('networkidle');
 
+  const signaturePromise = page.waitForResponse('**/api/v1/signature');
   await fastLogin(page);
+  await SupabaseAdmin.saveGeneratedFingerprint(signaturePromise);
 
   await expect(page.getByText('User is banned')).toBeVisible();
 

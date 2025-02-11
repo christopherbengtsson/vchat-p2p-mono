@@ -1,4 +1,4 @@
-import type { Browser } from '@playwright/test';
+import type { Browser, Response as PlaywrightResponse } from '@playwright/test';
 import { SupabaseClientWrapper } from '@mono/common-supabase';
 import type { DatabaseUser } from '../model/DatabaseUser';
 import { TestUserMapper } from '../mapper/toTestUser';
@@ -18,6 +18,7 @@ if (!TEST_USER_PASSWORD) {
 }
 
 let generatedUsers: DatabaseUser[] = [];
+let fingerprints: string[] = [];
 
 const getGeneratedUserByEmail = (email: string) => {
   const user = generatedUsers.find((user) => user.email === email);
@@ -81,8 +82,32 @@ const generateTestUsers = async (
   return TestUserMapper.to(testUsers, browser, testTitle);
 };
 
+const saveGeneratedFingerprint = async (
+  signaturePromise: Promise<PlaywrightResponse>,
+) => {
+  const response = await signaturePromise;
+  const data = await response.json();
+
+  if (data.fingerprint) {
+    fingerprints.push(data.fingerprint);
+  }
+};
+
+const removeAllTestGeneratedFingerprints = async () => {
+  for (const fingerprint of fingerprints) {
+    await SupabaseClient.instance
+      .from('blacklist')
+      .delete()
+      .eq('fingerprint', fingerprint);
+  }
+
+  fingerprints = [];
+};
+
 export const SupabaseAdmin = {
   generateTestUsers,
   getGeneratedUserByEmail,
   removeAllGeneratedUsers,
+  saveGeneratedFingerprint,
+  removeAllTestGeneratedFingerprints,
 };
