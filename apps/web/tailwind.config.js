@@ -64,6 +64,9 @@ module.exports = {
         md: 'calc(var(--radius) - 2px)',
         sm: 'calc(var(--radius) - 4px)',
       },
+      boxShadow: {
+        'video-off': 'inset 0 0 12px 0 hsl(var(--foreground))',
+      },
       padding: {
         inherit: 'inherit',
       },
