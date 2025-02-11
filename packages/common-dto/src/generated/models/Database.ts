@@ -174,6 +174,10 @@ export type Database = {
         Args: Record<PropertyKey, never>;
         Returns: undefined;
       };
+      delete_permanently_banned_users: {
+        Args: Record<PropertyKey, never>;
+        Returns: number;
+      };
       report_user: {
         Args: {
           p_reporter_id: string;
