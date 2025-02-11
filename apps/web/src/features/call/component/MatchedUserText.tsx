@@ -1,4 +1,5 @@
 import { observer } from 'mobx-react';
+import { TypographyP } from '@/common/components/typography/Typography';
 
 interface Props {
   partnerId: string;
@@ -7,5 +8,5 @@ interface Props {
 export const MatchedUserText = observer(function MatchedUserText({
   partnerId,
 }: Props) {
-  return <p className="text-primary-foreground">Match with {partnerId}</p>;
+  return <TypographyP>Match with {partnerId}</TypographyP>;
 });

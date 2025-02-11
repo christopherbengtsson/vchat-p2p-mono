@@ -90,27 +90,24 @@ module.exports = {
         'loading-pulse': {
           '0%, 100%': {
             transform: 'scale(1)',
-            boxShadow: '0 0 20px 0 rgba(255, 255, 255, 0.7)',
+            boxShadow: '0 0 20px 0 hsl(var(--foreground) / 0.7)',
           },
           '50%': {
             transform: 'scale(1.1)',
-            boxShadow: '0 0 20px 15px rgba(255, 255, 255, 0.4)',
+            boxShadow: '0 0 20px 15px hsl(var(--foreground) / 0.4)',
           },
-        },
-        'video-noice': {
-          '0%, 100%': { backgroundPosition: '50% 0, 60% 60%' },
-          '50%': { backgroundPosition: '50% 0, 60% 50%' },
         },
         glow: {
           '0%, 100%': {
             boxShadow:
-              '0 0 20px rgba(255, 255, 255, 0.7), 0 0 30px rgba(255, 255, 255, 0.5)',
+              '0 0 20px hsl(var(--foreground) / 0.7), 0 0 30px hsl(var(--foreground) / 0.5)',
           },
           '50%': {
             boxShadow:
-              '0 0 30px rgba(255, 255, 255, 0.9), 0 0 40px rgba(255, 255, 255, 0.7)',
+              '0 0 30px hsl(var(--foreground) / 0.9), 0 0 40px hsl(var(--foreground) / 0.7)',
           },
         },
+
         moveToCenter: {
           '0%': {
             transform: 'translate(var(--tx), var(--ty))',

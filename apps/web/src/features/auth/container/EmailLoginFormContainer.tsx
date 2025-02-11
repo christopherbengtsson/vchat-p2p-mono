@@ -49,7 +49,7 @@ export function EmailLoginFormContainer() {
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormControl className="text-primary-foreground">
+              <FormControl>
                 <Input type="email" placeholder="Email" {...field} />
               </FormControl>
               <FormMessage />
@@ -62,7 +62,7 @@ export function EmailLoginFormContainer() {
           name="password"
           render={({ field }) => (
             <FormItem>
-              <FormControl className="text-primary-foreground">
+              <FormControl>
                 <Input
                   type="password"
                   placeholder="Password"

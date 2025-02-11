@@ -1,4 +1,5 @@
 import { observer } from 'mobx-react';
+import { TypographyH2 } from '@/common/components/typography/Typography';
 
 interface Props {
   userScore: number;
@@ -10,7 +11,7 @@ export const ResultDialogContent = observer(function ResultDialogContent({
   return (
     <div>
       <div>
-        <h2>Game Stats (TODO)</h2>
+        <TypographyH2>Game Stats (TODO)</TypographyH2>
         <div>
           <div>
             <span>Score: </span>

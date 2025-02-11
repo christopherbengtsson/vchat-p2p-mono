@@ -1,4 +1,5 @@
 import { BsCameraVideoOff } from 'react-icons/bs';
+import { TypographyP } from '@/common/components/typography/Typography';
 
 interface Props {
   videoRef?: React.RefObject<HTMLVideoElement>;
@@ -22,13 +23,15 @@ export function Video({ videoRef, isLocal, videoEnabled, isPortrait }: Props) {
 
       {!videoEnabled && (
         <div
-          className={`absolute inset-0 flex items-center justify-center  bg-opacity-75 bg-transparent ${isLocal ? 'z-10 shadow-video-off' : 'z-0'}`}
+          className={`absolute inset-0 flex items-center justify-center ${isLocal ? 'z-10 shadow-video-off' : 'z-0'}`}
         >
           <BsCameraVideoOff
             className={`text-white ${isLocal ? 'text-xl' : 'text-4xl'}`}
           />
           {!isLocal && (
-            <p className="text-white ml-2">Partner's camera is off</p>
+            <TypographyP className="ml-2 text-white" noFirstMarginTop>
+              Partner's camera is off
+            </TypographyP>
           )}
         </div>
       )}
