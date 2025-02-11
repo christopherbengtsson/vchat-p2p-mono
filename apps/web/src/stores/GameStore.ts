@@ -7,6 +7,7 @@ import { RootStore } from './RootStore';
 import { GameData } from './model/GameData';
 import { RoundData } from './model/RoundData';
 import { InviteResponse } from './model/InviteResponse';
+import { DataChannelMessage } from './model/DataChannelMessage';
 
 export class GameStore {
   private rootStore: RootStore;
@@ -47,9 +48,13 @@ export class GameStore {
   }
 
   invitePartnerToGame() {
-    this.sendMessage({
-      type: 'INVITE',
-    });
+    const payload: DataChannelMessage = {
+      type: 'GAME',
+      data: {
+        type: 'INVITE',
+      },
+    };
+    this.sendMessage(payload);
   }
   answerGameInvite(accept: boolean) {
     if (accept) {
@@ -59,10 +64,14 @@ export class GameStore {
 
     this.inviteDialogOpen = false;
 
-    this.sendMessage({
-      type: 'INVITE_RESPONSE',
-      response: accept ? 'ACCEPT' : 'DECLINE',
-    });
+    const payload: DataChannelMessage = {
+      type: 'GAME',
+      data: {
+        type: 'INVITE_RESPONSE',
+        response: accept ? 'ACCEPT' : 'DECLINE',
+      },
+    };
+    this.sendMessage(payload);
   }
   handleIncomingMessage(message: GameData) {
     switch (message.type) {
@@ -102,13 +111,18 @@ export class GameStore {
     this.resultDialogOpen = true;
     this.cleanupGameRound();
 
-    this.sendMessage({
-      type: 'ROUND_UPDATE',
+    const payload: DataChannelMessage = {
+      type: 'GAME',
       data: {
-        round: this.round,
-        score: this.userScore,
+        type: 'ROUND_UPDATE',
+        data: {
+          round: this.round,
+          score: this.userScore,
+        },
       },
-    });
+    };
+
+    this.sendMessage(payload);
   }
   cleanupGame() {
     this.cleanupGameRound();
@@ -166,11 +180,8 @@ export class GameStore {
     this.resultDialogOpen = true;
     this.cleanupGameRound();
   }
-  sendMessage(message: GameData) {
-    this.rootStore.callStore.webRtcService?.sendMessage({
-      type: 'GAME',
-      data: message,
-    });
+  sendMessage(message: DataChannelMessage) {
+    this.rootStore.callStore.webRtcService?.sendMessage(message);
   }
   cleanupGameRound() {
     this.audioFrequencyService?.close();

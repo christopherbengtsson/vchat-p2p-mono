@@ -14,15 +14,21 @@ export const CallActionContainer = observer(function CallActionContainer() {
 
   const toggleVideo = useCallback(() => {
     const toggle = !mediaStore.videoEnabled;
-    callStore.emitVideoToggle(toggle);
+    gameStore.sendMessage({
+      type: 'VIDEO_TOGGLE',
+      toggle,
+    });
     mediaStore.setVideoEnabled(toggle);
-  }, [callStore, mediaStore]);
+  }, [gameStore, mediaStore]);
 
   const toggleAudio = useCallback(() => {
     const toggle = !mediaStore.audioEnabled;
-    callStore.emitAudioToggle(toggle);
     mediaStore.setAudioEnabled(toggle);
-  }, [callStore, mediaStore]);
+    gameStore.sendMessage({
+      type: 'AUDIO_TOGGLE',
+      toggle,
+    });
+  }, [gameStore, mediaStore]);
 
   const handleCanvasStream = useCallback(() => {
     gameStore.invitePartnerToGame();

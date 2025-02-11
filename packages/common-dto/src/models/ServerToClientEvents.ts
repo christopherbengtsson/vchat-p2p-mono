@@ -15,8 +15,5 @@ export interface ServerToClientEvents {
 
   'peer-message': (data: PeerMessage, userId: string) => void;
 
-  'audio-toggle': (enabled: boolean) => void;
-  'video-toggle': (enabled: boolean) => void;
-
   'request-browser-signature': (permanentBan: boolean) => void;
 }

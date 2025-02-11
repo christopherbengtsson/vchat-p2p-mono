@@ -1,5 +1,4 @@
 import type { VChatSocket } from '../../model/VChatSocket.js';
-import logger from '../../utils/logger.js';
 
 export function setupWebRTC(
   socket: VChatSocket,
@@ -10,7 +9,6 @@ export function setupWebRTC(
   socket.on(
     'peer-message',
     wrapHandler((offer, roomId, partnerId) => {
-      logger.debug({ roomId, userId: partnerId }, 'Peer message received');
       socket.to(roomId).emit('peer-message', offer, partnerId);
     }),
   );

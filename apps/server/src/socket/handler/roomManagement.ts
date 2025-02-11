@@ -30,22 +30,6 @@ export function setupRoomManagement(
   );
 
   socket.on(
-    'audio-toggle',
-    wrapHandler((enabled, roomId) => {
-      logger.debug({ enabled, roomId }, 'Received audio toggle');
-      socket.to(roomId).emit('audio-toggle', enabled);
-    }),
-  );
-
-  socket.on(
-    'video-toggle',
-    wrapHandler((enabled, roomId) => {
-      logger.debug({ enabled, roomId }, 'Received video toggle');
-      socket.to(roomId).emit('video-toggle', enabled);
-    }),
-  );
-
-  socket.on(
     'ban-user',
     wrapHandler(async ({ partnerUserId, partnerSocketId, banDuration }) => {
       logger.debug(

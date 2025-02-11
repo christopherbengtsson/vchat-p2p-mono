@@ -81,24 +81,6 @@ export class CallStore {
     }, CallStore.NEW_MATCH_TIMEOUT);
   }
 
-  emitVideoToggle(toggle: boolean) {
-    Assert.isDefined(this.roomId, 'roomId is not defined');
-    this.rootStore.socketStore.socket?.emit(
-      'video-toggle',
-      toggle,
-      this.roomId,
-    );
-  }
-
-  emitAudioToggle(toggle: boolean) {
-    Assert.isDefined(this.roomId, 'roomId is not defined');
-    this.rootStore.socketStore.socket?.emit(
-      'audio-toggle',
-      toggle,
-      this.roomId,
-    );
-  }
-
   endCall() {
     if (this.roomId) {
       this.emitLeaveRoom();
@@ -112,9 +94,17 @@ export class CallStore {
     this.rootStore.gameStore.cleanupGame();
     this.webRtcService?.cleanup();
     this.webRtcService = undefined;
-    this.remoteStream = null;
+
+    this.isPolite = false;
     this.roomId = undefined;
     this.partnerSocketId = undefined;
+    this.partnerUserId = undefined;
+    this.partnerSocketId = undefined;
+
+    this.remoteVideoEnabled = true;
+    this.remoteAudioEnabled = true;
+
+    this.remoteStream = null;
   }
 
   resetCallState() {
@@ -158,8 +148,6 @@ export class CallStore {
 
     socket.on('user-left', this.handleUserLeft);
     socket.on('partner-disconnected', this.handlePartnerDisconnected);
-    socket.on('video-toggle', this.handleVideoToggle);
-    socket.on('audio-toggle', this.handleAudioToggle);
   }
 
   removeListeners() {
@@ -168,8 +156,6 @@ export class CallStore {
 
     socket.off('user-left', this.handleUserLeft);
     socket.off('partner-disconnected', this.handlePartnerDisconnected);
-    socket.off('video-toggle', this.handleVideoToggle);
-    socket.off('audio-toggle', this.handleAudioToggle);
   }
 
   handleUserLeft = () => {
@@ -184,11 +170,11 @@ export class CallStore {
     toast('Partner disconnected');
   };
 
-  handleVideoToggle = (enabled: boolean) => {
+  handlePartnerVideoToggle = (enabled: boolean) => {
     this.remoteVideoEnabled = enabled;
   };
 
-  handleAudioToggle = (enabled: boolean) => {
+  handlePartnerAudioToggle = (enabled: boolean) => {
     this.remoteAudioEnabled = enabled;
   };
 }
