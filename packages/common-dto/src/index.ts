@@ -10,6 +10,5 @@ export * from './models/FingerprintDto.js';
 export * from './models/Maybe.js';
 export * from './models/PeerMessage.js';
 export * from './models/ServerToClientEvents.js';
-export * from './models/UserMetadata.js';
 export * from './models/UserProfile.js';
 export * from './models/UserReportReason.js';

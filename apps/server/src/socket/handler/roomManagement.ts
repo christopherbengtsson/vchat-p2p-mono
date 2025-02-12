@@ -44,7 +44,6 @@ export function setupRoomManagement(
         await SupabaseService.banUserLoginUntilDuration(
           partnerUserId,
           BanDuration.TIER_3,
-          true,
         );
       } else {
         await SupabaseService.banUserLoginUntilDuration(

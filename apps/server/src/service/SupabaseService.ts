@@ -18,13 +18,11 @@ async function partnersNotIgnored(userId1: string, userId2: string) {
 async function banUserLoginUntilDuration(
   userId: string,
   banDuration: BanDuration,
-  permanentBan?: boolean,
 ) {
   await AdminAuthService.banUserFromLogin(
     SupabaseClient.instance,
     userId,
     banDuration,
-    permanentBan,
   ).catch((err) => {
     logger.error({ err }, 'Failed to ban user');
   });

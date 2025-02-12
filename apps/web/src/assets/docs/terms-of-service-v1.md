@@ -18,7 +18,7 @@ You must be at least 18 years old to use VChat. By using the service, you repres
 - Users have the option to create a permanent account by providing an email and password
 - You are responsible for maintaining the confidentiality of your account credentials
 - You agree to provide accurate and complete information when creating an account
-- Accounts may be marked as Active, Banned, or Paused depending on user behavior and enforcement actions
+- Accounts may be marked as Active, Suspended, or Banned depending on user behavior and enforcement actions
 
 ## 4. Acceptable Use Policy
 
@@ -69,29 +69,31 @@ VChat collects and processes:
 
 ### 6.1. Reporting System
 
-- Users can report inappropriate behavior or underage users
-- Reports are reviewed automatically based on frequency and severity
+- Users can report inappropriate behavior
+- Reports are reviewed automatically based on frequency
 - Multiple reports trigger automated enforcement actions
 - The service maintains fingerprinting technology to prevent banned users from creating new accounts
 
 ### 6.2. Ban System
 
-- The service reserves the right to ban users for Terms violations
-- Bans may be temporary or permanent
-- Banned users' device signatures and masked IPs may be stored to prevent abuse
+- Users may receive temporary suspensions (SUSPENDED status) or permanent bans (BANNED status)
+- Suspended users cannot access the service until their suspension period ends
+- Permanently banned users' accounts are automatically deleted from the system
+- Account deletion for permanently banned users occurs daily at 01:00 CET
 
 ### 6.3. Automated Enforcement
 
 The service implements an automated tiered enforcement system:
 
-- Three reports within 24 hours result in a 24-hour suspension
-- Five reports within 72 hours result in a 72-hour suspension
-- Seven reports within 7 days result in a 7-day suspension
-- Ten reports within 30 days result in a permanent account ban
+- Three reports within 24 hours result in a 24-hour suspension (SUSPENDED status)
+- Five reports within 72 hours result in a 72-hour suspension (SUSPENDED status)
+- Seven reports within 7 days result in a 7-day suspension (SUSPENDED status)
+- Ten reports within 30 days result in a permanent ban (BANNED status) and account deletion
 
 All enforcement actions are automated and based on user reports. Users who are reported are automatically added to the reporter's ignore list for their protection.
 
-Ban durations are enforced from the moment of ban application and may extend slightly beyond the stated duration due to technical processing times. All temporary bans are processed for lifting once per day at 00:00 UTC.
+Suspended accounts automatically regain access once their suspension period ends (processed daily at 00:00 UTC).
+Permanently banned accounts are deleted from the system daily at 01:00 CET.
 
 ## 7. Technical Infrastructure
 
@@ -108,6 +110,22 @@ Ban durations are enforced from the moment of ban application and may extend sli
 - The service does not guarantee 100% uptime
 - The service reserves the right to modify or terminate services
 - Maintenance windows may affect service availability
+
+### 7.3 Service Monitoring
+
+The service uses Grafana Cloud for:
+
+- Performance monitoring and metrics
+- System health checks
+- Error tracking and debugging
+- Security logging
+
+All monitoring data is retained for 14 days and includes:
+
+- Masked IP addresses (last 16-32 bits removed)
+- System metrics
+- Container logs
+- Application performance data
 
 ## 8. Intellectual Property
 
