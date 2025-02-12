@@ -1,14 +1,18 @@
 import { expect } from '@playwright/test';
 import { loginTestUser } from '../utils/loginTestUser';
 import type { TestUser } from '../model/TestUser';
+import type { SupabaseAdmin } from '../service/SupabaseAdmin';
 
-export const videoCallActions = async (testUsers: TestUser[]) => {
+export const videoCallActions = async (
+  testUsers: TestUser[],
+  supabaseAdmin: SupabaseAdmin,
+) => {
   const [user, partner] = testUsers;
 
   /** Start page */
-  await loginTestUser(user.page, user.email);
+  await loginTestUser(user.page, user.email, supabaseAdmin);
 
-  await loginTestUser(partner.page, partner.email);
+  await loginTestUser(partner.page, partner.email, supabaseAdmin);
 
   /** Start and cancel queue */
 
@@ -35,7 +39,9 @@ export const videoCallActions = async (testUsers: TestUser[]) => {
   await expect(
     user.page.getByRole('button', { name: 'Turn camera on' }),
   ).toBeEnabled();
-  await expect(user.page.getByText('Your camera is off')).toBeVisible();
+  await expect(
+    user.page.locator('[aria-label="Your camera is off"]'),
+  ).toBeVisible();
   await expect(partner.page.getByText("Partner's camera is off")).toBeVisible();
 
   await user.page.getByRole('button', { name: 'Turn camera on' }).click();
@@ -49,7 +55,9 @@ export const videoCallActions = async (testUsers: TestUser[]) => {
   await expect(
     partner.page.getByRole('button', { name: 'Turn camera on' }),
   ).toBeEnabled();
-  await expect(partner.page.getByText('Your camera is off')).toBeVisible();
+  await expect(
+    partner.page.locator('[aria-label="Your camera is off"]'),
+  ).toBeVisible();
   await expect(user.page.getByText("Partner's camera is off")).toBeVisible();
 
   await partner.page.getByRole('button', { name: 'Turn camera on' }).click();

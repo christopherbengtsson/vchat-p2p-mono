@@ -26,11 +26,14 @@ export const ProfileDialogContainer = observer(function ProfileDialogContainer({
   const onSubmit = async ({ email, password }: AnonymousUpgradeFormSchema) => {
     mutate(
       { email, password },
+
       {
+        onSettled: () => {
+          handleProfileOpen();
+        },
         onSuccess: () => {
           authStore.setUserUpgraded(true);
           toast.success('Account upgraded successfully');
-          handleProfileOpen();
         },
       },
     );

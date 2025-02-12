@@ -30,12 +30,14 @@ export const ReportContainer = observer(function ReportContainer() {
       Assert.isDefined(partnerUserId, 'partnerUserId is not defined');
       Assert.isDefined(partnerSocketId, 'partnerSocketId is not defined');
 
-      if (banDuration > 0) {
+      if (banDuration !== BanDuration.NO_BAN) {
         socketStore.socket?.emit('ban-user', {
           partnerUserId,
           partnerSocketId,
           banDuration,
         });
+      } else {
+        socketStore.socket?.emit('user-reported', partnerSocketId);
       }
     },
     [callStore.partnerSocketId, callStore.partnerUserId, socketStore.socket],

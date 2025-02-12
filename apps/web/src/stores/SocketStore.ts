@@ -1,5 +1,6 @@
 import { makeAutoObservable } from 'mobx';
 import { io } from 'socket.io-client';
+import { toast } from 'sonner';
 import { CustomError, type Maybe } from '@mono/common-dto';
 import { ClientAuthService } from '@mono/fe-supabase';
 import {
@@ -9,6 +10,7 @@ import {
 import { showToast } from '@/common/utils/toast/showToast';
 import { SupabaseClient } from '@/common/clients/supabase';
 import { BrowserSignatureUtil } from '../common/utils/BrowserSignatureUtil';
+import { noop } from '../common/utils/noop';
 import type { ChatSocket } from './model/SocketModel';
 import type { RootStore } from './RootStore';
 
@@ -59,6 +61,7 @@ export class SocketStore {
     this.socket.on('disconnect', this.handleDisconnect);
     this.socket.on('connect_error', this.handleConnectError);
 
+    this.socket.on('user-reported', this.handleUserReported);
     this.socket.on(
       'request-browser-signature',
       this.handleBrowserSignatureRequest,
@@ -88,6 +91,19 @@ export class SocketStore {
   handleSocketReconnect = () => {
     this.connected = true;
     showToast(DefaultToastState.CONNECTION_RESTORED); // TODO: Remove or keep using this showToast util?
+  };
+
+  handleUserReported = () => {
+    toast('Report Received', {
+      description:
+        'Warning: Multiple reports can lead to account suspension or ban.',
+      dismissible: false,
+      duration: Infinity,
+      action: {
+        label: 'I understand',
+        onClick: noop,
+      },
+    });
   };
 
   handleBrowserSignatureRequest = async (permanentBan: boolean) => {

@@ -174,6 +174,14 @@ export type Database = {
         Args: Record<PropertyKey, never>;
         Returns: undefined;
       };
+      delete_permanently_banned_users: {
+        Args: Record<PropertyKey, never>;
+        Returns: undefined;
+      };
+      lift_temporary_bans: {
+        Args: Record<PropertyKey, never>;
+        Returns: undefined;
+      };
       report_user: {
         Args: {
           p_reporter_id: string;
@@ -186,7 +194,7 @@ export type Database = {
     Enums: {
       ban_duration: '24' | '72' | '168' | '-1';
       user_report_reason: 'INAPPROPRIATE_BEHAVIOR' | 'UNDER_AGED';
-      user_status: 'ACTIVE' | 'BANNED' | 'PAUSED';
+      user_status: 'ACTIVE' | 'BANNED' | 'SUSPENDED';
     };
     CompositeTypes: {
       [_ in never]: never;

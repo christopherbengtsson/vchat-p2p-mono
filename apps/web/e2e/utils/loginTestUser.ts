@@ -1,8 +1,12 @@
 import type { Page } from '@playwright/test';
-import { SupabaseAdmin } from '../service/SupabaseAdmin';
+import type { SupabaseAdmin } from '../service/SupabaseAdmin';
 
-export const loginTestUser = async (page: Page, email: string) => {
-  const user = SupabaseAdmin.getGeneratedUserByEmail(email);
+export const loginTestUser = async (
+  page: Page,
+  email: string,
+  supabaseAdmin: SupabaseAdmin,
+) => {
+  const user = supabaseAdmin.getGeneratedUserByEmail(email);
   if (!user) {
     throw new Error('User not found');
   }

@@ -70,6 +70,13 @@ export class WebRTCService {
 
     this.dataChannel.onopen = () => {
       console.debug('Data channel is open and ready to be used.');
+      // Send the initial state for stream enabled status
+      this.sendMessage({
+        type: 'VIDEO_TOGGLE',
+        toggle:
+          this.rootStore.mediaStore.stream?.getVideoTracks()[0].enabled ??
+          false,
+      });
     };
 
     this.dataChannel.onmessage = this.handleDataChannelMessage;
@@ -200,6 +207,14 @@ export class WebRTCService {
     switch (message.type) {
       case 'GAME':
         this.rootStore.gameStore.handleIncomingMessage(message.data);
+        break;
+
+      case 'VIDEO_TOGGLE':
+        this.rootStore.callStore.handlePartnerVideoToggle(message.toggle);
+        break;
+
+      case 'AUDIO_TOGGLE':
+        this.rootStore.callStore.handlePartnerAudioToggle(message.toggle);
         break;
 
       // TODO: Add cases for other message types (e.g., chat messages)

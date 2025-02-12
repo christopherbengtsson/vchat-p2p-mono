@@ -3,9 +3,13 @@ import { cleanupTestUsers } from './setup/globalTeardown';
 import { SupabaseAdmin } from './service/SupabaseAdmin';
 import { loginLogout } from './__tests__/loginLogout';
 
-test.afterEach(cleanupTestUsers);
+const supabaseAdmin = new SupabaseAdmin();
+
+test.afterEach(({ context }) => {
+  cleanupTestUsers(context, supabaseAdmin);
+});
 
 test('Supabase keep alive', async ({ browser }, { title }) => {
-  const testUsers = await SupabaseAdmin.generateTestUsers(1, browser, title);
-  await loginLogout(testUsers[0]);
+  const testUsers = await supabaseAdmin.generateTestUsers(1, browser, title);
+  await loginLogout(testUsers[0], supabaseAdmin);
 });

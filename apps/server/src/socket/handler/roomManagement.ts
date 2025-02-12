@@ -30,18 +30,10 @@ export function setupRoomManagement(
   );
 
   socket.on(
-    'audio-toggle',
-    wrapHandler((enabled, roomId) => {
-      logger.debug({ enabled, roomId }, 'Received audio toggle');
-      socket.to(roomId).emit('audio-toggle', enabled);
-    }),
-  );
-
-  socket.on(
-    'video-toggle',
-    wrapHandler((enabled, roomId) => {
-      logger.debug({ enabled, roomId }, 'Received video toggle');
-      socket.to(roomId).emit('video-toggle', enabled);
+    'user-reported',
+    wrapHandler(async (userId) => {
+      logger.debug({ userId }, 'Received user reported');
+      socket.to(userId).emit('user-reported');
     }),
   );
 
@@ -56,7 +48,11 @@ export function setupRoomManagement(
       const permanentBan = banDuration === BanDuration.PERMANENT;
 
       if (permanentBan) {
-        await SupabaseService.deleteUser(partnerUserId);
+        // Preventing login until account gets deleted with cron job
+        await SupabaseService.banUserLoginUntilDuration(
+          partnerUserId,
+          BanDuration.TIER_3,
+        );
       } else {
         await SupabaseService.banUserLoginUntilDuration(
           partnerUserId,

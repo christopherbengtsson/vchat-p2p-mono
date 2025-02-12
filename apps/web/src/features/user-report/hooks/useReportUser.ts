@@ -15,7 +15,7 @@ export const useReportUser = () => {
     mutationFn: ({ reporterId, toReportId }) =>
       DatabaseService.reportUser(client, reporterId, toReportId),
     onError: (error) => {
-      console.error(error); // TODO: handle error
+      console.error(error);
     },
   });
 

@@ -46,13 +46,8 @@ async function blacklistDeviceSignature(
   );
 }
 
-async function deleteUser(userId: string) {
-  await AdminAuthService.deleteUser(SupabaseClient.instance, userId);
-}
-
 export const SupabaseService = {
   banUserLoginUntilDuration,
   blacklistDeviceSignature,
-  deleteUser,
   partnersNotIgnored,
 };
