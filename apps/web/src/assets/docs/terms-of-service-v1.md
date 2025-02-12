@@ -62,7 +62,8 @@ VChat collects and processes:
 - IP addresses (masked for privacy, retained for 14 days)
 - User-provided content including avatars and usernames (retained until account deletion)
 - Analytics data through Grafana Faro (retained for 14 days, used for performance monitoring and error tracking)
-- Security identifiers and blacklist data (retained for 90 days)
+- Security identifiers and blacklist data (retained for 90 days, automatically cleaned daily at 03:00 CET)
+- Permanently banned user data is automatically removed from the system daily at 01:00 CET
 
 ## 6. User Safety and Moderation
 
@@ -89,6 +90,8 @@ The service implements an automated tiered enforcement system:
 - Ten reports within 30 days result in a permanent account ban
 
 All enforcement actions are automated and based on user reports. Users who are reported are automatically added to the reporter's ignore list for their protection.
+
+Ban durations are enforced from the moment of ban application and may extend slightly beyond the stated duration due to technical processing times. All temporary bans are processed for lifting once per day at 00:00 UTC.
 
 ## 7. Technical Infrastructure
 
