@@ -30,6 +30,14 @@ export function setupRoomManagement(
   );
 
   socket.on(
+    'user-reported',
+    wrapHandler(async (userId) => {
+      logger.debug({ userId }, 'Received user reported');
+      socket.to(userId).emit('user-reported');
+    }),
+  );
+
+  socket.on(
     'ban-user',
     wrapHandler(async ({ partnerUserId, partnerSocketId, banDuration }) => {
       logger.debug(

@@ -15,5 +15,6 @@ export interface ServerToClientEvents {
 
   'peer-message': (data: PeerMessage, userId: string) => void;
 
+  'user-reported': VoidFunction;
   'request-browser-signature': (permanentBan: boolean) => void;
 }

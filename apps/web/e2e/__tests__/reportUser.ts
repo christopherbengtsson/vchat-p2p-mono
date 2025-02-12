@@ -88,6 +88,7 @@ export const reportUser = async (
   await expect(
     toReport.page.getByRole('button', { name: 'Cancel' }),
   ).toBeVisible();
+  await toReport.page.getByRole('button', { name: 'I understand' }).click();
 
   // Login reporter 2 and report user
   await loginTestUser(reporter2.page, reporter2.email, supabaseAdmin);
@@ -99,6 +100,7 @@ export const reportUser = async (
   await expect(
     toReport.page.getByRole('button', { name: 'Cancel' }),
   ).toBeVisible();
+  await toReport.page.getByRole('button', { name: 'I understand' }).click();
 
   // Login reporter 3 and report user
   await loginTestUser(reporter3.page, reporter3.email, supabaseAdmin);

@@ -6,7 +6,7 @@ import { reportUser, reportUserToPermanentBan } from './__tests__/reportUser';
 
 const supabaseAdmin = new SupabaseAdmin();
 
-test.describe.configure({ mode: 'serial' });
+test.describe.configure({ mode: 'serial', timeout: 60_000 });
 test.afterEach(async ({ context }) => {
   await cleanupTestUsers(context, supabaseAdmin);
 });

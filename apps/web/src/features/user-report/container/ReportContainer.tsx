@@ -36,6 +36,8 @@ export const ReportContainer = observer(function ReportContainer() {
           partnerSocketId,
           banDuration,
         });
+      } else {
+        socketStore.socket?.emit('user-reported', partnerSocketId);
       }
     },
     [callStore.partnerSocketId, callStore.partnerUserId, socketStore.socket],
