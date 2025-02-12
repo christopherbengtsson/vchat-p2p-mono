@@ -5,11 +5,11 @@ async function banUserFromLogin(
   client: SupabaseClient,
   userId: string,
   banDurationHours: BanDuration,
-  permanentBan: boolean,
+  permanentBan?: boolean,
 ) {
   // TODO: Create cron job to lift ban
   const userMetaData: UserMetadata = {
-    [UserMetadataKeys.PERMANENT_BAN]: permanentBan,
+    [UserMetadataKeys.PERMANENT_BAN]: !!permanentBan,
   };
 
   return client.auth.admin.updateUserById(userId, {
