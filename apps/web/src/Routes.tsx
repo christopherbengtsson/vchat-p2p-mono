@@ -10,41 +10,55 @@ import { HomePage } from './features/home/page/HomePage';
 import { RandomCallPage } from './features/call/page/RandomCallPage';
 
 export function Routes() {
-  const router = createBrowserRouter([
+  const router = createBrowserRouter(
+    [
+      {
+        path: RoutePath.TERMS,
+        element: <TermsOfServicePage />,
+      },
+      {
+        element: <LayoutContainer />,
+        errorElement: <div>Root error</div>,
+        children: [
+          {
+            path: RoutePath.AUTH,
+            element: <AuthPage />,
+          },
+          {
+            path: RoutePath.BANNED,
+            element: <UserBannedPage />,
+          },
+          {
+            element: <AuthenticatedRoutesContainer />,
+            children: [
+              {
+                index: true,
+                element: <HomePage />,
+              },
+              {
+                path: RoutePath.CALL,
+                element: <RandomCallPage />,
+              },
+            ],
+          },
+        ],
+      },
+    ],
     {
-      path: RoutePath.TERMS,
-      element: <TermsOfServicePage />,
+      future: {
+        v7_relativeSplatPath: true,
+      },
     },
-    {
-      element: <LayoutContainer />,
-      errorElement: <div>Root error</div>,
-      children: [
-        {
-          path: RoutePath.AUTH,
-          element: <AuthPage />,
-        },
-        {
-          path: RoutePath.BANNED,
-          element: <UserBannedPage />,
-        },
-        {
-          element: <AuthenticatedRoutesContainer />,
-          children: [
-            {
-              index: true,
-              element: <HomePage />,
-            },
-            {
-              path: RoutePath.CALL,
-              element: <RandomCallPage />,
-            },
-          ],
-        },
-      ],
-    },
-  ]);
+  );
 
   const routerWithAnalytics = withFaroRouterInstrumentation(router);
 
-  return <RouterProvider router={routerWithAnalytics} />;
+  return (
+    <RouterProvider
+      router={routerWithAnalytics}
+      future={{
+        v7_startTransition: true,
+      }}
+    />
+  );
 }
