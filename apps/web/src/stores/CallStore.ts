@@ -69,7 +69,28 @@ export class CallStore {
     this.partnerSocketId = partnerSocketId;
     this.partnerUserId = partnerUserId;
     this.isPolite = isPolite;
-    this.webRtcService = new WebRTCService(this.rootStore);
+
+    this.webRtcService = new WebRTCService({
+      observables: {
+        socket: this.rootStore.socketStore.socket,
+        localStream: this.rootStore.mediaStore.stream,
+        roomId,
+        partnerSocketId,
+        isPolite,
+      },
+      callbacks: {
+        handlePartnerVideoToggle: this.handlePartnerVideoToggle,
+        handlePartnerAudioToggle: this.handlePartnerAudioToggle,
+      },
+      setters: {
+        setRemoteStream: this.setRemoteStream,
+      },
+      injectables: {
+        handleIncomingGameMessage:
+          this.rootStore.gameStore.handleIncomingMessage,
+        setRemoteCanvasStream: this.rootStore.gameStore.setRemoteCanvasStream,
+      },
+    });
 
     this.emitJoinRoom(roomId);
     this.callState = CallState.MATCH_FOUND;
@@ -113,9 +134,11 @@ export class CallStore {
     this.cleanupAfterCall();
   }
 
-  setRemoteStream(stream: MediaStream) {
-    this.remoteStream = stream;
-  }
+  setRemoteStream = (stream: MediaStream) => {
+    if (!this.remoteStream) {
+      this.remoteStream = stream;
+    }
+  };
 
   emitFindMatch() {
     this.rootStore.socketStore.socket?.emit(

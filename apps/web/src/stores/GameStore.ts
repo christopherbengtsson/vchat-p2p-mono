@@ -73,7 +73,7 @@ export class GameStore {
     };
     this.sendMessage(payload);
   }
-  handleIncomingMessage(message: GameData) {
+  handleIncomingMessage = (message: GameData) => {
     switch (message.type) {
       case 'INVITE':
         this.inviteDialogOpen = true;
@@ -90,7 +90,7 @@ export class GameStore {
       default:
         break;
     }
-  }
+  };
   async startGame() {
     this.gameActive = true;
     this.partnersTurn = false;
@@ -139,9 +139,9 @@ export class GameStore {
     this.resultDialogOpen = false;
   }
 
-  setRemoteCanvasStream(stream: Maybe<MediaStream>) {
+  setRemoteCanvasStream = (stream: Maybe<MediaStream>) => {
     this.remoteCanvasStream = stream;
-  }
+  };
   setLocalCanvasAudioStream(stream: Maybe<MediaStream>) {
     this.localCanvasAudioStream = stream;
   }

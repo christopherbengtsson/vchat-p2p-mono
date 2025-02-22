@@ -42,6 +42,9 @@ export class AudioFrequencyService {
   public close() {
     this.source.disconnect();
     this.analyser.disconnect();
-    this.audioContext.close();
+
+    if (this.audioContext.state !== 'closed') {
+      this.audioContext.close();
+    }
   }
 }

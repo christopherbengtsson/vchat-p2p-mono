@@ -1,19 +1,44 @@
-import { PeerMessage } from '@mono/common-dto';
+import { Maybe, PeerMessage } from '@mono/common-dto';
 import { Assert } from '@/common/utils/Assert';
 import type { DataChannelMessage } from '@/stores/model/DataChannelMessage';
-import { RootStore } from '@/stores/RootStore';
+import { ChatSocket } from '@/stores/model/SocketModel';
+import { GameData } from '@/stores/model/GameData';
+import { webRTCConfig } from './config';
 
-const configuration = {
-  iceServers: [
-    {
-      urls: ['stun:stun1.l.google.com:19302', 'stun:stun2.l.google.com:19302'],
-    },
-  ],
-  iceCandidatePoolSize: 10,
-};
+interface Observables {
+  socket: Maybe<ChatSocket>;
+  localStream: Maybe<MediaStream>;
+  roomId: Maybe<string>;
+  partnerSocketId: Maybe<string>;
+  isPolite: boolean;
+}
+
+interface Setters {
+  setRemoteStream: (stream: MediaStream) => void;
+}
+
+interface Callbacks {
+  handlePartnerVideoToggle: (toggle: boolean) => void;
+  handlePartnerAudioToggle: (toggle: boolean) => void;
+}
+
+interface Injectables {
+  handleIncomingGameMessage?: (message: GameData) => void;
+  setRemoteCanvasStream?: (stream: MediaStream) => void;
+}
+
+interface Params {
+  observables: Observables;
+  setters: Setters;
+  callbacks: Callbacks;
+  injectables: Maybe<Injectables>;
+}
 
 export class WebRTCService {
-  private rootStore: RootStore;
+  private observables: Observables;
+  private setters: Setters;
+  private callbacks: Callbacks;
+  injectables: Maybe<Injectables>;
 
   private peerConnection: RTCPeerConnection;
 
@@ -21,23 +46,30 @@ export class WebRTCService {
   private ignoreOffer = false;
 
   private canvasSender: RTCRtpSender | null = null;
-  private videoStreamId: string | null = null;
 
   private dataChannel: RTCDataChannel | null = null;
 
-  constructor(rootStore: RootStore) {
-    this.rootStore = rootStore;
+  private remoteVideoChatStreamId: Maybe<string>;
 
-    this.peerConnection = new RTCPeerConnection(configuration);
+  constructor({ callbacks, observables, setters, injectables }: Params) {
+    this.observables = observables;
+    this.setters = setters;
+    this.callbacks = callbacks;
+    this.injectables = injectables;
+
+    this.peerConnection = new RTCPeerConnection(webRTCConfig);
 
     this.setupPeerListeners();
     this.setupSocketListeners();
 
     this.createDataChannel();
 
-    Assert.isDefined(this.rootStore.mediaStore.stream, 'Stream is not defined');
-    for (const track of this.rootStore.mediaStore.stream.getTracks()) {
-      this.peerConnection.addTrack(track, this.rootStore.mediaStore.stream);
+    Assert.isDefined(
+      this.observables.localStream,
+      'Local stream is not defined',
+    );
+    for (const track of this.observables.localStream.getTracks()) {
+      this.peerConnection.addTrack(track, this.observables.localStream);
     }
   }
 
@@ -51,15 +83,12 @@ export class WebRTCService {
   }
 
   private setupSocketListeners() {
-    Assert.isDefined(
-      this.rootStore.socketStore.socket,
-      'Socket is not defined',
-    );
-    this.rootStore.socketStore.socket.on('peer-message', this.handleOffer);
+    Assert.isDefined(this.observables.socket, 'Socket is not defined');
+    this.observables.socket.on('peer-message', this.handleOffer);
   }
 
   private createDataChannel() {
-    if (!this.rootStore.callStore.isPolite) {
+    if (!this.observables.isPolite) {
       this.dataChannel = this.peerConnection.createDataChannel('game');
       this.setupDataChannel();
     }
@@ -74,8 +103,7 @@ export class WebRTCService {
       this.sendMessage({
         type: 'VIDEO_TOGGLE',
         toggle:
-          this.rootStore.mediaStore.stream?.getVideoTracks()[0].enabled ??
-          false,
+          this.observables.localStream?.getVideoTracks()[0].enabled ?? false,
       });
     };
 
@@ -83,9 +111,9 @@ export class WebRTCService {
   }
 
   private handleNegotiationNeeded = async () => {
-    Assert.isDefined(this.rootStore.callStore.roomId, 'roomId is not defined');
+    Assert.isDefined(this.observables.roomId, 'roomId is not defined');
     Assert.isDefined(
-      this.rootStore.callStore.partnerSocketId,
+      this.observables.partnerSocketId,
       'partnerId is not defined',
     );
     try {
@@ -93,15 +121,12 @@ export class WebRTCService {
 
       await this.peerConnection.setLocalDescription();
 
-      Assert.isDefined(
-        this.rootStore.socketStore.socket,
-        'socket is not defined',
-      );
-      this.rootStore.socketStore.socket.emit(
+      Assert.isDefined(this.observables.socket, 'socket is not defined');
+      this.observables.socket.emit(
         'peer-message',
         { description: this.peerConnection.localDescription },
-        this.rootStore.callStore.roomId,
-        this.rootStore.callStore.partnerSocketId,
+        this.observables.roomId,
+        this.observables.partnerSocketId,
       );
     } catch (err) {
       console.error(err);
@@ -117,16 +142,16 @@ export class WebRTCService {
   };
 
   private handleIceCandidate = (event: RTCPeerConnectionIceEvent) => {
-    Assert.isDefined(this.rootStore.socketStore.socket);
-    Assert.isDefined(this.rootStore.callStore.roomId);
-    Assert.isDefined(this.rootStore.callStore.partnerSocketId);
+    Assert.isDefined(this.observables.socket);
+    Assert.isDefined(this.observables.roomId);
+    Assert.isDefined(this.observables.partnerSocketId);
 
     if (event.candidate) {
-      this.rootStore.socketStore.socket.emit(
+      this.observables.socket.emit(
         'peer-message',
         { candidate: event.candidate },
-        this.rootStore.callStore.roomId,
-        this.rootStore.callStore.partnerSocketId,
+        this.observables.roomId,
+        this.observables.partnerSocketId,
       );
     }
   };
@@ -134,17 +159,13 @@ export class WebRTCService {
   private handleTrackEvent = (event: RTCTrackEvent) => {
     event.track.onunmute = () => {
       const remoteStream = event.streams[0];
+      const streamId = remoteStream.id;
 
-      if (!this.rootStore.callStore.remoteStream) {
-        this.rootStore.callStore.setRemoteStream(remoteStream);
-        this.videoStreamId = remoteStream.id;
-      }
-
-      if (
-        !this.rootStore.gameStore.remoteCanvasStream &&
-        remoteStream.id !== this.videoStreamId
-      ) {
-        this.rootStore.gameStore.setRemoteCanvasStream(remoteStream);
+      if (!this.remoteVideoChatStreamId) {
+        this.remoteVideoChatStreamId = streamId;
+        this.setters.setRemoteStream(remoteStream);
+      } else if (this.remoteVideoChatStreamId !== streamId) {
+        this.injectables?.setRemoteCanvasStream?.(remoteStream);
       }
     };
   };
@@ -155,9 +176,9 @@ export class WebRTCService {
   };
 
   private handleOffer = async (peerMessage: PeerMessage, _userId: string) => {
-    Assert.isDefined(this.rootStore.socketStore.socket);
-    Assert.isDefined(this.rootStore.callStore.roomId);
-    Assert.isDefined(this.rootStore.callStore.partnerSocketId);
+    Assert.isDefined(this.observables.socket);
+    Assert.isDefined(this.observables.roomId);
+    Assert.isDefined(this.observables.partnerSocketId);
 
     if (!this.peerConnection) {
       console.warn(
@@ -172,18 +193,18 @@ export class WebRTCService {
           description.type === 'offer' &&
           (this.makingOffer || this.peerConnection.signalingState !== 'stable');
 
-        this.ignoreOffer = !this.rootStore.callStore.isPolite && offerCollision;
+        this.ignoreOffer = !this.observables.isPolite && offerCollision;
         if (this.ignoreOffer) return;
 
         await this.peerConnection.setRemoteDescription(description); // SRD rolls back as needed
 
         if (description.type === 'offer') {
           await this.peerConnection.setLocalDescription();
-          this.rootStore.socketStore.socket.emit(
+          this.observables.socket.emit(
             'peer-message',
             { description: this.peerConnection.localDescription },
-            this.rootStore.callStore.roomId,
-            this.rootStore.callStore.partnerSocketId,
+            this.observables.roomId,
+            this.observables.partnerSocketId,
           );
         }
       } else if (
@@ -206,15 +227,15 @@ export class WebRTCService {
 
     switch (message.type) {
       case 'GAME':
-        this.rootStore.gameStore.handleIncomingMessage(message.data);
+        this.injectables?.handleIncomingGameMessage?.(message.data);
         break;
 
       case 'VIDEO_TOGGLE':
-        this.rootStore.callStore.handlePartnerVideoToggle(message.toggle);
+        this.callbacks.handlePartnerVideoToggle(message.toggle);
         break;
 
       case 'AUDIO_TOGGLE':
-        this.rootStore.callStore.handlePartnerAudioToggle(message.toggle);
+        this.callbacks.handlePartnerAudioToggle(message.toggle);
         break;
 
       // TODO: Add cases for other message types (e.g., chat messages)
@@ -251,7 +272,7 @@ export class WebRTCService {
   }
 
   cleanup() {
-    this.rootStore.socketStore.socket?.off('peer-message', this.handleOffer);
+    this.observables.socket?.off('peer-message', this.handleOffer);
 
     this.cleanupDataChannel();
 
@@ -266,7 +287,6 @@ export class WebRTCService {
     }
 
     this.canvasSender = null;
-    this.videoStreamId = null;
   }
 
   private cleanupDataChannel() {
