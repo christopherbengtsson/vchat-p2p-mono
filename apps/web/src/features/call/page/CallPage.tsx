@@ -5,7 +5,7 @@ import { CallState } from '@/stores/model/CallState';
 import { QueueContainer } from '../container/QueueContainer';
 import { InCallContainer } from '../container/InCallContainer';
 
-export const RandomCallPage = observer(function CallPage() {
+export const CallPage = observer(function CallPage() {
   const { callStore } = useRootStore();
 
   switch (callStore.callState) {

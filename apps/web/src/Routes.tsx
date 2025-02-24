@@ -7,7 +7,7 @@ import { TermsOfServicePage } from './features/consent/page/TermsOfServicePage';
 import { AuthPage } from './features/auth/page/AuthPage';
 import { UserBannedPage } from './features/user-report/page/UserBannedPage';
 import { HomePage } from './features/home/page/HomePage';
-import { RandomCallPage } from './features/call/page/RandomCallPage';
+import { CallPage } from './features/call/page/CallPage';
 
 export function Routes() {
   const router = createBrowserRouter(
@@ -37,7 +37,7 @@ export function Routes() {
               },
               {
                 path: RoutePath.CALL,
-                element: <RandomCallPage />,
+                element: <CallPage />,
               },
             ],
           },

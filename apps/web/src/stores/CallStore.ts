@@ -63,7 +63,7 @@ export class CallStore {
     partnerUserId: string,
     isPolite: boolean,
   ) {
-    this.setupListeners();
+    this.setupInCallListeners();
 
     this.roomId = roomId;
     this.partnerSocketId = partnerSocketId;
@@ -111,7 +111,7 @@ export class CallStore {
   }
 
   cleanupAfterCall() {
-    this.removeListeners();
+    this.removeInCallListeners();
     this.rootStore.gameStore.cleanupGame();
     this.webRtcService?.cleanup();
     this.webRtcService = undefined;
@@ -165,7 +165,7 @@ export class CallStore {
     );
   }
 
-  setupListeners() {
+  setupInCallListeners() {
     const socket = this.rootStore.socketStore.socket;
     if (!socket) return;
 
@@ -173,7 +173,7 @@ export class CallStore {
     socket.on('partner-disconnected', this.handlePartnerDisconnected);
   }
 
-  removeListeners() {
+  removeInCallListeners() {
     const socket = this.rootStore.socketStore.socket;
     if (!socket) return;
 
