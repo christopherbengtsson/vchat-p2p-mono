@@ -2,11 +2,11 @@ import { useMemo } from 'react';
 import { observer } from 'mobx-react';
 import { DrawerDialog } from '@/common/components/drawer-dialog/DrawerDialog';
 import { Button } from '@/common/components/ui/button';
-import { useRootStore } from '@/stores/hooks/useRootStore';
 import { ResultDialogContent } from '../component/ResultDialogContent';
+import { useCallStore } from '../../call/context/useCallStore';
 
 export const ResultDialogContainer = observer(function ResultDialogContainer() {
-  const { gameStore } = useRootStore();
+  const { gameStore } = useCallStore();
 
   const dialogContent = useMemo(() => {
     return {

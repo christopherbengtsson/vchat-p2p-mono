@@ -1,10 +1,10 @@
 import { observer } from 'mobx-react';
-import { useRootStore } from '@/stores/hooks/useRootStore';
 import { StartGameAlertDialog } from '../component/StartGameAlertDialog';
+import { useCallStore } from '../../call/context/useCallStore';
 
 export const StartGameAlertDialogContainer = observer(
   function StartGameAlertDialogContainer() {
-    const { gameStore } = useRootStore();
+    const { gameStore } = useCallStore();
 
     const startGame = async () => {
       await gameStore.startGame();

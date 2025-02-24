@@ -3,6 +3,7 @@ export enum RoutePath {
   AUTH = '/auth',
   HOME = '/',
   CALL = '/call',
+  IN_CALL = '/call/:roomId',
   BANNED = '/banned',
 }
 

@@ -1,15 +1,19 @@
 import { useCallback, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { observer } from 'mobx-react';
 import { BanDuration } from '@mono/common-dto';
-import { Assert } from '@/common/utils/Assert';
 import { useRootStore } from '@/stores/hooks/useRootStore';
 import { ReportButton } from '../component/ReportButton';
 import { ReportDialog } from '../component/ReportDialog';
 import { useReportUser } from '../hooks/useReportUser';
+import { InCallService } from '../../call/in-call/service/InCallService';
+import { useCallStore } from '../../call/context/useCallStore';
 
 // TODO: Ban user with reason, e.g. harassment, spam, etc.
 export const ReportContainer = observer(function ReportContainer() {
-  const { callStore, authStore, socketStore } = useRootStore();
+  const navigate = useNavigate();
+  const { authStore, socketStore } = useRootStore();
+  const callStore = useCallStore();
   const [dialogOpen, setDialogOpen] = useState(false);
   const { mutate: reportUser, isPending } = useReportUser();
 
@@ -27,8 +31,6 @@ export const ReportContainer = observer(function ReportContainer() {
     (banDuration: BanDuration) => {
       const partnerUserId = callStore.partnerUserId;
       const partnerSocketId = callStore.partnerSocketId;
-      Assert.isDefined(partnerUserId, 'partnerUserId is not defined');
-      Assert.isDefined(partnerSocketId, 'partnerSocketId is not defined');
 
       if (banDuration !== BanDuration.NO_BAN) {
         socketStore.socket?.emit('ban-user', {
@@ -43,26 +45,35 @@ export const ReportContainer = observer(function ReportContainer() {
     [callStore.partnerSocketId, callStore.partnerUserId, socketStore.socket],
   );
 
-  const onReportClick = useCallback(() => {
-    const partnerUserId = callStore.partnerUserId;
-    const partnerSocketId = callStore.partnerSocketId;
-    Assert.isDefined(partnerUserId, 'partnerUserId is not defined');
-    Assert.isDefined(partnerSocketId, 'partnerSocketId is not defined');
+  const handleReportSettled = useCallback(() => {
+    setDialogOpen(false);
 
+    InCallService.endCall(
+      socketStore.socket,
+      callStore.roomId,
+      socketStore.id,
+      navigate,
+    );
+  }, [socketStore.socket, socketStore.id, callStore.roomId, navigate]);
+
+  const onReportClick = useCallback(() => {
     reportUser(
       {
         reporterId: authStore.userId,
-        toReportId: partnerUserId,
+        toReportId: callStore.partnerUserId,
       },
       {
         onSuccess: handleReportSuccess,
-        onSettled: () => {
-          setDialogOpen(false);
-          callStore.endCall();
-        },
+        onSettled: handleReportSettled,
       },
     );
-  }, [callStore, reportUser, authStore.userId, handleReportSuccess]);
+  }, [
+    authStore.userId,
+    callStore.partnerUserId,
+    handleReportSettled,
+    handleReportSuccess,
+    reportUser,
+  ]);
 
   return (
     <>

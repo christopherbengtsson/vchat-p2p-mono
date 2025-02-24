@@ -1,11 +1,11 @@
 import { observer } from 'mobx-react';
 import { toast } from 'sonner';
-import { useRootStore } from '@/stores/hooks/useRootStore';
+import { useCallStore } from '@/features/call/context/useCallStore';
 import { InviteAlertDialog } from '../component/InviteAlertDialog';
 
 export const InviteAlertDialogContainer = observer(
   function InviteAlertDialogContainer() {
-    const { gameStore } = useRootStore();
+    const { gameStore } = useCallStore();
 
     const handleAccept = () => {
       gameStore.answerGameInvite(true);

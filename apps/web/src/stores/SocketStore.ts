@@ -80,7 +80,7 @@ export class SocketStore {
       console.debug('Disconnected by server');
       showToast(ErrorToastState.SERVER_DISCONNECTED);
     }
-    this.rootStore.callStore.resetCallState();
+    // this.rootStore.callStore.resetCallState();
   };
 
   handleConnectError = (_err: Error) => {
@@ -122,7 +122,7 @@ export class SocketStore {
   };
 
   disconnect() {
-    this.rootStore.callStore.resetCallState();
+    // this.rootStore.callStore.resetCallState();
     this.socket?.disconnect();
   }
 }

@@ -4,11 +4,13 @@ import { useRootStore } from '@/stores/hooks/useRootStore';
 import { ReportContainer } from '@/features/user-report/container/ReportContainer';
 import { FlyingBallContainer } from '@/features/flying-ball-game/container/FlyingBallContainer';
 import { FeatureFlagUtil } from '@/common/utils/FeatureFlagUtil';
+import { useCallStore } from '../../context/useCallStore';
+import { UserVideoContainer } from '../component/UserVideoContainer';
 import { CallActionContainer } from './CallActionContainer';
-import { UserVideoContainer } from './UserVideoContainer';
 
 export const InCallContainer = observer(function InCallPage() {
-  const { mediaStore, callStore } = useRootStore();
+  const { mediaStore } = useRootStore();
+  const callStore = useCallStore();
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
   const isGameEnabled = FeatureFlagUtil.isGamesEnabled();

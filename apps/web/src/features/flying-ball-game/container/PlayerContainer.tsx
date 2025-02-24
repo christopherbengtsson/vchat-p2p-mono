@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { observer } from 'mobx-react';
-import { useRootStore } from '@/stores/hooks/useRootStore';
 import { Canvas } from '../component/Canvas';
 import { useCanvasDraw } from '../hooks/useCanvasDraw';
 import { useCanvasAnimate } from '../hooks/useCanvasAnimate';
 import { useCanvasResize } from '../hooks/useCanvasResize';
+import { useCallStore } from '../../call/context/useCallStore';
 
 export const PlayerContainer = observer(function PlayerContainer() {
-  const { gameStore } = useRootStore();
+  const { gameStore } = useCallStore();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 

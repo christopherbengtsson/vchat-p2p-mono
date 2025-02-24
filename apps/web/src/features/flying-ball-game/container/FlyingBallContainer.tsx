@@ -1,11 +1,11 @@
 import { observer } from 'mobx-react';
-import { useRootStore } from '@/stores/hooks/useRootStore';
+import { useCallStore } from '@/features/call/context/useCallStore';
 import { InviteAlertDialogContainer } from './InviteAlertDialogContainer';
 import { StartGameAlertDialogContainer } from './StartGameAlertDialogContainer';
 import { InGameContainer } from './InGameContainer';
 
 export const FlyingBallContainer = observer(function FlyingBallContainer() {
-  const { gameStore } = useRootStore();
+  const { gameStore } = useCallStore();
 
   return (
     <>

@@ -7,7 +7,8 @@ import { TermsOfServicePage } from './features/consent/page/TermsOfServicePage';
 import { AuthPage } from './features/auth/page/AuthPage';
 import { UserBannedPage } from './features/user-report/page/UserBannedPage';
 import { HomePage } from './features/home/page/HomePage';
-import { CallPage } from './features/call/page/CallPage';
+import { QueuePage } from './features/call/queue/page/QueuePage';
+import { InCallPage } from './features/call/in-call/page/InCallPage';
 
 export function Routes() {
   const router = createBrowserRouter(
@@ -37,7 +38,11 @@ export function Routes() {
               },
               {
                 path: RoutePath.CALL,
-                element: <CallPage />,
+                element: <QueuePage />,
+              },
+              {
+                path: RoutePath.IN_CALL,
+                element: <InCallPage />,
               },
             ],
           },

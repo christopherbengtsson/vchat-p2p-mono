@@ -15,6 +15,7 @@ interface Observables {
 
 interface Setters {
   setRemoteStream: (stream: MediaStream) => void;
+  setIsConnected: (value: boolean) => void;
 }
 
 interface Callbacks {
@@ -139,6 +140,14 @@ export class WebRTCService {
     if (this.peerConnection.iceConnectionState === 'failed') {
       this.peerConnection.restartIce();
     }
+
+    console.log(
+      `ICE connection state changed to: ${this.peerConnection.iceConnectionState}`,
+    );
+
+    this.setters.setIsConnected(
+      this.peerConnection.iceConnectionState === 'connected',
+    );
   };
 
   private handleIceCandidate = (event: RTCPeerConnectionIceEvent) => {
@@ -272,6 +281,7 @@ export class WebRTCService {
   }
 
   cleanup() {
+    console.log('Cleaning up WebRTCService');
     this.observables.socket?.off('peer-message', this.handleOffer);
 
     this.cleanupDataChannel();

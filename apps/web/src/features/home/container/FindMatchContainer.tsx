@@ -8,7 +8,7 @@ import { PermissionsDialog } from '../component/PermissionsDialog';
 import { FindMatchButton } from '../component/FindMatchButton';
 
 export const FindMatchContainer = observer(function FindMatchContainer() {
-  const { socketStore, callStore, mediaStore } = useRootStore();
+  const { socketStore, mediaStore } = useRootStore();
   const navigate = useNavigate();
 
   const [startingMedia, setStartingMedia] = useState(false);
@@ -34,8 +34,11 @@ export const FindMatchContainer = observer(function FindMatchContainer() {
       showToast(error);
     }
 
-    callStore.findMatch();
-    navigate(RoutePath.CALL);
+    navigate(RoutePath.CALL, {
+      state: {
+        findMatch: true,
+      },
+    });
   };
 
   const requestMedia = async () => {

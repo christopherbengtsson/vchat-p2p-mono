@@ -1,45 +1,58 @@
 import { useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { observer } from 'mobx-react';
 import { toast } from 'sonner';
 import { useRootStore } from '@/stores/hooks/useRootStore';
+import { Assert } from '@/common/utils/Assert';
 import { cn } from '@/common/lib/utils';
 import { FeatureFlagUtil } from '@/common/utils/FeatureFlagUtil';
 import { IS_DARK_MODE } from '@/common/utils/isDarkMode';
+import { useCallStore } from '../../context/useCallStore';
 import { ToggleCameraButton } from '../component/ToggleCameraButton';
 import { ToggleMuteButton } from '../component/ToggleMuteButton';
 import { EndCallButton } from '../component/EndCallButton';
 import { GameInviteButton } from '../component/GameInviteButton';
+import { InCallService } from '../service/InCallService';
 
 export const CallActionContainer = observer(function CallActionContainer() {
-  const { callStore, mediaStore, gameStore } = useRootStore();
+  const { mediaStore, socketStore } = useRootStore();
+  const callStore = useCallStore();
   const isGameEnabled = FeatureFlagUtil.isGamesEnabled();
+
+  const navigate = useNavigate();
 
   const toggleVideo = useCallback(() => {
     const toggle = !mediaStore.videoEnabled;
-    gameStore.sendMessage({
+    callStore.webRtcService?.sendMessage({
       type: 'VIDEO_TOGGLE',
       toggle,
     });
     mediaStore.setVideoEnabled(toggle);
-  }, [gameStore, mediaStore]);
+  }, [callStore.webRtcService, mediaStore]);
 
   const toggleAudio = useCallback(() => {
     const toggle = !mediaStore.audioEnabled;
     mediaStore.setAudioEnabled(toggle);
-    gameStore.sendMessage({
+    callStore.webRtcService?.sendMessage({
       type: 'AUDIO_TOGGLE',
       toggle,
     });
-  }, [gameStore, mediaStore]);
+  }, [callStore.webRtcService, mediaStore]);
 
   const handleCanvasStream = useCallback(() => {
-    gameStore.invitePartnerToGame();
+    callStore.gameStore.invitePartnerToGame();
     toast.success('Invitation to game sent!');
-  }, [gameStore]);
+  }, [callStore.gameStore]);
 
   const endCall = useCallback(() => {
-    callStore.endCall();
-  }, [callStore]);
+    Assert.isDefined(callStore.roomId, 'roomId is not defined');
+    InCallService.endCall(
+      socketStore.socket,
+      callStore.roomId,
+      socketStore.id,
+      navigate,
+    );
+  }, [callStore.roomId, navigate, socketStore]);
 
   return (
     <div
@@ -64,7 +77,7 @@ export const CallActionContainer = observer(function CallActionContainer() {
 
       {isGameEnabled && (
         <GameInviteButton
-          gameActive={gameStore.gameActive}
+          gameActive={callStore.gameStore.gameActive}
           onToggle={handleCanvasStream}
         />
       )}

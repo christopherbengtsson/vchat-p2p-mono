@@ -10,9 +10,13 @@ import { AdHoc } from './AdHoc';
 import { PeerConnection } from './PeerConnection';
 
 interface WebRTCInstance {
+  isConnecting: () => boolean;
+  isConnected: () => boolean;
+
   sendMessage: (msg: DataChannelMessage) => void;
   addCanvasStream: (stream: MediaStream) => void;
   removeCanvasStream: () => void;
+
   close: () => void;
 }
 
@@ -29,7 +33,7 @@ const _close = (
   instance = undefined;
 };
 
-const create = (params: WebRTCParams, override?: false) => {
+const create = (params: WebRTCParams, override = true) => {
   if (instance) {
     if (override) {
       instance.close();
@@ -46,12 +50,16 @@ const create = (params: WebRTCParams, override?: false) => {
   Signaling.setup(peerConnection, params, webRTCState);
 
   instance = {
+    isConnecting: () => peerConnection.connectionState === 'connecting',
+    isConnected: () => peerConnection.connectionState === 'connected',
+
     sendMessage: (msg: DataChannelMessage) =>
       DataChannel.sendMessage(dataChannel, msg),
     addCanvasStream: (stream: MediaStream) =>
       AdHoc.addCanvasStream(peerConnection, webRTCState, stream),
     removeCanvasStream: () =>
       AdHoc.removeCanvasStream(peerConnection, webRTCState),
+
     close: () => _close(peerConnection, dataChannel, params.observables.socket),
   };
 

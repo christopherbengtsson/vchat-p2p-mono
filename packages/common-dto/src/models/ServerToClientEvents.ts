@@ -5,7 +5,7 @@ export interface ServerToClientEvents {
     roomId: string,
     partnerSocketId: string,
     partnerUserId: string,
-    createOffer: boolean,
+    isPolite: boolean,
   ) => void;
   'find-match': (userId: string) => void;
   'user-joined': (userId: string) => void;
