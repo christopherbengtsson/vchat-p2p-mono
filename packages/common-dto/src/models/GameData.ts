@@ -1,5 +1,5 @@
-import type { InviteResponse } from './InviteResponse';
-import type { RoundData } from './RoundData';
+import type { InviteResponse } from './InviteResponse.js';
+import type { RoundData } from './RoundData.js';
 
 export type GameData =
   | {

@@ -1,7 +1,5 @@
 import { makeAutoObservable, observable } from 'mobx';
-import type { Maybe } from '@mono/common-dto';
 import type { RootStore } from '@/stores/RootStore';
-import { WebRTCService } from '../service/WebRTCService';
 import { GameStore } from '../../../stores/GameStore';
 
 interface CallStoreProps {
@@ -23,7 +21,6 @@ export class CallStore {
   remoteVideoEnabled = true;
   remoteAudioEnabled = true;
 
-  webRtcService: Maybe<WebRTCService>;
   remoteStream: MediaStream | null = null;
 
   isConnected = false;
@@ -37,10 +34,9 @@ export class CallStore {
     this.partnerUserId = callProps.partnerUserId;
     this.isPolite = callProps.isPolite;
 
-    this.gameStore = new GameStore(this.rootStore, this);
+    this.gameStore = new GameStore(this.rootStore);
 
     makeAutoObservable(this, {
-      webRtcService: observable.ref,
       remoteStream: observable.ref,
 
       isPolite: false,
@@ -61,59 +57,25 @@ export class CallStore {
     this.remoteAudioEnabled = enabled;
   };
 
-  initNewCall(
-    roomId: string,
-    partnerSocketId: string,
-    partnerUserId: string,
-    isPolite: boolean,
-  ) {
+  setCallObservables({
+    roomId,
+    partnerSocketId,
+    partnerUserId,
+    isPolite,
+  }: {
+    roomId: string;
+    partnerSocketId: string;
+    partnerUserId: string;
+    isPolite: boolean;
+  }) {
     this.roomId = roomId;
     this.partnerSocketId = partnerSocketId;
     this.partnerUserId = partnerUserId;
     this.isPolite = isPolite;
-
-    if (this.webRtcService) {
-      this.webRtcService.cleanup();
-    }
-
-    this.webRtcService = new WebRTCService({
-      observables: {
-        socket: this.rootStore.socketStore.socket,
-        localStream: this.rootStore.mediaStore.stream,
-        roomId,
-        partnerSocketId,
-        isPolite,
-      },
-      callbacks: {
-        handlePartnerVideoToggle: this.setPartnerVideoEnabled,
-        handlePartnerAudioToggle: this.setPartnerAudioEnabled,
-      },
-      setters: {
-        setRemoteStream: this.setRemoteStream,
-        setIsConnected: this.setIsConnected,
-      },
-      injectables: {
-        handleIncomingGameMessage: this.gameStore.handleIncomingMessage,
-        setRemoteCanvasStream: this.gameStore.setRemoteCanvasStream,
-      },
-    });
   }
 
   // TODO: Remove
-  cleanupAfterCall() {
+  dispose() {
     this.gameStore.cleanupGame();
-    this.webRtcService?.cleanup();
-    this.webRtcService = undefined;
-
-    this.isPolite = false;
-
-    this.remoteVideoEnabled = true;
-    this.remoteAudioEnabled = true;
-
-    this.remoteStream = null;
-  }
-  resetCallState() {
-    this.rootStore.mediaStore.closeAudioAndVideoStream();
-    this.cleanupAfterCall();
   }
 }

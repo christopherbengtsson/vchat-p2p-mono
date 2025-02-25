@@ -1,4 +1,10 @@
-import { WebRTCStateHandlers } from './WebRTCState';
+import type { WebRTCStateHandlers } from '../model/WebRTCStateHandlers.js';
+
+const addLocalStream = (pc: RTCPeerConnection, localStream: MediaStream) => {
+  for (const track of localStream.getTracks()) {
+    pc.addTrack(track, localStream);
+  }
+};
 
 const addCanvasStream = (
   pc: RTCPeerConnection,
@@ -29,7 +35,8 @@ const removeCanvasStream = (
   }
 };
 
-export const AdHoc = {
+export const AdHocService = {
+  addLocalStream,
   addCanvasStream,
   removeCanvasStream,
 };

@@ -23,7 +23,7 @@ export const CallStoreProvider = observer(function CallStoreProvider({
 
   useEffect(() => {
     return () => {
-      store?.cleanupAfterCall();
+      store?.dispose();
     };
   }, [store]);
 

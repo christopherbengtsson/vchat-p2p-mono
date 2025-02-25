@@ -28,11 +28,7 @@ jobs:
         run: pnpm install --frozen-lockfile --ignore-scripts
 
       - name: Build packages
-        run: |
-          pnpm common-dto build
-          pnpm common-supabase build
-          pnpm be-supabase build
-          pnpm fe-supabase build
+        run: pnpm --filter "./packages/*" build
 
       - name: Web tests + lint
         run: |

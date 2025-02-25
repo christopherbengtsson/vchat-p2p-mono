@@ -1,10 +1,10 @@
 import { useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Maybe } from '@mono/common-dto';
-import { ChatSocket } from '@/stores/model/SocketModel';
+import type { Maybe } from '@mono/common-dto';
+import type { VChatSocket } from '@mono/fe-dto';
 import { InCallService } from '../service/InCallService';
 
-export const useInCallListeners = (socket: Maybe<ChatSocket>) => {
+export const useInCallListeners = (socket: Maybe<VChatSocket>) => {
   const navigate = useNavigate();
 
   const onUserLeft = useCallback(() => {

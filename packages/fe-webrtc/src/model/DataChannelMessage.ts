@@ -1,4 +1,4 @@
-import { GameData } from './GameData';
+import { GameData } from '@mono/common-dto';
 
 export type DataChannelMessage =
   | {

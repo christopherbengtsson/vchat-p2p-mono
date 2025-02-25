@@ -1,9 +1,10 @@
-import { useCallback, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Maybe } from '@mono/common-dto';
+import type { VChatSocket } from '@mono/fe-dto';
+import type { Maybe } from '@mono/common-dto';
 import { RouterStateUtil } from '@/common/utils/RouterStateUtil';
 import { RoutePath } from '@/RoutePath';
-import { ChatSocket } from '../../../../stores/model/SocketModel';
+import { CallStore } from '../../store/CallStore';
 
 interface CallLocation {
   state: Maybe<{
@@ -13,7 +14,7 @@ interface CallLocation {
 }
 
 interface In {
-  socket: Maybe<ChatSocket>;
+  socket: Maybe<VChatSocket>;
   socketId: Maybe<string>;
   userId: string;
 }
@@ -22,22 +23,23 @@ export const useFindMatchOnMount = ({ socket, socketId, userId }: In) => {
   const { state } = useLocation() as CallLocation;
   const navigate = useNavigate();
 
-  const findMatch = useCallback(
-    (socketId: string, userId: string, slow: boolean) => {
-      const timeout = slow ? 2000 : 0; // TODO: Constants
-      setTimeout(() => {
-        socket?.emit('find-match', socketId, userId);
-      }, timeout);
-    },
-    [socket],
-  );
-
   useEffect(() => {
+    let timeout: NodeJS.Timeout;
+
     if (state?.findMatch && socketId) {
-      findMatch(socketId, userId, !!state?.slow);
+      const timeoutMS = state?.slow ? CallStore.NEW_MATCH_TIMEOUT : 0;
+
+      timeout = setTimeout(() => {
+        socket?.emit('find-match', socketId, userId);
+      }, timeoutMS);
+
       RouterStateUtil.clear();
     } else {
       navigate(RoutePath.HOME, { replace: true });
     }
-  }, [findMatch, navigate, socketId, state?.findMatch, state?.slow, userId]);
+
+    return () => {
+      clearTimeout(timeout);
+    };
+  }, [navigate, socket, socketId, state?.findMatch, state?.slow, userId]);
 };

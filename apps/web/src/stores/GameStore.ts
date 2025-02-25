@@ -1,18 +1,18 @@
 import { makeAutoObservable, observable } from 'mobx';
 import { toast } from 'sonner';
-import { Maybe } from '@mono/common-dto';
-import { GameType } from '@/common/model/GameType';
+import type {
+  GameData,
+  InviteResponse,
+  Maybe,
+  RoundData,
+} from '@mono/common-dto';
+import { type DataChannelMessage, WebRTCService } from '@mono/fe-webrtc';
+import type { GameType } from '@/common/model/GameType';
 import { AudioFrequencyService } from '../features/flying-ball-game/service/AudioFrequencyService';
-import { CallStore } from '../features/call/store/CallStore';
 import { RootStore } from './RootStore';
-import { GameData } from './model/GameData';
-import { RoundData } from './model/RoundData';
-import { InviteResponse } from './model/InviteResponse';
-import { DataChannelMessage } from './model/DataChannelMessage';
 
 export class GameStore {
   private rootStore: RootStore;
-  private callStore: CallStore;
 
   gameActive = false;
   gameType: Maybe<GameType> = undefined;
@@ -32,7 +32,7 @@ export class GameStore {
   localCanvasAudioStream: Maybe<MediaStream> = null;
   localCanvasStream: Maybe<MediaStream> = null;
 
-  constructor(rootStore: RootStore, callStore: CallStore) {
+  constructor(rootStore: RootStore) {
     makeAutoObservable(this, {
       remoteCanvasStream: observable.ref,
       localCanvasAudioStream: observable.ref,
@@ -43,7 +43,6 @@ export class GameStore {
     });
 
     this.rootStore = rootStore;
-    this.callStore = callStore;
   }
 
   get gameComplete() {
@@ -101,13 +100,14 @@ export class GameStore {
     await this.startNewRound();
   }
   sendCanvasStream(stream: Maybe<MediaStream>) {
-    if (!stream || !this.callStore.webRtcService) {
+    const webRTC = WebRTCService.get();
+    if (!stream || !webRTC) {
       this.handleUnexpectedGameError();
       return;
     }
 
     this.localCanvasStream = stream;
-    this.callStore.webRtcService.addCanvasStream(stream);
+    webRTC.addCanvasStream(stream);
   }
   roundGameOver(score: number) {
     this.userScore = score;
@@ -184,7 +184,7 @@ export class GameStore {
     this.cleanupGameRound();
   }
   sendMessage(message: DataChannelMessage) {
-    this.callStore.webRtcService?.sendMessage(message);
+    WebRTCService.get()?.sendMessage(message);
   }
   cleanupGameRound() {
     this.audioFrequencyService?.close();

@@ -1,9 +1,10 @@
+import './wdyr.ts';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { Application } from './Application.tsx';
 import './index.css';
 import './features/analytics/faro.ts';
 import { IS_DARK_MODE } from './common/utils/isDarkMode.ts';
+import { Application } from './Application.tsx';
 
 document.documentElement.classList.toggle('dark', IS_DARK_MODE);
 

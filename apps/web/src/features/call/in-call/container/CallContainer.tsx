@@ -1,10 +1,9 @@
-import { useEffect } from 'react';
 import { observer } from 'mobx-react';
-import { RouterStateUtil } from '@/common/utils/RouterStateUtil';
 import { useRootStore } from '@/stores/hooks/useRootStore';
 import { useCallStore } from '../../context/useCallStore';
 import { CallState } from '../page/InCallPage';
 import { useInCallListeners } from '../hooks/useInCallListeners';
+import { useInitNewCall } from '../hooks/useInitNewCall';
 import { InCallContainer } from './InCallContainer';
 import { NewMatchContainer } from './NewMatchContainer';
 
@@ -14,30 +13,11 @@ interface Props {
   };
 }
 export const CallContainer = observer(function CallContainer({ state }: Props) {
-  const { socketStore } = useRootStore();
+  const { socketStore, mediaStore } = useRootStore();
   const callStore = useCallStore();
 
   useInCallListeners(socketStore.socket);
-
-  useEffect(() => {
-    callStore.initNewCall(
-      state.roomId,
-      state.partnerSocketId,
-      state.partnerUserId,
-      state.isPolite,
-    );
-
-    socketStore.socket?.emit('join-room', state.roomId, socketStore.id);
-    RouterStateUtil.clear();
-  }, [
-    callStore,
-    socketStore.id,
-    socketStore.socket,
-    state.isPolite,
-    state.partnerSocketId,
-    state.partnerUserId,
-    state.roomId,
-  ]);
+  useInitNewCall({ state, callStore, socketStore, mediaStore });
 
   if (!callStore.isConnected) {
     // TODO: Set some timeout, if 'connecting' > x seconds

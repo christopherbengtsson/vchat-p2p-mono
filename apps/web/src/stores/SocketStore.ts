@@ -2,6 +2,7 @@ import { makeAutoObservable } from 'mobx';
 import { io } from 'socket.io-client';
 import { toast } from 'sonner';
 import { CustomError, type Maybe } from '@mono/common-dto';
+import type { VChatSocket } from '@mono/fe-dto';
 import { ClientAuthService } from '@mono/fe-supabase';
 import {
   DefaultToastState,
@@ -11,13 +12,12 @@ import { showToast } from '@/common/utils/toast/showToast';
 import { SupabaseClient } from '@/common/clients/supabase';
 import { BrowserSignatureUtil } from '../common/utils/BrowserSignatureUtil';
 import { noop } from '../common/utils/noop';
-import type { ChatSocket } from './model/SocketModel';
 import type { RootStore } from './RootStore';
 
 export class SocketStore {
   private rootStore: RootStore;
 
-  socket: Maybe<ChatSocket>;
+  socket: Maybe<VChatSocket>;
   connected = false;
 
   constructor(rootStore: RootStore) {

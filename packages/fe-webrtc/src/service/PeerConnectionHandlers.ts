@@ -1,6 +1,9 @@
-import { Assert } from '../../../../common/utils/Assert';
-import { Observables, WebRTCParams } from './types';
-import { WebRTCStateHandlers } from './WebRTCState';
+import { Assert } from '@mono/common-dto';
+import type { Observables } from '../model/Observables.js';
+import type { Setters } from '../model/Setters.js';
+import type { WebRTCParams } from '../model/WebRTCParams.js';
+import type { WebRTCStateHandlers } from '../model/WebRTCStateHandlers.js';
+import { DataChannelService } from './DataChannelService.js';
 
 const _handleIceCandidate = (
   event: RTCPeerConnectionIceEvent,
@@ -25,25 +28,34 @@ const _handleTrackEvent = (
   webRTCState: WebRTCStateHandlers,
   { setters, injectables }: WebRTCParams,
 ) => {
+  console.log('_handleTrackEvent');
   event.track.onunmute = () => {
     const remoteStream = event.streams[0];
     const streamId = remoteStream.id;
 
     const { remoteVideoChatStreamId } = webRTCState.getState();
-
+    console.log('remoteVideoChatStreamId', remoteVideoChatStreamId);
     if (!remoteVideoChatStreamId) {
       webRTCState.setState({ remoteVideoChatStreamId: streamId });
       setters.setRemoteStream(remoteStream);
+      console.log('setRemoteStream', remoteStream);
     } else if (remoteVideoChatStreamId !== streamId) {
       injectables?.setRemoteCanvasStream?.(remoteStream);
     }
   };
 };
 
-const _handleIceConnectionStateChange = (pc: RTCPeerConnection) => {
+const _handleIceConnectionStateChange = (
+  pc: RTCPeerConnection,
+  setters: Setters,
+) => {
   if (pc.iceConnectionState === 'failed') {
     pc.restartIce();
   }
+
+  console.log(`ICE connection state changed to: ${pc.iceConnectionState}`);
+
+  setters.setIsConnected(pc.iceConnectionState === 'connected');
 };
 
 const _handleNegotiationNeeded = async (
@@ -79,9 +91,11 @@ const setup = (
 ) => {
   pc.onnegotiationneeded = () =>
     _handleNegotiationNeeded(pc, webRTCState, params.observables);
-  pc.oniceconnectionstatechange = () => _handleIceConnectionStateChange(pc);
+  pc.oniceconnectionstatechange = () =>
+    _handleIceConnectionStateChange(pc, params.setters);
   pc.onicecandidate = (ev) => _handleIceCandidate(ev, params.observables);
   pc.ontrack = (ev) => _handleTrackEvent(ev, webRTCState, params);
+  pc.ondatachannel = (ev) => DataChannelService.onDataChannel(ev, params);
 };
 
 export const PeerConnectionHandlers = {

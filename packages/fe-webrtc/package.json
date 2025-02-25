@@ -1,5 +1,5 @@
 {
-  "name": "@mono/be-supabase",
+  "name": "@mono/fe-webrtc",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -9,17 +9,16 @@
     "dist"
   ],
   "scripts": {
-    "build": "rm -rf dist && tsc",
+    "build": "rm -rf dist && tsc -p tsconfig.build.json",
+    "test": "vitest",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@mono/common-dto": "workspace:*"
+    "@mono/common-dto": "workspace:*",
+    "@mono/fe-dto": "workspace:*"
   },
   "devDependencies": {
-    "@supabase/supabase-js": "^2.48.1",
-    "typescript": "^5.5.3"
-  },
-  "peerDependencies": {
-    "@supabase/supabase-js": "^2.48.1"
+    "typescript": "^5.5.3",
+    "vitest": "^2.1.9"
   }
 }

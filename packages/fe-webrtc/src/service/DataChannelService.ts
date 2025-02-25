@@ -1,6 +1,8 @@
-import { Maybe } from '@mono/common-dto';
-import { DataChannelMessage } from '@/stores/model/DataChannelMessage';
-import { WebRTCParams } from './types';
+import type { Maybe } from '@mono/common-dto';
+import type { DataChannelMessage } from '../model/DataChannelMessage.js';
+import type { WebRTCParams } from '../model/WebRTCParams.js';
+
+let _dataChannel: Maybe<RTCDataChannel>;
 
 const sendMessage = (
   dataChannel: Maybe<RTCDataChannel>,
@@ -12,6 +14,7 @@ const sendMessage = (
     console.warn('Data channel is not open. Cannot send message:', message);
   }
 };
+
 const _handleDataChannelMessage = (
   event: MessageEvent,
   { injectables, callbacks }: WebRTCParams,
@@ -37,7 +40,14 @@ const _handleDataChannelMessage = (
   }
 };
 
+const onDataChannel = (event: RTCDataChannelEvent, params: WebRTCParams) => {
+  const dataChannel = event.channel;
+  _setup(dataChannel, params);
+};
+
 const _setup = (dataChannel: RTCDataChannel, params: WebRTCParams) => {
+  _dataChannel = dataChannel;
+
   dataChannel.onopen = () => {
     console.debug('Data channel is open and ready to be used.');
     // Send the initial state for stream enabled status
@@ -51,8 +61,11 @@ const _setup = (dataChannel: RTCDataChannel, params: WebRTCParams) => {
   dataChannel.onmessage = (event) => _handleDataChannelMessage(event, params);
 };
 
+const get = () => _dataChannel;
+
 const close = (dataChannel: Maybe<RTCDataChannel>) => {
   dataChannel?.close();
+  _dataChannel = undefined;
 };
 
 const create = (pc: RTCPeerConnection, params: WebRTCParams) => {
@@ -64,8 +77,10 @@ const create = (pc: RTCPeerConnection, params: WebRTCParams) => {
   }
 };
 
-export const DataChannel = {
+export const DataChannelService = {
   create,
   close,
+  get,
   sendMessage,
+  onDataChannel,
 };

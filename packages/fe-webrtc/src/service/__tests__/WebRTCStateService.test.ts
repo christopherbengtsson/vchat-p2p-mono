@@ -1,8 +1,8 @@
-import { WebRTCState } from '../WebRTCState';
+import { WebRTCStateService } from '../WebRTCStateService.js';
 
-describe('WebRTCState', () => {
+describe('WebRTCStateService', () => {
   it('should create initial state with default values', () => {
-    const state = WebRTCState.create();
+    const state = WebRTCStateService.create();
 
     expect(state.getState()).toEqual({
       makingOffer: false,
@@ -13,7 +13,7 @@ describe('WebRTCState', () => {
   });
 
   it('should update state partially while preserving other values', () => {
-    const state = WebRTCState.create();
+    const state = WebRTCStateService.create();
 
     state.setState({ makingOffer: true });
 
@@ -26,7 +26,7 @@ describe('WebRTCState', () => {
   });
 
   it('should update multiple state properties at once', () => {
-    const state = WebRTCState.create();
+    const state = WebRTCStateService.create();
     const mockSender = {} as RTCRtpSender;
 
     state.setState({

@@ -2,10 +2,11 @@ import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { observer } from 'mobx-react';
 import { toast } from 'sonner';
+import { WebRTCService } from '@mono/fe-webrtc';
 import { useRootStore } from '@/stores/hooks/useRootStore';
-import { Assert } from '@/common/utils/Assert';
 import { cn } from '@/common/lib/utils';
 import { FeatureFlagUtil } from '@/common/utils/FeatureFlagUtil';
+import { RouterStateUtil } from '@/common/utils/RouterStateUtil';
 import { IS_DARK_MODE } from '@/common/utils/isDarkMode';
 import { useCallStore } from '../../context/useCallStore';
 import { ToggleCameraButton } from '../component/ToggleCameraButton';
@@ -23,21 +24,21 @@ export const CallActionContainer = observer(function CallActionContainer() {
 
   const toggleVideo = useCallback(() => {
     const toggle = !mediaStore.videoEnabled;
-    callStore.webRtcService?.sendMessage({
+    WebRTCService.get()?.sendMessage({
       type: 'VIDEO_TOGGLE',
       toggle,
     });
     mediaStore.setVideoEnabled(toggle);
-  }, [callStore.webRtcService, mediaStore]);
+  }, [mediaStore]);
 
   const toggleAudio = useCallback(() => {
     const toggle = !mediaStore.audioEnabled;
     mediaStore.setAudioEnabled(toggle);
-    callStore.webRtcService?.sendMessage({
+    WebRTCService.get()?.sendMessage({
       type: 'AUDIO_TOGGLE',
       toggle,
     });
-  }, [callStore.webRtcService, mediaStore]);
+  }, [mediaStore]);
 
   const handleCanvasStream = useCallback(() => {
     callStore.gameStore.invitePartnerToGame();
@@ -45,7 +46,8 @@ export const CallActionContainer = observer(function CallActionContainer() {
   }, [callStore.gameStore]);
 
   const endCall = useCallback(() => {
-    Assert.isDefined(callStore.roomId, 'roomId is not defined');
+    RouterStateUtil.clear();
+
     InCallService.endCall(
       socketStore.socket,
       callStore.roomId,

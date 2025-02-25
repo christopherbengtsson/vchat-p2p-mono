@@ -1,4 +1,5 @@
 export * from './generated/models/Database.js';
+export * from './models/Assert.js';
 export * from './models/BanDuration.js';
 export * from './models/BanReason.js';
 export * from './models/BrowserSignature.js';
@@ -7,8 +8,11 @@ export * from './models/CustomError.js';
 export * from './models/CustomErrorType.js';
 export * from './models/DeviceSignature.js';
 export * from './models/FingerprintDto.js';
+export * from './models/GameData.js';
+export * from './models/InviteResponse.js';
 export * from './models/Maybe.js';
 export * from './models/PeerMessage.js';
+export * from './models/RoundData.js';
 export * from './models/ServerToClientEvents.js';
 export * from './models/UserProfile.js';
 export * from './models/UserReportReason.js';

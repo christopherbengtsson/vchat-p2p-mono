@@ -1,10 +1,11 @@
 import { observer } from 'mobx-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/common/components/ui/button';
+import { RouterStateUtil } from '@/common/utils/RouterStateUtil';
 import { RoutePath } from '@/RoutePath';
 import { useRootStore } from '@/stores/hooks/useRootStore';
 import { useOnMatchFound } from '../hooks/useMatchListener';
-import { useFindMatchOnMount as useFindMatchOnMount } from '../hooks/useFindMatch';
+import { useFindMatchOnMount } from '../hooks/useFindMatch';
 import { QueueAnimationContainer } from './QueueAnimationContainer';
 
 export const QueueContainer = observer(function QueuePage() {
@@ -21,6 +22,7 @@ export const QueueContainer = observer(function QueuePage() {
   const handleCancel = () => {
     socketStore.socket?.emit('cancel-match', authStore.userId);
     mediaStore.closeAudioAndVideoStream();
+    RouterStateUtil.clear();
     navigate(RoutePath.HOME);
   };
 

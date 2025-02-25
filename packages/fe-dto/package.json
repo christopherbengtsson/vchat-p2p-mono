@@ -1,5 +1,5 @@
 {
-  "name": "@mono/common-dto",
+  "name": "@mono/fe-dto",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -12,11 +12,14 @@
     "build": "rm -rf dist && tsc",
     "typecheck": "tsc --noEmit"
   },
+  "dependencies": {
+    "@mono/common-dto": "workspace:*"
+  },
   "devDependencies": {
-    "@types/lodash.iserror": "^3.1.9",
+    "socket.io-client": "^4.8.1",
     "typescript": "^5.5.3"
   },
-  "dependencies": {
-    "lodash.iserror": "^3.1.1"
+  "peerDependencies": {
+    "socket.io-client": "^4.8.1"
   }
 }
