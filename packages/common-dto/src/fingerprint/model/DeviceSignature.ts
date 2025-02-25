@@ -1,5 +1,5 @@
+import { Maybe } from '../../monad/model/Maybe.js';
 import { BrowserSignature } from './BrowserSignature.js';
-import { Maybe } from './Maybe.js';
 
 export interface DeviceSignature extends BrowserSignature {
   device: Maybe<string>;

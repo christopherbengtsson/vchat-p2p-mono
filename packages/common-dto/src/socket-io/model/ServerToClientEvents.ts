@@ -1,4 +1,4 @@
-import { PeerMessage } from './PeerMessage.js';
+import { PeerMessage } from '../../webrtc/model/PeerMessage.js';
 
 export interface ServerToClientEvents {
   'match-found': (

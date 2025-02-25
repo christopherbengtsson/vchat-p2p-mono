@@ -1,4 +1,4 @@
-import { Database } from '../generated/models/Database.js';
+import { Database } from '../../generated/models/Database.js';
 
 type BanDurationValues = Database['public']['Enums']['ban_duration'];
 

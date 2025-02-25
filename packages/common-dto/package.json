@@ -12,11 +12,11 @@
     "build": "rm -rf dist && tsc",
     "typecheck": "tsc --noEmit"
   },
+  "dependencies": {
+    "lodash.iserror": "^3.1.1"
+  },
   "devDependencies": {
     "@types/lodash.iserror": "^3.1.9",
     "typescript": "^5.5.3"
-  },
-  "dependencies": {
-    "lodash.iserror": "^3.1.1"
   }
 }

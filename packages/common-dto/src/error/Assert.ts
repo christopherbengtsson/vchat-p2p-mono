@@ -1,4 +1,4 @@
-import { CustomError } from './CustomError.js';
+import { CustomError } from './model/CustomError.js';
 
 function isTrue(state: boolean, message?: string): asserts state {
   if (!state) {

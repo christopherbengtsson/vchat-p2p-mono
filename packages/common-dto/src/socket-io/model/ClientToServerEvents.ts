@@ -1,6 +1,6 @@
-import { BanDuration } from './BanDuration.js';
-import { BrowserSignature } from './BrowserSignature.js';
-import { PeerMessage } from './PeerMessage.js';
+import { PeerMessage } from '../../webrtc/model/PeerMessage.js';
+import { BanDuration } from '../../user-ban/model/BanDuration.js';
+import { BrowserSignature } from '../../fingerprint/model/BrowserSignature.js';
 
 export interface ClientToServerEvents {
   'find-match': (socketId: string, userId: string) => void;
