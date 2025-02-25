@@ -6,7 +6,7 @@ import type { CallStore } from '../../store/CallStore';
 import { InCallService } from '../service/InCallService';
 
 interface In {
-  state: {
+  routerState: {
     roomId: string;
     partnerSocketId: string;
     partnerUserId: string;
@@ -18,29 +18,29 @@ interface In {
 }
 
 export const useInitNewCall = ({
-  state,
+  routerState,
   callStore,
   mediaStore,
   socketStore,
 }: In) => {
   useEffect(() => {
     callStore.setCallObservables({
-      roomId: state.roomId,
-      partnerSocketId: state.partnerSocketId,
-      partnerUserId: state.partnerUserId,
-      isPolite: state.isPolite,
+      roomId: routerState.roomId,
+      partnerSocketId: routerState.partnerSocketId,
+      partnerUserId: routerState.partnerUserId,
+      isPolite: routerState.isPolite,
     });
 
     InCallService.initNewCall({
-      roomId: state.roomId,
-      partnerSocketId: state.partnerSocketId,
-      isPolite: state.isPolite,
+      roomId: routerState.roomId,
+      partnerSocketId: routerState.partnerSocketId,
+      isPolite: routerState.isPolite,
       callStore,
       socketStore,
       mediaStore,
     });
 
-    socketStore.socket?.emit('join-room', state.roomId, socketStore.id);
+    socketStore.socket?.emit('join-room', routerState.roomId, socketStore.id);
     RouterStateUtil.clear();
   }, [
     callStore,
@@ -48,9 +48,9 @@ export const useInitNewCall = ({
     socketStore,
     socketStore.id,
     socketStore.socket,
-    state.isPolite,
-    state.partnerSocketId,
-    state.partnerUserId,
-    state.roomId,
+    routerState.isPolite,
+    routerState.partnerSocketId,
+    routerState.partnerUserId,
+    routerState.roomId,
   ]);
 };

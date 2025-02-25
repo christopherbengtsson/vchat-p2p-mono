@@ -1,27 +1,29 @@
 import { observer } from 'mobx-react';
 import { useRootStore } from '@/stores/hooks/useRootStore';
 import { useCallStore } from '../../context/useCallStore';
-import { CallState } from '../page/InCallPage';
+import { CallRouterStateProps } from '../model/CallRouterStateProps';
 import { useInCallListeners } from '../hooks/useInCallListeners';
 import { useInitNewCall } from '../hooks/useInitNewCall';
 import { InCallContainer } from './InCallContainer';
 import { NewMatchContainer } from './NewMatchContainer';
 
 interface Props {
-  state: CallState & {
+  routerState: CallRouterStateProps & {
     roomId: string;
   };
 }
-export const CallContainer = observer(function CallContainer({ state }: Props) {
+export const CallContainer = observer(function CallContainer({
+  routerState,
+}: Props) {
   const { socketStore, mediaStore } = useRootStore();
   const callStore = useCallStore();
 
   useInCallListeners(socketStore.socket);
-  useInitNewCall({ state, callStore, socketStore, mediaStore });
+  useInitNewCall({ routerState, callStore, socketStore, mediaStore });
 
   if (!callStore.isConnected) {
     // TODO: Set some timeout, if 'connecting' > x seconds
-    return <NewMatchContainer partnerSocketId={state.partnerSocketId} />;
+    return <NewMatchContainer partnerSocketId={routerState.partnerSocketId} />;
   }
 
   return <InCallContainer />;
