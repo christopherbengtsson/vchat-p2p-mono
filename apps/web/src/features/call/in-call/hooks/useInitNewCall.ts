@@ -24,13 +24,6 @@ export const useInitNewCall = ({
   socketStore,
 }: In) => {
   useEffect(() => {
-    callStore.setCallObservables({
-      roomId: routerState.roomId,
-      partnerSocketId: routerState.partnerSocketId,
-      partnerUserId: routerState.partnerUserId,
-      isPolite: routerState.isPolite,
-    });
-
     InCallService.initNewCall({
       roomId: routerState.roomId,
       partnerSocketId: routerState.partnerSocketId,
@@ -45,12 +38,9 @@ export const useInitNewCall = ({
   }, [
     callStore,
     mediaStore,
-    socketStore,
-    socketStore.id,
-    socketStore.socket,
     routerState.isPolite,
     routerState.partnerSocketId,
-    routerState.partnerUserId,
     routerState.roomId,
+    socketStore,
   ]);
 };

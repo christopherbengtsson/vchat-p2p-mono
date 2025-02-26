@@ -18,12 +18,13 @@ export class CallStore {
   roomId: string;
   partnerSocketId: string;
   partnerUserId: string;
+
   remoteVideoEnabled = true;
   remoteAudioEnabled = true;
 
   remoteStream: MediaStream | null = null;
 
-  isConnected = false;
+  connectionEstablished = false;
 
   gameStore: GameStore;
 
@@ -40,10 +41,14 @@ export class CallStore {
       remoteStream: observable.ref,
 
       isPolite: false,
+      roomId: false,
+      partnerSocketId: false,
+      partnerUserId: false,
     });
   }
+
   setIsConnected = (value: boolean) => {
-    this.isConnected = value;
+    this.connectionEstablished = value;
   };
   setRemoteStream = (stream: MediaStream) => {
     if (!this.remoteStream) {
@@ -56,23 +61,6 @@ export class CallStore {
   setPartnerAudioEnabled = (enabled: boolean) => {
     this.remoteAudioEnabled = enabled;
   };
-
-  setCallObservables({
-    roomId,
-    partnerSocketId,
-    partnerUserId,
-    isPolite,
-  }: {
-    roomId: string;
-    partnerSocketId: string;
-    partnerUserId: string;
-    isPolite: boolean;
-  }) {
-    this.roomId = roomId;
-    this.partnerSocketId = partnerSocketId;
-    this.partnerUserId = partnerUserId;
-    this.isPolite = isPolite;
-  }
 
   // TODO: Remove
   dispose() {

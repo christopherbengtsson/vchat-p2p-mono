@@ -21,7 +21,7 @@ export const CallContainer = observer(function CallContainer({
   useInCallListeners(socketStore.socket);
   useInitNewCall({ routerState, callStore, socketStore, mediaStore });
 
-  if (!callStore.isConnected) {
+  if (!callStore.connectionEstablished) {
     // TODO: Set some timeout, if 'connecting' > x seconds
     return <NewMatchContainer partnerSocketId={routerState.partnerSocketId} />;
   }
