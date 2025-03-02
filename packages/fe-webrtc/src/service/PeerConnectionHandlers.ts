@@ -26,19 +26,17 @@ const _handleIceCandidate = (
 const _handleTrackEvent = (
   event: RTCTrackEvent,
   webRTCState: WebRTCStateHandlers,
-  { setters, injectables }: WebRTCParams,
+  { setters }: WebRTCParams,
 ) => {
-  console.log('_handleTrackEvent');
   event.track.onunmute = () => {
     const remoteStream = event.streams[0];
     const streamId = remoteStream.id;
 
-    const { remoteVideoChatStreamId } = webRTCState.getState();
-    console.log('remoteVideoChatStreamId', remoteVideoChatStreamId);
+    const { remoteVideoChatStreamId, injectables } = webRTCState.getState();
+
     if (!remoteVideoChatStreamId) {
       webRTCState.setState({ remoteVideoChatStreamId: streamId });
       setters.setRemoteStream(remoteStream);
-      console.log('setRemoteStream', remoteStream);
     } else if (remoteVideoChatStreamId !== streamId) {
       injectables?.setRemoteCanvasStream?.(remoteStream);
     }
@@ -53,9 +51,10 @@ const _handleIceConnectionStateChange = (
     pc.restartIce();
   }
 
-  console.log(`ICE connection state changed to: ${pc.iceConnectionState}`);
-
-  setters.setIsConnected(pc.iceConnectionState === 'connected');
+  setters.setIsConnected(
+    pc.iceConnectionState === 'connected' ||
+      pc.iceConnectionState === 'completed',
+  );
 };
 
 const _handleNegotiationNeeded = async (
@@ -95,7 +94,8 @@ const setup = (
     _handleIceConnectionStateChange(pc, params.setters);
   pc.onicecandidate = (ev) => _handleIceCandidate(ev, params.observables);
   pc.ontrack = (ev) => _handleTrackEvent(ev, webRTCState, params);
-  pc.ondatachannel = (ev) => DataChannelService.onDataChannel(ev, params);
+  pc.ondatachannel = (ev) =>
+    DataChannelService.onDataChannel(ev, params, webRTCState);
 };
 
 export const PeerConnectionHandlers = {

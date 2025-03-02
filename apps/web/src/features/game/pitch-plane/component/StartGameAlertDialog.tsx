@@ -1,3 +1,4 @@
+import { observer } from 'mobx-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -14,7 +15,11 @@ interface Props {
   gameRound: number;
 }
 
-export function StartGameAlertDialog({ open, onClick, gameRound }: Props) {
+export const StartGameAlertDialog = observer(function StartGameAlertDialog({
+  open,
+  onClick,
+  gameRound,
+}: Props) {
   return (
     <AlertDialog open={open}>
       <AlertDialogContent>
@@ -36,4 +41,4 @@ export function StartGameAlertDialog({ open, onClick, gameRound }: Props) {
       </AlertDialogContent>
     </AlertDialog>
   );
-}
+});

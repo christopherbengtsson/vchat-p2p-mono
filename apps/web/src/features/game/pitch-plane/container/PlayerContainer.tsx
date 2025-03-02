@@ -4,30 +4,39 @@ import { Canvas } from '../component/Canvas';
 import { useCanvasDraw } from '../hooks/useCanvasDraw';
 import { useCanvasAnimate } from '../hooks/useCanvasAnimate';
 import { useCanvasResize } from '../hooks/useCanvasResize';
-import { useCallStore } from '../../call/context/useCallStore';
+import { GameRoundService } from '../service/GameRoundService';
 
-export const PlayerContainer = observer(function PlayerContainer() {
-  const { gameStore } = useCallStore();
+interface Props {
+  onEndRound: (score: number) => void;
+}
+
+export const PlayerContainer = observer(function PlayerContainer({
+  onEndRound,
+}: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const draw = useCanvasDraw();
 
-  const getPitch = useCallback(
-    () => gameStore.audioFrequencyService?.getPitch(),
-    [gameStore.audioFrequencyService],
-  );
+  const getPitch = useCallback(() => GameRoundService.getPitch(), []);
 
-  const onGameOver = (score: number) => {
-    gameStore.roundGameOver(score);
-  };
+  const onGameOver = useCallback(
+    (score: number) => {
+      onEndRound(score);
+    },
+    [onEndRound],
+  );
 
   useCanvasResize(canvasRef, containerRef);
   useCanvasAnimate({ canvasRef, draw, onGameOver, getPitch });
 
   useEffect(() => {
-    gameStore.sendCanvasStream(canvasRef.current?.captureStream(30));
-  }, [gameStore]);
+    GameRoundService.startCanvasStream(canvasRef.current);
+
+    return () => {
+      GameRoundService.stopCanvasStream();
+    };
+  }, []);
 
   return (
     <>

@@ -16,8 +16,6 @@ export const InCallPage = observer(function InCallPage() {
   const { state } = useLocation() as CallRouterStateLocation;
   const validState = roomId && state;
 
-  // TOOD: Breakout webrtc as a separate service
-
   useEffect(() => {
     if (!validState) {
       navigate(-1);

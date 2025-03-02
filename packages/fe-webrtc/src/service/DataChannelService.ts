@@ -1,6 +1,7 @@
 import type { Maybe } from '@mono/common-dto';
 import type { DataChannelMessage } from '../model/DataChannelMessage.js';
 import type { WebRTCParams } from '../model/WebRTCParams.js';
+import { WebRTCStateHandlers } from '../model/WebRTCStateHandlers.js';
 
 let _dataChannel: Maybe<RTCDataChannel>;
 
@@ -17,13 +18,23 @@ const sendMessage = (
 
 const _handleDataChannelMessage = (
   event: MessageEvent,
-  { injectables, callbacks }: WebRTCParams,
+  { callbacks }: WebRTCParams,
+  state: WebRTCStateHandlers,
 ) => {
   const message: DataChannelMessage = JSON.parse(event.data);
+  const { injectables } = state.getState();
 
   switch (message.type) {
+    case 'INVITE':
+      injectables?.handleIncomingInviteMessage?.forEach((callback) => {
+        callback(message.data);
+      });
+      break;
+
     case 'GAME':
-      injectables?.handleIncomingGameMessage?.(message.data);
+      injectables?.handleGameRoundMessage?.forEach((callback) => {
+        callback(message.data);
+      });
       break;
 
     case 'VIDEO_TOGGLE':
@@ -40,16 +51,23 @@ const _handleDataChannelMessage = (
   }
 };
 
-const onDataChannel = (event: RTCDataChannelEvent, params: WebRTCParams) => {
+const onDataChannel = (
+  event: RTCDataChannelEvent,
+  params: WebRTCParams,
+  state: WebRTCStateHandlers,
+) => {
   const dataChannel = event.channel;
-  _setup(dataChannel, params);
+  _setup(dataChannel, params, state);
 };
 
-const _setup = (dataChannel: RTCDataChannel, params: WebRTCParams) => {
+const _setup = (
+  dataChannel: RTCDataChannel,
+  params: WebRTCParams,
+  state: WebRTCStateHandlers,
+) => {
   _dataChannel = dataChannel;
 
   dataChannel.onopen = () => {
-    console.debug('Data channel is open and ready to be used.');
     // Send the initial state for stream enabled status
     sendMessage(dataChannel, {
       type: 'VIDEO_TOGGLE',
@@ -58,7 +76,8 @@ const _setup = (dataChannel: RTCDataChannel, params: WebRTCParams) => {
     });
   };
 
-  dataChannel.onmessage = (event) => _handleDataChannelMessage(event, params);
+  dataChannel.onmessage = (event) =>
+    _handleDataChannelMessage(event, params, state);
 };
 
 const get = () => _dataChannel;
@@ -68,10 +87,14 @@ const close = (dataChannel: Maybe<RTCDataChannel>) => {
   _dataChannel = undefined;
 };
 
-const create = (pc: RTCPeerConnection, params: WebRTCParams) => {
+const create = (
+  pc: RTCPeerConnection,
+  params: WebRTCParams,
+  state: WebRTCStateHandlers,
+) => {
   if (!params.observables.isPolite) {
     const dataChannel = pc.createDataChannel('game');
-    _setup(dataChannel, params);
+    _setup(dataChannel, params, state);
 
     return dataChannel;
   }

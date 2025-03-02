@@ -6,6 +6,8 @@ const initialState: WebRTCStateDto = {
   ignoreOffer: false,
   canvasSender: null,
   remoteVideoChatStreamId: null,
+
+  injectables: null,
 };
 
 const create = (): WebRTCStateHandlers => {
@@ -14,6 +16,16 @@ const create = (): WebRTCStateHandlers => {
   return {
     getState: () => ({ ...state }),
     setState: (newState: Partial<WebRTCStateDto>) => {
+      if (newState.injectables && state.injectables) {
+        newState = {
+          ...newState,
+          injectables: {
+            ...state.injectables,
+            ...newState.injectables,
+          },
+        };
+      }
+
       state = { ...state, ...newState };
     },
   };

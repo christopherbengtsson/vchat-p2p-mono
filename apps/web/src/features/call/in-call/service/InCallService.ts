@@ -41,10 +41,6 @@ const initNewCall = ({
       setRemoteStream: callStore.setRemoteStream,
       setIsConnected: callStore.setIsConnected,
     },
-    injectables: {
-      handleIncomingGameMessage: callStore.gameStore.handleIncomingMessage,
-      setRemoteCanvasStream: callStore.gameStore.setRemoteCanvasStream,
-    },
   });
 };
 

@@ -1,9 +1,13 @@
-import { GameData } from '@mono/common-dto';
+import { InviteData, RoundData } from '@mono/common-dto';
 
 export type DataChannelMessage =
   | {
+      type: 'INVITE';
+      data: InviteData;
+    }
+  | {
       type: 'GAME';
-      data: GameData;
+      data: RoundData;
     }
   | {
       type: 'VIDEO_TOGGLE' | 'AUDIO_TOGGLE';

@@ -6,6 +6,7 @@ export * from './error/model/CustomErrorType.js';
 export * from './fingerprint/model/BrowserSignature.js';
 export * from './fingerprint/model/DeviceSignature.js';
 export * from './fingerprint/model/FingerprintDto.js';
+export * from './game/game-invite/model/InviteData.js';
 export * from './game/model/GameData.js';
 export * from './game/model/InviteResponse.js';
 export * from './game/model/RoundData.js';

@@ -2,18 +2,18 @@ import { Gamepad2 } from 'lucide-react';
 import { Button } from '@/common/components/ui/button';
 
 interface Props {
-  onToggle: VoidFunction;
-  gameActive: boolean;
+  onClick: VoidFunction;
+  disabled?: boolean;
 }
 
-export function GameInviteButton({ onToggle, gameActive }: Props) {
+export function GameInviteButton({ onClick, disabled }: Props) {
   return (
     <Button
-      aria-label={`${gameActive ? 'Game is active' : 'Invite to game'}`}
+      aria-label={`${disabled ? 'Game is active' : 'Invite to game'}`}
       variant="secondary"
       size="icon"
-      onClick={onToggle}
-      disabled={gameActive}
+      onClick={onClick}
+      disabled={disabled}
     >
       <Gamepad2 className="h-6 w-6" />
     </Button>

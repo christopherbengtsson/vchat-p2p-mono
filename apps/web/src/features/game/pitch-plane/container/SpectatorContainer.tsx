@@ -1,14 +1,12 @@
 import { useEffect, useRef } from 'react';
-import { observer } from 'mobx-react';
+import { Maybe } from '@mono/common-dto';
 import { SpectatorVideo } from '../component/SpectatorVideo';
 
 interface Props {
-  remoteCanvasStream: MediaStream;
+  remoteCanvasStream: Maybe<MediaStream>;
 }
 
-export const SpectatorContainer = observer(function SpectatorContainer({
-  remoteCanvasStream,
-}: Props) {
+export function SpectatorContainer({ remoteCanvasStream }: Props) {
   const remoteCanvasStreamRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
@@ -19,4 +17,4 @@ export const SpectatorContainer = observer(function SpectatorContainer({
   }, [remoteCanvasStream]);
 
   return <SpectatorVideo remoteCanvasStreamRef={remoteCanvasStreamRef} />;
-});
+}

@@ -1,6 +1,4 @@
 import { makeAutoObservable, observable } from 'mobx';
-import type { RootStore } from '@/stores/RootStore';
-import { GameStore } from '../../../stores/GameStore';
 
 interface CallStoreProps {
   roomId: string;
@@ -11,8 +9,6 @@ interface CallStoreProps {
 
 export class CallStore {
   static NEW_MATCH_TIMEOUT = 1500;
-
-  private rootStore: RootStore;
 
   isPolite: boolean;
   roomId: string;
@@ -26,16 +22,13 @@ export class CallStore {
 
   connectionEstablished = false;
 
-  gameStore: GameStore;
+  gameActive = false;
 
-  constructor(rootStore: RootStore, callProps: CallStoreProps) {
-    this.rootStore = rootStore;
+  constructor(callProps: CallStoreProps) {
     this.roomId = callProps.roomId;
     this.partnerSocketId = callProps.partnerSocketId;
     this.partnerUserId = callProps.partnerUserId;
     this.isPolite = callProps.isPolite;
-
-    this.gameStore = new GameStore(this.rootStore);
 
     makeAutoObservable(this, {
       remoteStream: observable.ref,
@@ -62,8 +55,7 @@ export class CallStore {
     this.remoteAudioEnabled = enabled;
   };
 
-  // TODO: Remove
-  dispose() {
-    this.gameStore.cleanupGame();
-  }
+  setGameActive = (value: boolean) => {
+    this.gameActive = value;
+  };
 }

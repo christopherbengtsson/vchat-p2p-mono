@@ -1,6 +1,5 @@
 import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
 import { WebRTCService } from '@mono/fe-webrtc';
 import { RouterStateUtil } from '@/common/utils/RouterStateUtil';
 import { SocketStore } from '@/stores/SocketStore';
@@ -33,11 +32,6 @@ export const useCallActions = (
     });
   }, [mediaStore]);
 
-  const handleCanvasStream = useCallback(() => {
-    callStore.gameStore.invitePartnerToGame();
-    toast.success('Invitation to game sent!');
-  }, [callStore.gameStore]);
-
   const endCall = useCallback(() => {
     RouterStateUtil.clear();
 
@@ -52,7 +46,6 @@ export const useCallActions = (
   return {
     toggleVideo,
     toggleAudio,
-    handleCanvasStream,
     endCall,
   };
 };

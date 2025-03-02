@@ -27,7 +27,7 @@ export function InviteAlertDialog({ open, onDecline, onAccept }: Props) {
         </AlertDialogHeader>
 
         <AlertDialogFooter>
-          <AlertDialogCancel onClick={onDecline}>Deline</AlertDialogCancel>
+          <AlertDialogCancel onClick={onDecline}>Decline</AlertDialogCancel>
           <AlertDialogAction onClick={onAccept}>Accept</AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

@@ -1,15 +1,15 @@
 import { observer } from 'mobx-react';
+import { FeatureFlagUtil } from '@/common/utils/FeatureFlagUtil';
 import { useRootStore } from '@/stores/hooks/useRootStore';
 import { ReportContainer } from '@/features/user-report/container/ReportContainer';
-import { FlyingBallContainer } from '@/features/flying-ball-game/container/FlyingBallContainer';
-import { FeatureFlagUtil } from '@/common/utils/FeatureFlagUtil';
+import { GameInitiatorContainer } from '@/features/game/game-invite/container/GameInitiatorContainer';
 import { useCallStore } from '../../context/useCallStore';
 import { useInjectVideoSource } from '../hooks/useInjectVideoSource';
 import { UserVideoContainer } from '../component/UserVideoContainer';
 import { CallActionContainer } from './CallActionContainer';
 
 export const InCallContainer = observer(function InCallPage() {
-  const { mediaStore } = useRootStore();
+  const { mediaStore, authStore } = useRootStore();
   const callStore = useCallStore();
   const isGameEnabled = FeatureFlagUtil.isGamesEnabled();
   const { localVideoRef, remoteVideoRef } = useInjectVideoSource({
@@ -35,7 +35,14 @@ export const InCallContainer = observer(function InCallPage() {
       />
 
       <CallActionContainer />
-      {isGameEnabled && <FlyingBallContainer />}
+
+      {isGameEnabled && (
+        <GameInitiatorContainer
+          userId={authStore.userId}
+          gameActive={callStore.gameActive}
+          setGameActive={callStore.setGameActive}
+        />
+      )}
     </>
   );
 });
