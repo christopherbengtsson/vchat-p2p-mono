@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react';
 import { observer } from 'mobx-react';
 import { InviteData } from '@mono/common-dto';
-import { PitchPlaneContainer } from '../../pitch-plane/container/PitchPlaneContainer';
+import { GameEngineContainer } from '../../game-engine/container/GameEngineContainer';
 import { useGameInviteListeners } from '../hooks/useGameInviteListeners';
 import { useValidatePlayersReady } from '../hooks/useValidatePlayersReady';
 
@@ -35,7 +35,7 @@ export const GameInitiatorContainer = observer(function GameInitiatorContainer({
 
   return (
     gameActive && (
-      <PitchPlaneContainer
+      <GameEngineContainer
         initiator={initiator}
         playerId={userId}
         setGameActive={setGameActive}

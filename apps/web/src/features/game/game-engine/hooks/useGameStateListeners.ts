@@ -1,6 +1,6 @@
 import { useCallback, useEffect } from 'react';
-import { Maybe, RoundData } from '@mono/common-dto';
-import { GameRoundService } from '../service/GameRoundService';
+import { RoundData } from '@mono/common-dto';
+import { GameEngineService } from '../service/GameEngineService';
 
 interface Props {
   onStartRound: (playerId: string) => void;
@@ -10,14 +10,12 @@ interface Props {
     round: number,
   ) => void;
   onSwitchTurns: (isRemote: boolean) => void;
-  setRemoteCanvasStream: (stream: Maybe<MediaStream>) => void;
 }
 
 export const useGameStateListeners = ({
   onPlayerTurnComplete,
   onStartRound,
   onSwitchTurns,
-  setRemoteCanvasStream,
 }: Props) => {
   const onMessageCallback = useCallback(
     (roundData: RoundData) => {
@@ -43,16 +41,9 @@ export const useGameStateListeners = ({
   );
 
   useEffect(() => {
-    GameRoundService.addGameRoundListener(onMessageCallback);
+    GameEngineService.addGameRoundListener(onMessageCallback);
     return () => {
-      GameRoundService.removeGameRoundListener(onMessageCallback);
+      GameEngineService.removeGameRoundListener(onMessageCallback);
     };
   }, [onMessageCallback]);
-
-  useEffect(() => {
-    GameRoundService.setRemoteCanvasStream(setRemoteCanvasStream);
-    return () => {
-      GameRoundService.removeRemoteCanvasStream();
-    };
-  }, [setRemoteCanvasStream]);
 };

@@ -1,9 +1,14 @@
-import { runInAction } from 'mobx';
 import { useCallback } from 'react';
+import { runInAction } from 'mobx';
+import { Maybe } from '@mono/common-dto';
 import { GameStore, GameState } from '../context/GameStore';
-import { GameRoundService } from '../service/GameRoundService';
+import { GameSpecificDispose } from '../model/GameSpecificDispose';
+import { GameEngineService } from '../service/GameEngineService';
 
-export const useGameStateHandlers = (gameStore: GameStore) => {
+export const useGameStateHandlers = (
+  gameStore: GameStore,
+  disposables: Maybe<GameSpecificDispose>,
+) => {
   const onStartRound = useCallback(
     (playerId?: string) => {
       runInAction(() => {
@@ -44,12 +49,14 @@ export const useGameStateHandlers = (gameStore: GameStore) => {
       });
 
       if (newState === GameState.GAME_OVER) {
-        GameRoundService.dispose();
+        GameEngineService.dispose();
+        disposables?.gameDispose?.();
       } else {
-        GameRoundService.playerTurnCleanup();
+        GameEngineService.playerTurnCleanup();
+        disposables?.roundDispose?.();
       }
     },
-    [gameStore],
+    [disposables, gameStore],
   );
 
   const onSwitchTurns = useCallback(

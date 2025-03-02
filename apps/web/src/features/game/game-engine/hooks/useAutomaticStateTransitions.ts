@@ -1,15 +1,21 @@
 import { useCallback, useEffect } from 'react';
 import { autorun, reaction, runInAction } from 'mobx';
+import { Maybe } from '@mono/common-dto';
 import { GameState, GameStore } from '../context/GameStore';
-import { GameRoundService } from '../service/GameRoundService';
 
-export const useAutomaticStateTransitions = (gameStore: GameStore) => {
+export const useAutomaticStateTransitions = (
+  gameStore: GameStore,
+  prepareGameSpecifics: Maybe<() => Promise<void>>,
+) => {
   const prepareRound = useCallback(async () => {
-    await GameRoundService.initGamePerquisites();
+    if (prepareGameSpecifics) {
+      await prepareGameSpecifics();
+    }
+
     runInAction(() => {
       gameStore.state = GameState.PREPARE_ROUND;
     });
-  }, [gameStore]);
+  }, [gameStore, prepareGameSpecifics]);
 
   // Use autorun to also trigger on init
   useEffect(

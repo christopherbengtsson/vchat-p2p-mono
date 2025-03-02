@@ -4,7 +4,7 @@ import { Canvas } from '../component/Canvas';
 import { useCanvasDraw } from '../hooks/useCanvasDraw';
 import { useCanvasAnimate } from '../hooks/useCanvasAnimate';
 import { useCanvasResize } from '../hooks/useCanvasResize';
-import { GameRoundService } from '../service/GameRoundService';
+import { PitchPlaneService } from '../service/PitchPlaneService';
 
 interface Props {
   onEndRound: (score: number) => void;
@@ -18,7 +18,7 @@ export const PlayerContainer = observer(function PlayerContainer({
 
   const draw = useCanvasDraw();
 
-  const getPitch = useCallback(() => GameRoundService.getPitch(), []);
+  const getPitch = useCallback(() => PitchPlaneService.getPitch(), []);
 
   const onGameOver = useCallback(
     (score: number) => {
@@ -31,10 +31,10 @@ export const PlayerContainer = observer(function PlayerContainer({
   useCanvasAnimate({ canvasRef, draw, onGameOver, getPitch });
 
   useEffect(() => {
-    GameRoundService.startCanvasStream(canvasRef.current);
+    PitchPlaneService.startCanvasStream(canvasRef.current);
 
     return () => {
-      GameRoundService.stopCanvasStream();
+      PitchPlaneService.stopCanvasStream();
     };
   }, []);
 

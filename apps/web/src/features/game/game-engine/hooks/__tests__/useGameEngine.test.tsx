@@ -1,26 +1,25 @@
+import type { Mock } from 'vitest';
 import { autorun, configure, IReactionDisposer } from 'mobx';
 import { Maybe, RoundData } from '@mono/common-dto';
-import { renderHook, act, waitFor } from '@testing-library/react';
+import { renderHook, waitFor } from '@testing-library/react';
 import { noop } from '@/common/utils/noop';
 import {
   GameState,
   GameStore,
-} from '@/features/game/pitch-plane/context/GameStore';
-import { GameRoundService } from '../../service/GameRoundService';
+} from '@/features/game/game-engine/context/GameStore';
+import { GameEngineService } from '../../service/GameEngineService';
 import { useGameStore } from '../../context/useGameStore';
-import { useGameStateMachine } from '../useGameStateMachine';
+import { useGameEngine } from '../useGameEngine';
+import { GameSpecificDispose } from '../../model/GameSpecificDispose';
 
 vi.mock('../../context/useGameStore', () => ({
   useGameStore: vi.fn(),
 }));
 
-vi.mock('../../service/GameRoundService', () => ({
-  GameRoundService: {
-    initGamePerquisites: vi.fn().mockResolvedValue({}),
+vi.mock('../../service/GameEngineService', () => ({
+  GameEngineService: {
     addGameRoundListener: vi.fn(),
     removeGameRoundListener: vi.fn(),
-    setRemoteCanvasStream: vi.fn(),
-    removeRemoteCanvasStream: vi.fn(),
     notifyRoundStart: vi.fn(),
     notifyPlayerTurnComplete: vi.fn(),
     notifyTurnSwitch: vi.fn(),
@@ -29,11 +28,13 @@ vi.mock('../../service/GameRoundService', () => ({
   },
 }));
 
-describe('useGameStateMachine', () => {
+describe('useGameEngine', () => {
   let gameStore: GameStore;
   let roundMessageCallback: ((data: RoundData) => void) | null = null;
-
   let reactionDisposer: Maybe<IReactionDisposer>;
+  let mockPrepareGame: Mock;
+  let mockGameDispose: Mock;
+  let mockRoundDispose: Mock;
 
   const renderTestee = (stateTransitions?: GameState[], isMyTurn = true) => {
     // Configure mobx
@@ -42,18 +43,30 @@ describe('useGameStateMachine', () => {
     gameStore = new GameStore('player1', isMyTurn);
     vi.mocked(useGameStore).mockReturnValue(gameStore);
 
+    mockPrepareGame = vi.fn().mockResolvedValue(undefined);
+    mockGameDispose = vi.fn();
+    mockRoundDispose = vi.fn();
+
+    const gameSpecifics = {
+      prepareGame: mockPrepareGame,
+      disposables: {
+        gameDispose: mockGameDispose,
+        roundDispose: mockRoundDispose,
+      } as GameSpecificDispose,
+    };
+
     if (stateTransitions) {
       reactionDisposer = autorun(() => {
         stateTransitions.push(gameStore.state);
       });
     }
 
-    return renderHook(() => useGameStateMachine(gameStore, noop));
+    return renderHook(() => useGameEngine(gameStore, noop, gameSpecifics));
   };
 
   beforeEach(() => {
-    // Mock the GameRoundService listener setup
-    vi.mocked(GameRoundService.addGameRoundListener).mockImplementation(
+    // Mock the GameEngineService listener setup
+    vi.mocked(GameEngineService.addGameRoundListener).mockImplementation(
       (callback) => {
         roundMessageCallback = callback;
       },
@@ -72,8 +85,8 @@ describe('useGameStateMachine', () => {
 
     renderTestee(stateTransitions);
 
-    expect(GameRoundService.addGameRoundListener).toHaveBeenCalled();
-    expect(GameRoundService.setRemoteCanvasStream).toHaveBeenCalled();
+    expect(GameEngineService.addGameRoundListener).toHaveBeenCalled();
+    expect(mockPrepareGame).toHaveBeenCalled();
 
     await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -85,8 +98,8 @@ describe('useGameStateMachine', () => {
 
     renderTestee(stateTransitions, false);
 
-    expect(GameRoundService.addGameRoundListener).toHaveBeenCalled();
-    expect(GameRoundService.setRemoteCanvasStream).toHaveBeenCalled();
+    expect(GameEngineService.addGameRoundListener).toHaveBeenCalled();
+    expect(mockPrepareGame).not.toHaveBeenCalled();
 
     await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -106,7 +119,7 @@ describe('useGameStateMachine', () => {
 
     result.current.startNewRound();
 
-    expect(GameRoundService.notifyRoundStart).toHaveBeenCalledWith(
+    expect(GameEngineService.notifyRoundStart).toHaveBeenCalledWith(
       gameStore.playerId,
     );
 
@@ -125,7 +138,7 @@ describe('useGameStateMachine', () => {
 
     result.current.playerTurnComplete(score);
 
-    expect(GameRoundService.notifyPlayerTurnComplete).toHaveBeenCalledWith({
+    expect(GameEngineService.notifyPlayerTurnComplete).toHaveBeenCalledWith({
       playerId: gameStore.playerId,
       round: gameStore.currentRound,
       score,
@@ -145,7 +158,7 @@ describe('useGameStateMachine', () => {
 
     result.current.endPlayerRound();
 
-    expect(GameRoundService.notifyTurnSwitch).toHaveBeenCalled();
+    expect(GameEngineService.notifyTurnSwitch).toHaveBeenCalled();
     expect(gameStore.isMyTurn).toBe(false);
   });
 
@@ -156,7 +169,7 @@ describe('useGameStateMachine', () => {
 
     result.current.endPlayerRound();
 
-    expect(GameRoundService.notifyTurnSwitch).not.toHaveBeenCalled();
+    expect(GameEngineService.notifyTurnSwitch).not.toHaveBeenCalled();
   });
 
   it("should not call notifyTurnSwitch when it is not player's turn", () => {
@@ -166,7 +179,7 @@ describe('useGameStateMachine', () => {
 
     result.current.endPlayerRound();
 
-    expect(GameRoundService.notifyTurnSwitch).not.toHaveBeenCalled();
+    expect(GameEngineService.notifyTurnSwitch).not.toHaveBeenCalled();
   });
 
   it('should handle START_ROUND message from other player correctly', () => {
@@ -222,32 +235,54 @@ describe('useGameStateMachine', () => {
     expect(gameStore.state).toBe(GameState.IDLE);
   });
 
-  it('should track remoteCanvasStream state', () => {
-    const { result } = renderTestee(undefined);
+  it('should call game-specific disposables when appropriate', () => {
+    renderTestee();
 
-    expect(result.current.remoteCanvasStream).toBe(null);
+    // Setup for GAME_OVER
+    gameStore.currentRound = 2; // Final round
+    gameStore.maxRounds = 2;
+    gameStore.opponentId = 'player2';
+    gameStore.roundResults = [
+      { playerId: 'player1', round: 1, score: 100 },
+      { playerId: 'player2', round: 1, score: 150 },
+      { playerId: 'player1', round: 2, score: 200 },
+    ];
 
-    // Extract the setRemoteCanvasStream callback
-    const setRemoteCanvasStreamCallback = vi.mocked(
-      GameRoundService.setRemoteCanvasStream,
-    ).mock.calls[0][0];
-
-    const mockStream = {} as MediaStream;
-
-    act(() => {
-      setRemoteCanvasStreamCallback(mockStream);
+    // Player 2 completes the final turn - should trigger GAME_OVER
+    roundMessageCallback!({
+      state: 'PLAYER_TURN_COMPLETE',
+      playerId: 'player2',
+      score: 175,
+      round: 2,
     });
 
-    expect(result.current.remoteCanvasStream).toBe(mockStream);
-  });
+    // Verify game-specific dispose was called
+    expect(gameStore.state).toBe(GameState.GAME_OVER);
+    expect(GameEngineService.dispose).toHaveBeenCalled();
+    expect(mockGameDispose).toHaveBeenCalled();
+    expect(mockRoundDispose).not.toHaveBeenCalled();
 
-  it('should clean up listeners on unmount', () => {
-    const { unmount } = renderTestee();
+    // Reset mocks
+    vi.clearAllMocks();
 
-    unmount();
+    // Test ROUND_END case
+    renderTestee();
+    gameStore.currentRound = 1;
+    gameStore.maxRounds = 2;
+    gameStore.roundResults = [];
 
-    expect(GameRoundService.removeGameRoundListener).toHaveBeenCalled();
-    expect(GameRoundService.removeRemoteCanvasStream).toHaveBeenCalled();
+    roundMessageCallback!({
+      state: 'PLAYER_TURN_COMPLETE',
+      playerId: 'player2',
+      score: 150,
+      round: 1,
+    });
+
+    // Verify round-specific dispose was called
+    expect(gameStore.state).toBe(GameState.ROUND_END);
+    expect(GameEngineService.playerTurnCleanup).toHaveBeenCalled();
+    expect(mockRoundDispose).toHaveBeenCalled();
+    expect(mockGameDispose).not.toHaveBeenCalled();
   });
 
   it('should advance to next round when both players complete a round', () => {
@@ -282,66 +317,26 @@ describe('useGameStateMachine', () => {
     expect(gameStore.currentRound).toBe(2);
   });
 
-  it('should trigger GAME_OVER state when reaching max rounds', () => {
-    renderTestee();
-
-    // Set up near-final state
-    gameStore.currentRound = 2; // Final round
-    gameStore.maxRounds = 2;
-    gameStore.opponentId = 'player2';
-    gameStore.roundResults = [
-      { playerId: 'player1', round: 1, score: 100 },
-      { playerId: 'player2', round: 1, score: 150 },
-      { playerId: 'player1', round: 2, score: 200 },
-    ];
-
-    // Player 2 completes the final turn
-    roundMessageCallback!({
-      state: 'PLAYER_TURN_COMPLETE',
-      playerId: 'player2',
-      score: 175,
-      round: 2,
-    });
-
-    // Verify game is over
-    expect(gameStore.state).toBe(GameState.GAME_OVER);
-    expect(GameRoundService.dispose).toHaveBeenCalled();
-  });
-
-  it('should call playerTurnCleanup when round ends but game is not over', () => {
-    renderTestee();
-
-    gameStore.currentRound = 1;
-    gameStore.maxRounds = 2;
-    gameStore.roundResults = [];
-
-    roundMessageCallback!({
-      state: 'PLAYER_TURN_COMPLETE',
-      playerId: 'player2',
-      score: 150,
-      round: 1,
-    });
-
-    expect(gameStore.state).toBe(GameState.ROUND_END);
-    expect(GameRoundService.playerTurnCleanup).toHaveBeenCalled();
-    expect(GameRoundService.dispose).not.toHaveBeenCalled();
-  });
-
   it('should follow correct state transitions for a complete game', async () => {
     const stateTransitions: GameState[] = [];
     const { result } = renderTestee(stateTransitions);
 
+    gameStore.maxRounds = 2;
+
     // Start game
     await waitFor(() => expect(gameStore.state).toBe(GameState.PREPARE_ROUND));
+    expect(mockPrepareGame).toHaveBeenCalledTimes(1);
+
+    gameStore.opponentId = 'player2';
 
     // Round 1 - Player 1
     result.current.startNewRound();
     expect(gameStore.state).toBe(GameState.PLAYER_TURN);
-    gameStore.opponentId = 'player2';
 
     // Player 1 completes turn
     result.current.playerTurnComplete(100);
     expect(gameStore.state).toBe(GameState.ROUND_END);
+    expect(mockRoundDispose).toHaveBeenCalledTimes(1);
 
     // End player round and switch turns
     result.current.endPlayerRound();
@@ -359,7 +354,15 @@ describe('useGameStateMachine', () => {
     expect(gameStore.currentRound).toBe(2);
     result.current.startNewRound();
     result.current.playerTurnComplete(200);
+    expect(gameStore.roundResults).toHaveLength(3);
     result.current.endPlayerRound();
+
+    // Verify roundResults before final turn
+    expect(gameStore.roundResults).toEqual([
+      { playerId: 'player1', round: 1, score: 100 },
+      { playerId: 'player2', round: 1, score: 150 },
+      { playerId: 'player1', round: 2, score: 200 },
+    ]);
 
     // Round 2 - Player 2 (final round)
     roundMessageCallback!({
@@ -369,7 +372,27 @@ describe('useGameStateMachine', () => {
       round: 2,
     });
 
+    // Verify all the conditions for GAME_OVER are met
+    expect(gameStore.roundResults).toHaveLength(4);
+    expect(gameStore.roundResults).toContainEqual({
+      playerId: 'player2',
+      round: 2,
+      score: 175,
+    });
+    expect(gameStore.currentRound).toBe(2);
+    expect(gameStore.maxRounds).toBe(2);
+
+    // Now this should pass
     expect(gameStore.state).toBe(GameState.GAME_OVER);
-    expect(GameRoundService.dispose).toHaveBeenCalled();
+    expect(GameEngineService.dispose).toHaveBeenCalled();
+    expect(mockGameDispose).toHaveBeenCalled();
+  });
+
+  it('should clean up listeners on unmount', () => {
+    const { unmount } = renderTestee();
+
+    unmount();
+
+    expect(GameEngineService.removeGameRoundListener).toHaveBeenCalled();
   });
 });

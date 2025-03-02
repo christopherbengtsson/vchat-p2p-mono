@@ -24,13 +24,13 @@ export enum GameState {
  *
  * 1. IDLE → PREPARE_ROUND (automatic for active player)
  *    - When a player is in IDLE state with isMyTurn=true
- *    - useAutomaticStateTransitions calls GameRoundService.initGamePerquisites()
+ *    - useAutomaticStateTransitions calls GameEngineService.initGamePerquisites()
  *    - Transitions to PREPARE_ROUND
  *
  * 2. PREPARE_ROUND → ROUND_START (user action)
  *    - StartGameAlertDialog is shown
  *    - When button is clicked, startNewRound() is called
- *    - Notifies other player via GameRoundService.notifyRoundStart()
+ *    - Notifies other player via GameEngineService.notifyRoundStart()
  *    - Both players transition to ROUND_START
  *
  * 3. ROUND_START → PLAYER_TURN/SPECTATOR_TURN (automatic)
@@ -43,14 +43,14 @@ export enum GameState {
  *
  * 5. Turn Completion
  *    - Active player calls playerTurnComplete(score)
- *    - Notifies other player via GameRoundService.notifyPlayerTurnComplete()
+ *    - Notifies other player via GameEngineService.notifyPlayerTurnComplete()
  *    - Game checks if round should end:
  *      - If round === maxRounds AND next player has already played this round:
  *        - Both players transition to GAME_OVER
- *        - GameRoundService.dispose() is called for full cleanup
+ *        - GameEngineService.dispose() is called for full cleanup
  *      - Otherwise:
  *        - Both players transition to ROUND_END
- *        - GameRoundService.playerTurnCleanup() is called
+ *        - GameEngineService.playerTurnCleanup() is called
  *
  * 6. Results Phase
  *    - Both players show ResultDialogContainer
@@ -58,7 +58,7 @@ export enum GameState {
  *      - If in GAME_OVER: dialog closes, game ends
  *      - If in ROUND_END:
  *        - endPlayerRound() is called
- *        - Notifies turn switch via GameRoundService.notifyTurnSwitch()
+ *        - Notifies turn switch via GameEngineService.notifyTurnSwitch()
  *        - Both players transition to IDLE
  *        - isMyTurn values are swapped between players
  *        - If bothPlayersPlayedRound is true, currentRound is incremented

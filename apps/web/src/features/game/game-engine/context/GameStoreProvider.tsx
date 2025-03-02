@@ -1,5 +1,5 @@
 import { useRef } from 'react';
-import { GameStore } from '@/features/game/pitch-plane/context/GameStore';
+import { GameStore } from '@/features/game/game-engine/context/GameStore';
 import { GameStoreContext } from './GameStoreContext';
 
 interface Props extends React.PropsWithChildren {
