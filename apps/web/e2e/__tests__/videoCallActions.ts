@@ -28,9 +28,14 @@ export const videoCallActions = async (
   await expect(user.page.getByRole('button', { name: 'Cancel' })).toBeVisible();
 
   await partner.page.getByRole('button', { name: 'Find match' }).click();
+  await expect(
+    partner.page.getByRole('button', { name: 'Cancel' }),
+  ).toBeVisible();
 
-  await expect(user.page.getByText(/Match with/)).toBeVisible();
-  await expect(partner.page.getByText(/Match with/)).toBeVisible();
+  await Promise.all([
+    expect(user.page.getByText(/Match with/)).toBeVisible(),
+    expect(partner.page.getByText(/Match with/)).toBeVisible(),
+  ]);
 
   /** Camera toggle */
 
@@ -103,13 +108,15 @@ export const videoCallActions = async (
   /**  End of call */
   await user.page.getByRole('button', { name: 'End call' }).click();
 
-  await expect(user.page.getByRole('button', { name: 'Cancel' })).toBeVisible();
-  await expect(
-    partner.page.getByRole('button', { name: 'Cancel' }),
-  ).toBeVisible();
+  await Promise.all([
+    expect(user.page.getByRole('button', { name: 'Cancel' })).toBeVisible(),
+    expect(partner.page.getByRole('button', { name: 'Cancel' })).toBeVisible(),
+  ]);
 
-  await expect(user.page.getByText(/Match with/)).toBeVisible();
-  await expect(partner.page.getByText(/Match with/)).toBeVisible();
+  await Promise.all([
+    expect(user.page.getByText(/Match with/)).toBeVisible(),
+    expect(partner.page.getByText(/Match with/)).toBeVisible(),
+  ]);
 
   // TODO: Redo toggle functionality tests?
 
