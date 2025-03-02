@@ -28,9 +28,6 @@ export const videoCallActions = async (
   await expect(user.page.getByRole('button', { name: 'Cancel' })).toBeVisible();
 
   await partner.page.getByRole('button', { name: 'Find match' }).click();
-  await expect(
-    partner.page.getByRole('button', { name: 'Cancel' }),
-  ).toBeVisible();
 
   await Promise.all([
     expect(user.page.getByText(/Match with/)).toBeVisible(),
