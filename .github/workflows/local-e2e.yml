@@ -61,11 +61,7 @@ jobs:
           cat apps/web/.env.e2e
 
       - name: Build packages
-        run: |
-          pnpm common-dto build
-          pnpm common-supabase build
-          pnpm be-supabase build
-          pnpm fe-supabase build
+        run: pnpm --filter "./packages/*" build
 
       - name: Server start
         run: |
