@@ -39,70 +39,64 @@ export const videoCallActions = async (
   // /** Camera toggle */
 
   // // Toggle camera for user
-  // await user.page.getByRole('button', { name: 'Turn camera off' }).click();
-  // await expect(
-  //   user.page.getByRole('button', { name: 'Turn camera on' }),
-  // ).toBeEnabled();
-  // await expect(
-  //   user.page.locator('[aria-label="Your camera is off"]'),
-  // ).toBeVisible();
-  // await expect(partner.page.getByText("Partner's camera is off")).toBeVisible();
+  await user.page.getByRole('button', { name: 'Turn camera off' }).click();
+  await expect(
+    user.page.getByRole('button', { name: 'Turn camera on' }),
+  ).toBeEnabled();
+  await expect(
+    user.page.locator('[aria-label="Your camera is off"]'),
+  ).toBeVisible();
+  await expect(partner.page.getByText("Partner's camera is off")).toBeVisible();
 
-  // await user.page.getByRole('button', { name: 'Turn camera on' }).click();
-  // await expect(
-  //   user.page.getByRole('button', { name: 'Turn camera off' }),
-  // ).toBeEnabled();
-  // // TODO: Check overlay not visible insted
+  await user.page.getByRole('button', { name: 'Turn camera on' }).click();
+  await expect(
+    user.page.getByRole('button', { name: 'Turn camera off' }),
+  ).toBeEnabled();
+  // TODO: Check overlay not visible insted
 
-  // // Toggle camera for partner
-  // await partner.page.getByRole('button', { name: 'Turn camera off' }).click();
-  // await expect(
-  //   partner.page.getByRole('button', { name: 'Turn camera on' }),
-  // ).toBeEnabled();
-  // await expect(
-  //   partner.page.locator('[aria-label="Your camera is off"]'),
-  // ).toBeVisible();
-  // await expect(user.page.getByText("Partner's camera is off")).toBeVisible();
+  // Toggle camera for partner
+  await partner.page.getByRole('button', { name: 'Turn camera off' }).click();
+  await expect(
+    partner.page.getByRole('button', { name: 'Turn camera on' }),
+  ).toBeEnabled();
+  await expect(
+    partner.page.locator('[aria-label="Your camera is off"]'),
+  ).toBeVisible();
+  await expect(user.page.getByText("Partner's camera is off")).toBeVisible();
 
-  // await partner.page.getByRole('button', { name: 'Turn camera on' }).click();
-  // await expect(
-  //   partner.page.getByRole('button', { name: 'Turn camera off' }),
-  // ).toBeEnabled();
-  // // TODO: Check overlay not visible insted
+  await partner.page.getByRole('button', { name: 'Turn camera on' }).click();
+  await expect(
+    partner.page.getByRole('button', { name: 'Turn camera off' }),
+  ).toBeEnabled();
+  // TODO: Check overlay not visible insted
 
-  // /** Microphone toggle */
+  /** Microphone toggle */
 
-  // // Toggle microphone for user
-  // await user.page.getByRole('button', { name: 'Turn microphone off' }).click();
-  // await expect(
-  //   user.page.getByRole('button', { name: 'Turn microphone on' }),
-  // ).toBeEnabled();
-  // // TODO: Add label for muted users
-  // //   await expect(user.getByText('Your microphone is off')).toBeVisible();
-  // //   await expect(partner.getByText("Partner's microphone is off")).toBeVisible();
+  // Toggle microphone for user
+  await user.page.getByRole('button', { name: 'Turn microphone off' }).click();
+  await expect(
+    user.page.getByRole('button', { name: 'Turn microphone on' }),
+  ).toBeEnabled();
 
-  // await user.page.getByRole('button', { name: 'Turn microphone on' }).click();
-  // await expect(
-  //   user.page.getByRole('button', { name: 'Turn microphone off' }),
-  // ).toBeEnabled();
+  await user.page.getByRole('button', { name: 'Turn microphone on' }).click();
+  await expect(
+    user.page.getByRole('button', { name: 'Turn microphone off' }),
+  ).toBeEnabled();
 
-  // // Toggle microphone for partner
-  // await partner.page
-  //   .getByRole('button', { name: 'Turn microphone off' })
-  //   .click();
-  // await expect(
-  //   partner.page.getByRole('button', { name: 'Turn microphone on' }),
-  // ).toBeEnabled();
-  // // TODO: Add label for muted users
-  // //   await expect(user.getByText('Your microphone is off')).toBeVisible();
-  // //   await expect(partner.getByText("Partner's microphone is off")).toBeVisible();
+  // Toggle microphone for partner
+  await partner.page
+    .getByRole('button', { name: 'Turn microphone off' })
+    .click();
+  await expect(
+    partner.page.getByRole('button', { name: 'Turn microphone on' }),
+  ).toBeEnabled();
 
-  // await partner.page
-  //   .getByRole('button', { name: 'Turn microphone on' })
-  //   .click();
-  // await expect(
-  //   partner.page.getByRole('button', { name: 'Turn microphone off' }),
-  // ).toBeEnabled();
+  await partner.page
+    .getByRole('button', { name: 'Turn microphone on' })
+    .click();
+  await expect(
+    partner.page.getByRole('button', { name: 'Turn microphone off' }),
+  ).toBeEnabled();
 
   /**  End of call */
   const cancelPromises = [
@@ -118,15 +112,6 @@ export const videoCallActions = async (
   await user.page.getByRole('button', { name: 'End call' }).click();
 
   await Promise.all([...cancelPromises, ...matchPromises]);
-
-  // TODO: Redo toggle functionality tests?
-
-  // await expect(
-  //   user.page.getByRole('button', { name: 'Turn camera off' }),
-  // ).toBeEnabled();
-  // await expect(
-  //   partner.page.getByRole('button', { name: 'Turn camera off' }),
-  // ).toBeEnabled();
 
   await user.page.reload();
 
