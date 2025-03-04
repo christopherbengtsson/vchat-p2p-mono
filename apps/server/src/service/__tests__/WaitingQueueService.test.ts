@@ -245,4 +245,157 @@ describe('RedisQueue', async () => {
       });
     });
   });
+
+  describe('match assignments', () => {
+    it('should have the correct matchAssignmentsKey value', () => {
+      const redisQueue = new WaitingQueueService(redisClient);
+      expect(redisQueue['matchAssignmentsKey']).toBe('match_assignments');
+    });
+
+    describe('setMatchAssignment', () => {
+      it('should store match assignment data in Redis', async () => {
+        const redisQueue = new WaitingQueueService(redisClient);
+        const socketId = 'socket123';
+        const matchData = { roomId: 'room456', partnerSocketId: 'partner789' };
+
+        await redisQueue.setMatchAssignment(socketId, matchData);
+
+        const storedData = await redisClient.hget(
+          'match_assignments',
+          socketId,
+        );
+        expect(storedData).toBe(JSON.stringify(matchData));
+      });
+
+      it('should overwrite existing match assignment data', async () => {
+        const redisQueue = new WaitingQueueService(redisClient);
+        const socketId = 'socket123';
+        const initialData = {
+          roomId: 'room456',
+          partnerSocketId: 'partner789',
+        };
+        const updatedData = {
+          roomId: 'newRoom',
+          partnerSocketId: 'newPartner',
+        };
+
+        await redisQueue.setMatchAssignment(socketId, initialData);
+        await redisQueue.setMatchAssignment(socketId, updatedData);
+
+        const result = await redisQueue.getMatchAssignment(socketId);
+        expect(result).toEqual(updatedData);
+      });
+    });
+
+    describe('getMatchAssignment', () => {
+      it('should retrieve match assignment data', async () => {
+        const redisQueue = new WaitingQueueService(redisClient);
+        const socketId = 'socket123';
+        const matchData = { roomId: 'room456', partnerSocketId: 'partner789' };
+
+        await redisQueue.setMatchAssignment(socketId, matchData);
+        const result = await redisQueue.getMatchAssignment(socketId);
+
+        expect(result).toEqual(matchData);
+      });
+
+      it('should return null when no match assignment exists', async () => {
+        const redisQueue = new WaitingQueueService(redisClient);
+        const result = await redisQueue.getMatchAssignment('nonexistent');
+
+        expect(result).toBeNull();
+      });
+
+      it('should return null when stored data is not valid JSON', async () => {
+        const redisQueue = new WaitingQueueService(redisClient);
+        const socketId = 'socket123';
+
+        await redisClient.hset('match_assignments', socketId, 'invalid-json');
+
+        const result = await redisQueue.getMatchAssignment(socketId);
+        expect(result).toBeNull();
+      });
+    });
+
+    describe('removeMatchAssignment', () => {
+      it('should remove a match assignment', async () => {
+        const redisQueue = new WaitingQueueService(redisClient);
+        const socketId = 'socket123';
+        const matchData = { roomId: 'room456', partnerSocketId: 'partner789' };
+
+        await redisQueue.setMatchAssignment(socketId, matchData);
+        await redisQueue.removeMatchAssignment(socketId);
+
+        const result = await redisQueue.getMatchAssignment(socketId);
+        expect(result).toBeNull();
+      });
+
+      it('should not throw an error when removing non-existent assignment', async () => {
+        const redisQueue = new WaitingQueueService(redisClient);
+
+        await expect(
+          redisQueue.removeMatchAssignment('nonexistent'),
+        ).resolves.not.toThrow();
+      });
+    });
+
+    describe('cleanupMatchAssignments', () => {
+      it('should remove both sides of a match assignment', async () => {
+        const redisQueue = new WaitingQueueService(redisClient);
+        const socketId = 'socket123';
+        const partnerSocketId = 'partner789';
+        const roomId = 'room456';
+
+        await redisQueue.setMatchAssignment(socketId, {
+          roomId,
+          partnerSocketId,
+        });
+        await redisQueue.setMatchAssignment(partnerSocketId, {
+          roomId,
+          partnerSocketId: socketId,
+        });
+
+        const result = await redisQueue.cleanupMatchAssignments(socketId);
+
+        expect(result).toEqual({ roomId, partnerSocketId });
+
+        const userMatch = await redisQueue.getMatchAssignment(socketId);
+        const partnerMatch =
+          await redisQueue.getMatchAssignment(partnerSocketId);
+
+        expect(userMatch).toBeNull();
+        expect(partnerMatch).toBeNull();
+      });
+
+      it('should return null when no match assignment exists', async () => {
+        const redisQueue = new WaitingQueueService(redisClient);
+        const result = await redisQueue.cleanupMatchAssignments('nonexistent');
+
+        expect(result).toBeNull();
+      });
+
+      it('should handle case where only one side of match exists', async () => {
+        const redisQueue = new WaitingQueueService(redisClient);
+        const socketId = 'socket123';
+        const partnerSocketId = 'partner789';
+        const roomId = 'room456';
+
+        await redisQueue.setMatchAssignment(socketId, {
+          roomId,
+          partnerSocketId,
+        });
+
+        const result = await redisQueue.cleanupMatchAssignments(socketId);
+
+        expect(result).toEqual({ roomId, partnerSocketId });
+
+        const userMatch = await redisQueue.getMatchAssignment(socketId);
+        const partnerMatch =
+          await redisQueue.getMatchAssignment(partnerSocketId);
+
+        expect(userMatch).toBeNull();
+        expect(partnerMatch).toBeNull();
+      });
+    });
+  });
 });

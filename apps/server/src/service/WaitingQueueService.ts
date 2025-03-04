@@ -1,10 +1,12 @@
 import type { Redis } from 'ioredis';
 import type { Maybe } from '@mono/common-dto';
 import type { SocketId } from '../model/SocketId.js';
+import logger from '../utils/logger.js';
 
 export class WaitingQueueService {
   private readonly queueKey = 'waiting_queue';
   private readonly delimiter = '__:__';
+  private readonly matchAssignmentsKey = 'match_assignments';
   private readonly redisClient: Redis;
 
   constructor(redisClient: Redis) {
@@ -109,5 +111,54 @@ export class WaitingQueueService {
   // Only for debug purposes
   async getQueue(): Promise<SocketId[]> {
     return await this.redisClient.zrange(this.queueKey, 0, -1);
+  }
+
+  async setMatchAssignment(
+    socketId: string,
+    data: { roomId: string; partnerSocketId: string },
+  ) {
+    await this.redisClient.hset(
+      this.matchAssignmentsKey,
+      socketId,
+      JSON.stringify(data),
+    );
+  }
+
+  async getMatchAssignment(
+    socketId: string,
+  ): Promise<{ roomId: string; partnerSocketId: string } | null> {
+    const result = await this.redisClient.hget(
+      this.matchAssignmentsKey,
+      socketId,
+    );
+
+    if (!result) return null;
+
+    try {
+      return JSON.parse(result);
+    } catch (error) {
+      logger.error(
+        { error },
+        '[WaitingQueueService]: Error parsing match assignment',
+      );
+      return null;
+    }
+  }
+
+  async removeMatchAssignment(socketId: string) {
+    await this.redisClient.hdel(this.matchAssignmentsKey, socketId);
+  }
+
+  async cleanupMatchAssignments(socketId: string) {
+    const matchData = await this.getMatchAssignment(socketId);
+
+    if (matchData) {
+      await this.removeMatchAssignment(socketId);
+      await this.removeMatchAssignment(matchData.partnerSocketId);
+
+      return matchData;
+    }
+
+    return null;
   }
 }

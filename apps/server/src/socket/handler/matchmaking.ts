@@ -23,6 +23,18 @@ export function setupMatchmaking(
         roomData?.partnerUserId
       ) {
         const { roomId, partnerSocketId, partnerUserId } = roomData;
+
+        await Promise.all([
+          redisQueue.setMatchAssignment(socketId, {
+            roomId,
+            partnerSocketId,
+          }),
+          redisQueue.setMatchAssignment(partnerSocketId, {
+            roomId,
+            partnerSocketId: socketId,
+          }),
+        ]);
+
         // Inform the user that a match was found
         socket.emit(
           'match-found',
@@ -42,6 +54,14 @@ export function setupMatchmaking(
   socket.on(
     'cancel-match',
     wrapHandler(async (userId) => {
+      const matchData = await redisQueue.getMatchAssignment(socket.id);
+
+      if (matchData) {
+        // User was already matched - clean up and notify partner
+        await redisQueue.cleanupMatchAssignments(socket.id);
+        socket.to(matchData.partnerSocketId).emit('user-left', userId);
+      }
+
       return await redisQueue.removeFromQueue(socket.id, userId);
     }),
   );
@@ -49,6 +69,13 @@ export function setupMatchmaking(
   socket.on(
     'disconnect',
     wrapHandler(async () => {
+      // User was already matched - clean up and notify partner
+      const matchData = await redisQueue.getMatchAssignment(socket.id);
+      if (matchData) {
+        await redisQueue.cleanupMatchAssignments(socket.id);
+        socket.to(matchData.partnerSocketId).emit('partner-disconnected');
+      }
+
       return await redisQueue.removeFromQueue(socket.id, undefined);
     }),
   );
