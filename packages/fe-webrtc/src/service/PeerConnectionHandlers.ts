@@ -47,6 +47,7 @@ const _handleIceConnectionStateChange = (
   pc: RTCPeerConnection,
   setters: Setters,
 ) => {
+  console.debug('iceConnectionState', pc.iceConnectionState);
   if (pc.iceConnectionState === 'failed') {
     pc.restartIce();
   }

@@ -35,6 +35,10 @@ export const useInitNewCall = ({
 
     socketStore.socket?.emit('join-room', routerState.roomId, socketStore.id);
     RouterStateUtil.clear();
+
+    return () => {
+      InCallService.dispose();
+    };
   }, [
     callStore,
     mediaStore,

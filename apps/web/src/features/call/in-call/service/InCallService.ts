@@ -83,9 +83,15 @@ const endCall = (
   });
 };
 
+const dispose = () => {
+  WebRTCService.get()?.close();
+};
+
 export const InCallService = {
   initNewCall,
   handlePartnerLeftCall,
   goBack,
   endCall,
+
+  dispose,
 };

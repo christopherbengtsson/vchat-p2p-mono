@@ -4,8 +4,8 @@ import { Button } from '@/common/components/ui/button';
 import { RouterStateUtil } from '@/common/utils/RouterStateUtil';
 import { RoutePath } from '@/RoutePath';
 import { useRootStore } from '@/stores/hooks/useRootStore';
-import { useOnMatchFound } from '../hooks/useMatchListener';
-import { useFindMatchOnMount } from '../hooks/useFindMatch';
+import { useOnMatchFound } from '../hooks/useOnMatchFound';
+import { useFindMatchOnMount } from '../hooks/useFindMatchOnMount';
 import { QueueAnimationContainer } from './QueueAnimationContainer';
 
 export const QueueContainer = observer(function QueuePage() {

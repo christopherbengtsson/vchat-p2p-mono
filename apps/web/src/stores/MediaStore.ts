@@ -1,4 +1,4 @@
-import { makeAutoObservable, observable } from 'mobx';
+import { makeAutoObservable, observable, runInAction } from 'mobx';
 import { PermissionService } from '@/common/service/PermissionService';
 import { LocalStorageService } from '@/common/service/LocalStorageService';
 import { STORAGE_KEYS } from '@/common/model/LocalStorageKeys';
@@ -59,9 +59,11 @@ export class MediaStore {
       const stream: MediaStream =
         await MediaStreamService.requestAudioAndVideoStream();
 
-      this.stream = stream;
-      this.videoEnabled = stream.getVideoTracks()[0].enabled;
-      this.audioEnabled = stream.getAudioTracks()[0].enabled;
+      runInAction(() => {
+        this.stream = stream;
+        this.videoEnabled = stream.getVideoTracks()[0].enabled;
+        this.audioEnabled = stream.getAudioTracks()[0].enabled;
+      });
 
       LocalStorageService.set(STORAGE_KEYS.MEDIA_PERMISSIONS, 'granted');
     } catch (error) {

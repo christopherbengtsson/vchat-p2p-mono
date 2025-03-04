@@ -13,8 +13,8 @@ const addListener = (callback: (inviteData: InviteData) => void) => {
 };
 
 const removeListener = (callback: (inviteData: InviteData) => void) => {
-  const webRTCInstance = _getWebRTCInstance();
-  webRTCInstance.removeInjectable('handleIncomingInviteMessage', callback);
+  const webRTCInstance = WebRTCService.get();
+  webRTCInstance?.removeInjectable('handleIncomingInviteMessage', callback);
 };
 
 const sendInvite = () => {
