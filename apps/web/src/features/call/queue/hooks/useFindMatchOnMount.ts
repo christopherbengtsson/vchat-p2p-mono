@@ -6,7 +6,7 @@ import { RouterStateUtil } from '@/common/utils/RouterStateUtil';
 import { RoutePath } from '@/RoutePath';
 import { CallStore } from '../../store/CallStore';
 
-interface CallLocation {
+export interface CallLocation {
   state: Maybe<{
     findMatch: boolean;
     slow?: boolean;
