@@ -31,7 +31,6 @@ export const GameInviteActionContainer = observer(
             }
 
             setDisableInviteBtn(false);
-
             break;
         }
       },

@@ -3,6 +3,7 @@ import { act, render, screen } from '@testing-library/react';
 import { configure } from 'mobx';
 import { Assert } from '@mono/common-dto';
 import { WebRTCService } from '@mono/fe-webrtc';
+import { RouterStateUtil } from '@/common/utils/RouterStateUtil';
 import {
   TestWithCallStoreContext,
   TestWithRootStoreContext,
@@ -70,6 +71,7 @@ describe('CallContainer', () => {
     vi.spyOn(WebRTCService, 'create').mockReturnValue(mockWebRTCInstance);
     vi.spyOn(WebRTCService, 'get').mockReturnValue(mockWebRTCInstance);
 
+    vi.spyOn(RouterStateUtil, 'clear').mockImplementation(vi.fn());
     vi.spyOn(Assert, 'isDefined').mockImplementation(() => vi.fn());
   });
 
@@ -94,6 +96,7 @@ describe('CallContainer', () => {
     });
 
     expect(webRtcSpy).toHaveBeenCalledOnce();
+    expect(RouterStateUtil.clear).toHaveBeenCalledOnce();
   });
 
   it('should render match message on mount', () => {

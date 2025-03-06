@@ -5,7 +5,7 @@ interface In {
   remoteStream: MediaStream | null;
 }
 
-export const useInjectVideoSource = ({ localStream, remoteStream }: In) => {
+export const useVideoStreams = ({ localStream, remoteStream }: In) => {
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
 

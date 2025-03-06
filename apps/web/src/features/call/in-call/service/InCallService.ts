@@ -74,6 +74,7 @@ const endCall = (
   navigate: NavigateFunction,
 ) => {
   socket?.emit('leave-room', roomId, socketId);
+  dispose();
   navigate(RoutePath.CALL, {
     // TODO: Replace?
     state: {

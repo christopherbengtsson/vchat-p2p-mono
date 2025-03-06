@@ -4,7 +4,7 @@ import { useRootStore } from '@/stores/hooks/useRootStore';
 import { ReportContainer } from '@/features/user-report/container/ReportContainer';
 import { GameInitiatorContainer } from '@/features/game/game-invite/container/GameInitiatorContainer';
 import { useCallStore } from '../../context/useCallStore';
-import { useInjectVideoSource } from '../hooks/useInjectVideoSource';
+import { useVideoStreams } from '../hooks/useVideoStreams';
 import { UserVideoContainer } from '../component/UserVideoContainer';
 import { CallActionContainer } from './CallActionContainer';
 
@@ -12,7 +12,7 @@ export const InCallContainer = observer(function InCallPage() {
   const { mediaStore, authStore } = useRootStore();
   const callStore = useCallStore();
   const isGameEnabled = FeatureFlagUtil.isGamesEnabled();
-  const { localVideoRef, remoteVideoRef } = useInjectVideoSource({
+  const { localVideoRef, remoteVideoRef } = useVideoStreams({
     localStream: mediaStore.stream,
     remoteStream: callStore.remoteStream,
   });

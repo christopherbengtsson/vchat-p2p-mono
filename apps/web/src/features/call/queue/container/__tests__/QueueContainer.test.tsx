@@ -3,7 +3,7 @@ import { userEvent } from '@testing-library/user-event';
 import * as useRootStore from '@/stores/hooks/useRootStore';
 import { RootStore } from '@/stores/RootStore';
 import { RoutePath } from '@/RoutePath';
-import * as RouterStateUtil from '@/common/utils/RouterStateUtil';
+import { RouterStateUtil } from '@/common/utils/RouterStateUtil';
 import { QueueContainer } from '../QueueContainer';
 
 vi.mock('../../hooks/useOnMatchFound', () => ({
@@ -49,9 +49,7 @@ describe('QueueContainer', () => {
       mediaStore: mockMediaStore,
     } as unknown as RootStore);
 
-    vi.spyOn(RouterStateUtil.RouterStateUtil, 'clear').mockImplementation(
-      vi.fn(),
-    );
+    vi.spyOn(RouterStateUtil, 'clear').mockImplementation(vi.fn());
   });
 
   it('should render the queue animation', () => {
@@ -74,7 +72,7 @@ describe('QueueContainer', () => {
 
     expect(mockSocket.emit).toHaveBeenCalledWith('cancel-match', 'user-123');
     expect(mockMediaStore.closeAudioAndVideoStream).toHaveBeenCalled();
-    expect(RouterStateUtil.RouterStateUtil.clear).toHaveBeenCalled();
+    expect(RouterStateUtil.clear).toHaveBeenCalled();
     expect(mockNavigate).toHaveBeenCalledWith(RoutePath.HOME);
   });
 });

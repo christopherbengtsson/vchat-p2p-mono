@@ -18,6 +18,7 @@ export function Video({ videoRef, isLocal, videoEnabled, isPortrait }: Props) {
         } ${isLocal ? 'z-10' : 'z-0'}`}
         autoPlay
         playsInline
+        aria-label={`${isLocal ? 'Your video' : "Partner's video"}`}
         muted={isLocal}
       />
 
