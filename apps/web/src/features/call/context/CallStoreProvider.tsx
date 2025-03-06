@@ -1,14 +1,10 @@
 import { useRef } from 'react';
+import type { CallStoreParams } from '../in-call/model/CallStoreParams';
 import { CallStore } from '../store/CallStore';
 import { CallStoreContext } from './CallStoreContext';
 
 interface Props extends React.PropsWithChildren {
-  callState: {
-    roomId: string;
-    partnerSocketId: string;
-    partnerUserId: string;
-    isPolite: boolean;
-  };
+  callState: CallStoreParams;
 }
 
 export function CallStoreProvider({ children, callState }: Props) {

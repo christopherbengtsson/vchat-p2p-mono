@@ -4,14 +4,8 @@ import type { VChatSocket } from '@mono/fe-dto';
 import type { Maybe } from '@mono/common-dto';
 import { RouterStateUtil } from '@/common/utils/RouterStateUtil';
 import { RoutePath } from '@/RoutePath';
+import { CallLocation } from '../model/CallLocationState';
 import { CallStore } from '../../store/CallStore';
-
-export interface CallLocation {
-  state: Maybe<{
-    findMatch: boolean;
-    slow?: boolean;
-  }>;
-}
 
 interface In {
   socket: Maybe<VChatSocket>;

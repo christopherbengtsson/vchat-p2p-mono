@@ -2,18 +2,16 @@ import { useEffect, useState } from 'react';
 import { observer } from 'mobx-react';
 import { useRootStore } from '@/stores/hooks/useRootStore';
 import { useCallStore } from '../../context/useCallStore';
-import { CallRouterStateProps } from '../model/CallRouterStateProps';
+import type { CallStoreParams } from '../model/CallStoreParams';
 import { useInCallListeners } from '../hooks/useInCallListeners';
 import { useInitNewCall } from '../hooks/useInitNewCall';
 import { InCallContainer } from './InCallContainer';
 import { NewMatchContainer } from './NewMatchContainer';
 
-const MIN_MATCH_DISPLAY_DURATION = 2500;
+export const MIN_MATCH_DISPLAY_DURATION = 2500;
 
 interface Props {
-  routerState: CallRouterStateProps & {
-    roomId: string;
-  };
+  routerState: CallStoreParams;
 }
 export const CallContainer = observer(function CallContainer({
   routerState,

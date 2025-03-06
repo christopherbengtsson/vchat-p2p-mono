@@ -4,7 +4,8 @@ import type { VChatSocket } from '@mono/fe-dto';
 import * as RouterStateUtil from '@/common/utils/RouterStateUtil';
 import { RoutePath } from '@/RoutePath';
 import { CallStore } from '@/features/call/store/CallStore';
-import { useFindMatchOnMount, type CallLocation } from '../useFindMatchOnMount';
+import type { CallLocation } from '../../model/CallLocationState';
+import { useFindMatchOnMount } from '../useFindMatchOnMount';
 
 const mockNavigate = vi.fn();
 let mockLocation: CallLocation = {

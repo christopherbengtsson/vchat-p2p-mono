@@ -6,7 +6,7 @@ import { CallStoreProvider } from '@/features/call/context/CallStoreProvider';
 import type { CallRouterStateProps } from '../model/CallRouterStateProps';
 import { CallContainer } from '../container/CallContainer';
 
-interface CallRouterStateLocation {
+export interface CallRouterStateLocation {
   state: Maybe<CallRouterStateProps>;
 }
 

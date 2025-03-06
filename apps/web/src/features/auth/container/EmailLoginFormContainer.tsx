@@ -11,7 +11,7 @@ import {
 } from '@/common/components/ui/form';
 import { Input } from '@/common/components/ui/input';
 import { Button } from '@/common/components/ui/button';
-import { LoadingButton } from '@/common/components/loading-button/LoadingButton';
+import { LoadingSpinner } from '@/common/components/loading-spinner/LoadingSpinner';
 import { useLogins } from '../hooks/useLogins';
 
 const formSchema = z.object({
@@ -83,8 +83,9 @@ export function EmailLoginFormContainer() {
         disabled={loginWithEmailMutation.isPending}
         className="mt-8 w-full"
       >
-        {loginWithEmailMutation.isPending && <LoadingButton />}
-        {!loginWithEmailMutation.isPending && (
+        {loginWithEmailMutation.isPending ? (
+          <LoadingSpinner />
+        ) : (
           <>
             <Mail className="mr-2 h-4 w-4" /> Login with email
           </>

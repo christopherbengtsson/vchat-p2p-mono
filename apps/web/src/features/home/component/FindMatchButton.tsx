@@ -1,6 +1,6 @@
 import { observer } from 'mobx-react';
 import { Button } from '@/common/components/ui/button';
-import { LoadingButton } from '@/common/components/loading-button/LoadingButton';
+import { LoadingSpinner } from '@/common/components/loading-spinner/LoadingSpinner';
 
 interface Props {
   onClick: VoidFunction;
@@ -22,7 +22,7 @@ export const FindMatchButton = observer(function FindMatchButton({
       >
         {connecting || startingMedia ? (
           <>
-            <LoadingButton />
+            <LoadingSpinner />
             {connecting ? 'Connecting...' : 'Starting camera...'}
           </>
         ) : (

@@ -24,4 +24,14 @@ export const useInCallListeners = (socket: Maybe<VChatSocket>) => {
       socket?.off('partner-disconnected', onPartnerDisconnected);
     };
   }, [onPartnerDisconnected, onUserLeft, socket]);
+
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      InCallService.dispose();
+    };
+
+    return () => {
+      window.addEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, []);
 };

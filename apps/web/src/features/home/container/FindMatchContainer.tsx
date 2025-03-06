@@ -4,6 +4,7 @@ import { observer } from 'mobx-react';
 import { showToast } from '@/common/utils/toast/showToast';
 import { useRootStore } from '@/stores/hooks/useRootStore';
 import { RoutePath } from '@/RoutePath';
+import { CallLocation } from '@/features/call/queue/model/CallLocationState';
 import { PermissionsDialog } from '../component/PermissionsDialog';
 import { FindMatchButton } from '../component/FindMatchButton';
 
@@ -34,11 +35,12 @@ export const FindMatchContainer = observer(function FindMatchContainer() {
       showToast(error);
     }
 
-    navigate(RoutePath.CALL, {
+    const state: CallLocation = {
       state: {
         findMatch: true,
       },
-    });
+    };
+    navigate(RoutePath.CALL, state);
   };
 
   const requestMedia = async () => {

@@ -39,7 +39,9 @@ const bootstrap = (io: Server, redisClient: Redis) => {
 
     socket.on('disconnecting', async () => {
       Array.from(socket.rooms.values()).forEach((roomId) => {
-        socket.to(roomId).emit('partner-disconnected');
+        if (roomId !== socket.id) {
+          socket.to(roomId).emit('partner-disconnected');
+        }
       });
     });
 

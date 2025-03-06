@@ -9,12 +9,14 @@ export class AuthStore {
   userUpgraded = false;
   temporarilyBanned = false;
   permanentlyBanned = false;
+  isLoading = true;
 
   constructor() {
     makeAutoObservable(this);
 
     SupabaseClient.instance.auth.getSession().then(({ data: { session } }) => {
       this.setSession(session);
+      this.setLoading(false);
     });
 
     SupabaseClient.instance.auth.onAuthStateChange((_event, session) => {
@@ -33,6 +35,10 @@ export class AuthStore {
     }
 
     return this.session.user.id;
+  }
+
+  setLoading(isLoading: boolean) {
+    this.isLoading = isLoading;
   }
 
   setSession(session: Maybe<Session>) {

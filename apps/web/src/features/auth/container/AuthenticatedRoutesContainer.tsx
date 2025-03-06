@@ -3,6 +3,7 @@ import { observer } from 'mobx-react';
 import { Navigate, Outlet } from 'react-router-dom';
 import { useRootStore } from '@/stores/hooks/useRootStore';
 import { RoutePath, RouteParamValue } from '@/RoutePath';
+import { LoadingSpinner } from '@/common/components/loading-spinner/LoadingSpinner';
 
 export const AuthenticatedRoutesContainer = observer(
   function AuthenticatedRoutesContainer() {
@@ -15,6 +16,14 @@ export const AuthenticatedRoutesContainer = observer(
 
       return () => socketStore.disconnect();
     }, [authStore.authenticated, socketStore]);
+
+    if (authStore.isLoading) {
+      return (
+        <div className="absolute h-full w-full flex items-center justify-center">
+          <LoadingSpinner className="h-16 w-16 text-primary" />
+        </div>
+      );
+    }
 
     if (
       !authStore.session &&

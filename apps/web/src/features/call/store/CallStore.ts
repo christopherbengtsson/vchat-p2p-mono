@@ -1,11 +1,5 @@
 import { makeAutoObservable, observable } from 'mobx';
-
-interface CallStoreProps {
-  roomId: string;
-  partnerSocketId: string;
-  partnerUserId: string;
-  isPolite: boolean;
-}
+import { CallStoreParams } from '../in-call/model/CallStoreParams';
 
 export class CallStore {
   static NEW_MATCH_TIMEOUT = 1500;
@@ -24,7 +18,7 @@ export class CallStore {
 
   gameActive = false;
 
-  constructor(callProps: CallStoreProps) {
+  constructor(callProps: CallStoreParams) {
     this.roomId = callProps.roomId;
     this.partnerSocketId = callProps.partnerSocketId;
     this.partnerUserId = callProps.partnerUserId;

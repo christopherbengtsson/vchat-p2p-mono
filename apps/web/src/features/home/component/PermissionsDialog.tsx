@@ -8,7 +8,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/common/components/ui/alert-dialog';
-import { LoadingButton } from '@/common/components/loading-button/LoadingButton';
+import { LoadingSpinner } from '@/common/components/loading-spinner/LoadingSpinner';
 
 interface Props {
   open: boolean;
@@ -58,7 +58,7 @@ export function PermissionsDialog({ open, isLoading, onClick }: Props) {
             onClick={onClick}
             disabled={isLoading}
           >
-            {isLoading && <LoadingButton />}
+            {isLoading && <LoadingSpinner />}
             {isLoading ? 'Waiting for permissions...' : 'Continue'}
           </AlertDialogAction>
         </AlertDialogFooter>
