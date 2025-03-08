@@ -38,7 +38,6 @@ describe('FindMatchContainer', () => {
   let requestAudioAndVideoStreamSpy: MockInstance;
 
   beforeEach(() => {
-    vi.clearAllMocks();
     vi.spyOn(useRootStore, 'useRootStore').mockReturnValue({
       socketStore: mockSocketStore,
       mediaStore: mockMediaStore,
@@ -53,6 +52,10 @@ describe('FindMatchContainer', () => {
         stream: {} as MediaStream,
         errorState: undefined,
       });
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
   });
 
   it('should render enabled button when connected', async () => {
