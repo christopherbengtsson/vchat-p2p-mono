@@ -49,11 +49,11 @@ const requestAudioAndVideoStream = async () => {
 
     LocalStorageService.set(STORAGE_KEYS.MEDIA_PERMISSIONS, 'granted');
 
-    return { stream };
+    return { stream, errorState: undefined };
   } catch (error) {
     LocalStorageService.set(STORAGE_KEYS.MEDIA_PERMISSIONS, 'error');
     const toastState = _getDomExceptionError(error as DOMException);
-    return { errorState: toastState };
+    return { errorState: toastState, stream: undefined };
   }
 };
 
