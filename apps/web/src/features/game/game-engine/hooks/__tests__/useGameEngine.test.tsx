@@ -1,5 +1,5 @@
 import type { Mock } from 'vitest';
-import { autorun, configure, IReactionDisposer } from 'mobx';
+import { autorun, IReactionDisposer } from 'mobx';
 import { Maybe, RoundData } from '@mono/common-dto';
 import { renderHook, waitFor } from '@testing-library/react';
 import { noop } from '@/common/utils/noop';
@@ -37,9 +37,6 @@ describe('useGameEngine', () => {
   let mockRoundDispose: Mock;
 
   const renderTestee = (stateTransitions?: GameState[], isMyTurn = true) => {
-    // Configure mobx
-    configure({ safeDescriptors: false });
-
     gameStore = new GameStore('player1', isMyTurn);
     vi.mocked(useGameStore).mockReturnValue(gameStore);
 

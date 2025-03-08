@@ -12,7 +12,6 @@ export class MediaStore {
       'localAudioGameStream',
       this.closeLocalGameAudioStream,
     );
-    onBecomeUnobserved(this, 'localCallStream', this.closeLocalCallStream);
   }
 
   @action

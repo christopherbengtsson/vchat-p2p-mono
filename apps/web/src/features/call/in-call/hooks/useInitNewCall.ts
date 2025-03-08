@@ -1,4 +1,6 @@
 import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { RoutePath } from '@/RoutePath';
 import type { SocketStore } from '@/stores/SocketStore';
 import type { MediaStore } from '@/stores/MediaStore';
 import { RouterStateUtil } from '@/common/utils/RouterStateUtil';
@@ -23,14 +25,21 @@ export const useInitNewCall = ({
   mediaStore,
   socketStore,
 }: In) => {
+  const navigate = useNavigate();
+
   useEffect(() => {
+    if (!mediaStore.localCallStream) {
+      navigate(RoutePath.HOME, { replace: true, state: null });
+      return;
+    }
+
     InCallService.initNewCall({
+      localStream: mediaStore.localCallStream,
       roomId: routerState.roomId,
       partnerSocketId: routerState.partnerSocketId,
       isPolite: routerState.isPolite,
       callStore,
       socketStore,
-      mediaStore,
     });
 
     socketStore.socket?.emit('join-room', routerState.roomId, socketStore.id);
@@ -41,7 +50,8 @@ export const useInitNewCall = ({
     };
   }, [
     callStore,
-    mediaStore,
+    mediaStore.localCallStream,
+    navigate,
     routerState.isPolite,
     routerState.partnerSocketId,
     routerState.roomId,

@@ -1,9 +1,9 @@
 import type { MockInstance } from 'vitest';
 import { act, render, screen } from '@testing-library/react';
-import { configure } from 'mobx';
 import { Assert } from '@mono/common-dto';
 import { WebRTCService } from '@mono/fe-webrtc';
 import { RouterStateUtil } from '@/common/utils/RouterStateUtil';
+import { mediaStore } from '@/stores/MediaStore';
 import {
   TestWithCallStoreContext,
   TestWithRootStoreContext,
@@ -50,9 +50,6 @@ describe('CallContainer', () => {
   };
 
   beforeEach(() => {
-    // Configure mobx
-    configure({ safeDescriptors: false });
-
     vi.useFakeTimers({ shouldAdvanceTime: true });
 
     callStore = new CallStore(routerState);
@@ -81,18 +78,19 @@ describe('CallContainer', () => {
   });
 
   it('should find match on mount', () => {
+    mediaStore.localCallStream = {} as MediaStream;
     const serviceSpy = vi.spyOn(InCallService, 'initNewCall');
     const webRtcSpy = vi.spyOn(WebRTCService, 'create');
     renderTestee();
 
     expect(serviceSpy).toHaveBeenCalledOnce();
     expect(serviceSpy).toHaveBeenCalledWith({
+      localStream: mediaStore.localCallStream,
       roomId: routerState.roomId,
       partnerSocketId: routerState.partnerSocketId,
       isPolite: routerState.isPolite,
       callStore,
       socketStore: expect.anything(),
-      mediaStore: expect.anything(),
     });
 
     expect(webRtcSpy).toHaveBeenCalledOnce();

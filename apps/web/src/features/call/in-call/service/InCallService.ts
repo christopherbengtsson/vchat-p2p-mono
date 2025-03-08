@@ -1,37 +1,31 @@
 import type { NavigateFunction } from 'react-router-dom';
 import { toast } from 'sonner';
-import { Assert, type Maybe } from '@mono/common-dto';
+import { type Maybe } from '@mono/common-dto';
 import type { VChatSocket } from '@mono/fe-dto';
 import { WebRTCService } from '@mono/fe-webrtc';
-import type { MediaStore } from '@/stores/MediaStore';
 import type { SocketStore } from '@/stores/SocketStore';
 import { RoutePath } from '@/RoutePath';
 import type { CallStore } from '../../store/CallStore';
 
 const initNewCall = ({
+  localStream,
   roomId,
   partnerSocketId,
   isPolite,
   callStore,
   socketStore,
-  mediaStore,
 }: {
+  localStream: MediaStream;
   roomId: string;
   partnerSocketId: string;
   isPolite: boolean;
   callStore: CallStore;
   socketStore: SocketStore;
-  mediaStore: MediaStore;
 }) => {
-  Assert.isDefined(
-    mediaStore.localCallStream,
-    'Local MediaStream is not defined',
-  );
-
   WebRTCService.create({
     observables: {
       socket: socketStore.socket,
-      localStream: mediaStore.localCallStream,
+      localStream,
       roomId,
       partnerSocketId,
       isPolite,

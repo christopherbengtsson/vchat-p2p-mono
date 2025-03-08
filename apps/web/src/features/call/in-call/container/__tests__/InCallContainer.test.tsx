@@ -2,7 +2,6 @@ import type { MockInstance } from 'vitest';
 import { act, cleanup, render, screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { toast } from 'sonner';
-import { configure } from 'mobx';
 import { Assert, InviteData } from '@mono/common-dto';
 import { WebRTCService } from '@mono/fe-webrtc';
 import { RootStore } from '@/stores/RootStore';
@@ -51,8 +50,6 @@ vi.mock('@/common/clients/supabase', () => ({
 }));
 
 describe('InCallContainer', () => {
-  configure({ safeDescriptors: false });
-
   let rootStore: RootStore;
   let callStore: CallStore;
 
