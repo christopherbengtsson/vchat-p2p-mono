@@ -1,3 +1,4 @@
+import type { MockInstance } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import type { RootStore } from '@/stores/RootStore';
@@ -5,6 +6,7 @@ import * as useRootStore from '@/stores/hooks/useRootStore';
 import * as showToastModule from '@/common/utils/toast/showToast';
 import { ErrorToastState } from '@/common/utils/toast/model/ToastState';
 import { RoutePath } from '@/RoutePath';
+import { FindMatchService } from '../../service/FindMatchService';
 import { FindMatchContainer } from '../FindMatchContainer';
 
 const mockNavigate = vi.fn();
@@ -13,19 +15,27 @@ vi.mock('react-router-dom', async () => {
   const actualRouter = await vi.importActual('react-router-dom');
   return { ...actualRouter, useNavigate: () => mockNavigate };
 });
+vi.mock('../../service/FindMatchService', () => ({
+  FindMatchService: {
+    getMediaPermissions: vi.fn(),
+    requestAudioAndVideoStream: vi.fn(),
+  },
+}));
 
 describe('FindMatchContainer', () => {
   const mockMediaStore = {
-    getMediaPermissions: vi.fn(),
-    requestAudioAndVideoStream: vi.fn(),
     stream: null,
     videoEnabled: true,
     audioEnabled: true,
+    setLocalStream: vi.fn(),
   };
 
   const mockSocketStore = {
     connected: true,
   };
+
+  let getMediaPermissionsSpy: MockInstance;
+  let requestAudioAndVideoStreamSpy: MockInstance;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -34,8 +44,15 @@ describe('FindMatchContainer', () => {
       mediaStore: mockMediaStore,
     } as unknown as RootStore);
 
-    mockMediaStore.getMediaPermissions.mockResolvedValue(true);
-    mockMediaStore.requestAudioAndVideoStream.mockResolvedValue(undefined);
+    getMediaPermissionsSpy = vi
+      .spyOn(FindMatchService, 'getMediaPermissions')
+      .mockResolvedValue(true);
+    requestAudioAndVideoStreamSpy = vi
+      .spyOn(FindMatchService, 'requestAudioAndVideoStream')
+      .mockResolvedValue({
+        stream: {} as MediaStream,
+        errorState: undefined,
+      });
   });
 
   it('should render enabled button when connected', async () => {
@@ -64,8 +81,8 @@ describe('FindMatchContainer', () => {
     await user.click(screen.getByRole('button', { name: 'Find match' }));
 
     await waitFor(() => {
-      expect(mockMediaStore.getMediaPermissions).toHaveBeenCalled();
-      expect(mockMediaStore.requestAudioAndVideoStream).toHaveBeenCalled();
+      expect(getMediaPermissionsSpy).toHaveBeenCalled();
+      expect(requestAudioAndVideoStreamSpy).toHaveBeenCalled();
       expect(mockNavigate).toHaveBeenCalledWith(RoutePath.CALL, {
         state: {
           findMatch: true,
@@ -76,14 +93,14 @@ describe('FindMatchContainer', () => {
 
   it('should open permissions dialog when permissions are not granted', async () => {
     const user = userEvent.setup();
-    mockMediaStore.getMediaPermissions.mockResolvedValueOnce(false);
+    getMediaPermissionsSpy.mockResolvedValueOnce(false);
 
     render(<FindMatchContainer />);
 
     await user.click(screen.getByRole('button', { name: 'Find match' }));
 
     await waitFor(() => {
-      expect(mockMediaStore.getMediaPermissions).toHaveBeenCalled();
+      expect(getMediaPermissionsSpy).toHaveBeenCalled();
     });
 
     expect(screen.getByText("Let's get started")).toBeInTheDocument();
@@ -96,7 +113,7 @@ describe('FindMatchContainer', () => {
 
   it('should request media permissions when dialog button is clicked', async () => {
     const user = userEvent.setup();
-    mockMediaStore.getMediaPermissions.mockResolvedValueOnce(false);
+    getMediaPermissionsSpy.mockResolvedValueOnce(false);
 
     render(<FindMatchContainer />);
 
@@ -109,15 +126,15 @@ describe('FindMatchContainer', () => {
     await user.click(screen.getByRole('button', { name: 'Continue' }));
 
     await waitFor(() => {
-      expect(mockMediaStore.requestAudioAndVideoStream).toHaveBeenCalled();
+      expect(requestAudioAndVideoStreamSpy).toHaveBeenCalled();
     });
   });
 
   it('should show loading state in dialog when waiting for permissions', async () => {
     const user = userEvent.setup();
-    mockMediaStore.getMediaPermissions.mockResolvedValueOnce(false);
+    getMediaPermissionsSpy.mockResolvedValueOnce(false);
     // Make the requestAudioAndVideoStream function delay to show loading state
-    mockMediaStore.requestAudioAndVideoStream.mockImplementationOnce(
+    requestAudioAndVideoStreamSpy.mockImplementationOnce(
       () => new Promise((resolve) => setTimeout(() => resolve(undefined), 100)),
     );
 
@@ -135,7 +152,7 @@ describe('FindMatchContainer', () => {
 
     await waitFor(
       () => {
-        expect(mockMediaStore.requestAudioAndVideoStream).toHaveBeenCalled();
+        expect(requestAudioAndVideoStreamSpy).toHaveBeenCalled();
       },
       { timeout: 200 },
     );
@@ -144,9 +161,9 @@ describe('FindMatchContainer', () => {
   it('should show toast when media request returns an error', async () => {
     const user = userEvent.setup();
     const showToastSpy = vi.spyOn(showToastModule, 'showToast');
-    mockMediaStore.requestAudioAndVideoStream.mockResolvedValueOnce(
-      ErrorToastState.MEDIA_STREAM_NOT_ALLOWED,
-    );
+    requestAudioAndVideoStreamSpy.mockResolvedValueOnce({
+      errorState: ErrorToastState.MEDIA_STREAM_NOT_ALLOWED,
+    });
 
     render(<FindMatchContainer />);
 
@@ -162,10 +179,10 @@ describe('FindMatchContainer', () => {
   it('should show toast when requesting media from dialog returns an error', async () => {
     const user = userEvent.setup();
     const showToastSpy = vi.spyOn(showToastModule, 'showToast');
-    mockMediaStore.getMediaPermissions.mockResolvedValueOnce(false);
-    mockMediaStore.requestAudioAndVideoStream.mockResolvedValueOnce(
-      ErrorToastState.MEDIA_STREAM_NOT_AVAILABLE,
-    );
+    getMediaPermissionsSpy.mockResolvedValueOnce(false);
+    requestAudioAndVideoStreamSpy.mockResolvedValueOnce({
+      errorState: ErrorToastState.MEDIA_STREAM_NOT_AVAILABLE,
+    });
 
     render(<FindMatchContainer />);
 
