@@ -26,10 +26,10 @@ const addGameRoundListener = (callback: (gameData: RoundData) => void) => {
 
 const removeGameRoundListener = (callback: (gameData: RoundData) => void) => {
   try {
-    const webRTCInstance = _getWebRTCInstance();
+    const webRTCInstance = WebRTCService.get();
     const originalCallback = _gameRoundListeners.get(callback);
     if (originalCallback) {
-      webRTCInstance.removeInjectable(
+      webRTCInstance?.removeInjectable(
         'handleGameRoundMessage',
         originalCallback,
       );

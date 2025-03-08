@@ -13,7 +13,7 @@ export const InCallContainer = observer(function InCallPage() {
   const callStore = useCallStore();
   const isGameEnabled = FeatureFlagUtil.isGamesEnabled();
   const { localVideoRef, remoteVideoRef } = useVideoStreams({
-    localStream: mediaStore.stream,
+    localStream: mediaStore.localCallStream,
     remoteStream: callStore.remoteStream,
   });
 
@@ -24,7 +24,7 @@ export const InCallContainer = observer(function InCallPage() {
       <div className="absolute top-4 right-4 w-auto h-auto max-w-32 md:max-w-64 rounded-lg overflow-hidden shadow-lg">
         <UserVideoContainer
           videoRef={localVideoRef}
-          videoEnabled={mediaStore.videoEnabled}
+          videoEnabled={mediaStore.localVideoEnabled}
           isLocal
         />
       </div>

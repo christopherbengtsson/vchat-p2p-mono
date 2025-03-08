@@ -30,6 +30,13 @@ export const usePitchPlaneGame = (
     };
   }, [setRemoteCanvasStream]);
 
+  useEffect(
+    () => () => {
+      PitchPlaneService.gameDispose();
+    },
+    [],
+  );
+
   return {
     startNewRound,
     playerTurnComplete,

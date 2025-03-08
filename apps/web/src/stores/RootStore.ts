@@ -1,7 +1,7 @@
 import { configure } from 'mobx';
 import { AuthStore } from './AuthStore';
 import { SocketStore } from './SocketStore';
-import { MediaStore } from './MediaStore';
+import { mediaStore, type MediaStore } from './MediaStore';
 
 configure({ enforceActions: 'observed' });
 
@@ -13,6 +13,6 @@ export class RootStore {
   constructor() {
     this.authStore = new AuthStore();
     this.socketStore = new SocketStore(this);
-    this.mediaStore = new MediaStore();
+    this.mediaStore = mediaStore;
   }
 }

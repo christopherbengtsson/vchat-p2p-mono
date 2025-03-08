@@ -1,5 +1,4 @@
 import { useCallback } from 'react';
-import { runInAction } from 'mobx';
 import { Maybe } from '@mono/common-dto';
 import { GameStore, GameState } from '../context/GameStore';
 import { GameSpecificDispose } from '../model/GameSpecificDispose';
@@ -11,12 +10,7 @@ export const useGameStateHandlers = (
 ) => {
   const onStartRound = useCallback(
     (playerId?: string) => {
-      runInAction(() => {
-        gameStore.state = GameState.ROUND_START;
-        if (playerId) {
-          gameStore.opponentId = playerId;
-        }
-      });
+      gameStore.onStartRound(GameState.ROUND_START, playerId);
     },
     [gameStore],
   );
@@ -38,15 +32,7 @@ export const useGameStateHandlers = (
           ? GameState.GAME_OVER
           : GameState.ROUND_END;
 
-      runInAction(() => {
-        gameStore.roundResults.push({
-          playerId,
-          round,
-          score,
-        });
-
-        gameStore.state = newState;
-      });
+      gameStore.onPlayerTurnComplete(newState, { playerId, score, round });
 
       if (newState === GameState.GAME_OVER) {
         GameEngineService.dispose();
@@ -61,14 +47,11 @@ export const useGameStateHandlers = (
 
   const onSwitchTurns = useCallback(
     (isMyTurn: boolean) => {
-      runInAction(() => {
-        if (gameStore.bothPlayersPlayedRound) {
-          gameStore.currentRound++;
-        }
+      const newRound = gameStore.bothPlayersPlayedRound
+        ? gameStore.currentRound + 1
+        : gameStore.currentRound;
 
-        gameStore.isMyTurn = isMyTurn;
-        gameStore.state = GameState.IDLE;
-      });
+      gameStore.onSwitchTurns(newRound, isMyTurn, GameState.IDLE);
     },
     [gameStore],
   );

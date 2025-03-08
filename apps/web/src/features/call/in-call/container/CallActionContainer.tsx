@@ -30,13 +30,13 @@ export const CallActionContainer = observer(function CallActionContainer() {
       )}
     >
       <ToggleCameraButton
-        localStream={mediaStore.stream}
-        videoEnabled={mediaStore.videoEnabled}
+        localStream={mediaStore.localCallStream}
+        videoEnabled={mediaStore.localVideoEnabled}
         onToggle={toggleVideo}
       />
       <ToggleMuteButton
-        localStream={mediaStore.stream}
-        audioEnabled={mediaStore.audioEnabled}
+        localStream={mediaStore.localCallStream}
+        audioEnabled={mediaStore.localAudioEnabled}
         onToggle={toggleAudio}
       />
       <EndCallButton onClick={endCall} />

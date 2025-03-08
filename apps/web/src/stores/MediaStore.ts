@@ -1,40 +1,65 @@
-import { action, observable } from 'mobx';
+import { action, observable, onBecomeUnobserved } from 'mobx';
 
 export class MediaStore {
-  @observable.ref accessor stream: MediaStream | null = null;
-  @observable accessor videoEnabled = true;
-  @observable accessor audioEnabled = true;
+  @observable.ref accessor localAudioGameStream: MediaStream | null = null;
+  @observable.ref accessor localCallStream: MediaStream | null = null;
+  @observable accessor localVideoEnabled = true;
+  @observable accessor localAudioEnabled = true;
+
+  constructor() {
+    onBecomeUnobserved(
+      this,
+      'localAudioGameStream',
+      this.closeLocalGameAudioStream,
+    );
+    onBecomeUnobserved(this, 'localCallStream', this.closeLocalCallStream);
+  }
+
+  @action
+  setGameAudioStream = (stream: MediaStream) => {
+    this.localAudioGameStream = stream;
+  };
 
   @action
   setLocalStream = (stream: MediaStream) => {
-    this.stream = stream;
-    this.videoEnabled = stream.getVideoTracks()[0].enabled;
-    this.audioEnabled = this.stream.getAudioTracks()[0].enabled;
+    this.localCallStream = stream;
+    this.localVideoEnabled = stream.getVideoTracks()[0].enabled;
+    this.localAudioEnabled = this.localCallStream.getAudioTracks()[0].enabled;
   };
 
   @action
-  setVideoEnabled = (toggle: boolean) => {
-    if (!this.stream) {
+  setLocalVideoEnabled = (toggle: boolean) => {
+    if (!this.localCallStream) {
       return;
     }
-    this.stream.getVideoTracks()[0].enabled = toggle;
-    this.videoEnabled = toggle;
+    this.localCallStream.getVideoTracks()[0].enabled = toggle;
+    this.localVideoEnabled = toggle;
   };
 
   @action
-  setAudioEnabled = (toggle: boolean) => {
-    if (!this.stream) {
+  setLocalAudioEnabled = (toggle: boolean) => {
+    if (!this.localCallStream) {
       return;
     }
-    this.stream.getAudioTracks()[0].enabled = toggle;
-    this.audioEnabled = toggle;
+    this.localCallStream.getAudioTracks()[0].enabled = toggle;
+    this.localAudioEnabled = toggle;
   };
 
   @action
-  closeAudioAndVideoStream = () => {
-    this.stream?.getTracks()?.forEach((track) => {
+  closeLocalGameAudioStream = () => {
+    this.localAudioGameStream?.getTracks().forEach((track) => {
       track.stop();
     });
-    this.stream = null;
+    this.localAudioGameStream = null;
+  };
+
+  @action
+  closeLocalCallStream = () => {
+    this.localCallStream?.getTracks().forEach((track) => {
+      track.stop();
+    });
+    this.localCallStream = null;
   };
 }
+
+export const mediaStore = new MediaStore();

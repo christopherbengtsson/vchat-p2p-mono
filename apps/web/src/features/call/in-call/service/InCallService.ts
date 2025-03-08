@@ -23,12 +23,15 @@ const initNewCall = ({
   socketStore: SocketStore;
   mediaStore: MediaStore;
 }) => {
-  Assert.isDefined(mediaStore.stream, 'Local MediaStream is not defined');
+  Assert.isDefined(
+    mediaStore.localCallStream,
+    'Local MediaStream is not defined',
+  );
 
   WebRTCService.create({
     observables: {
       socket: socketStore.socket,
-      localStream: mediaStore.stream,
+      localStream: mediaStore.localCallStream,
       roomId,
       partnerSocketId,
       isPolite,

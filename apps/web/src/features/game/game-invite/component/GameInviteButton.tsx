@@ -9,7 +9,7 @@ interface Props {
 export function GameInviteButton({ onClick, disabled }: Props) {
   return (
     <Button
-      aria-label={`${disabled ? 'Game is active' : 'Invite to game'}`}
+      aria-label="Invite to game"
       variant="secondary"
       size="icon"
       onClick={onClick}

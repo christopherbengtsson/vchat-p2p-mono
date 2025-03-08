@@ -21,7 +21,7 @@ export const QueueContainer = observer(function QueuePage() {
 
   const handleCancel = () => {
     socketStore.socket?.emit('cancel-match', authStore.userId);
-    mediaStore.closeAudioAndVideoStream();
+    mediaStore.closeLocalCallStream();
     RouterStateUtil.clear();
     navigate(RoutePath.HOME);
   };

@@ -1,6 +1,7 @@
 import { Assert, CustomError, Maybe } from '@mono/common-dto';
 import { WebRTCService } from '@mono/fe-webrtc';
 import { MediaStreamService } from '@/common/service/MediaStreamService';
+import { mediaStore } from '@/stores/MediaStore';
 import { AudioFrequencyService } from './AudioFrequencyService';
 
 let _audioFrequencyService: Maybe<AudioFrequencyService>;
@@ -18,8 +19,19 @@ const initGamePerquisites = async () => {
       _audioFrequencyService = null;
     }
 
-    const stream = await MediaStreamService.requestGameAudioStream();
-    _audioFrequencyService = new AudioFrequencyService(stream);
+    if (!mediaStore.localAudioGameStream) {
+      const stream = await MediaStreamService.requestGameAudioStream();
+      mediaStore.setGameAudioStream(stream);
+    }
+
+    Assert.isDefined(
+      mediaStore.localAudioGameStream,
+      'Game audio stream is not defined',
+    );
+
+    _audioFrequencyService = new AudioFrequencyService(
+      mediaStore.localAudioGameStream,
+    );
   } catch (error) {
     console.error('Failed to start game audio service', error);
     throw error;
@@ -44,12 +56,8 @@ const setRemoteCanvasStream = (callback: (stream: MediaStream) => void) => {
 };
 
 const removeRemoteCanvasStream = () => {
-  try {
-    const webRTCInstance = _getWebRTCInstance();
-    webRTCInstance.removeInjectable('setRemoteCanvasStream');
-  } catch (error) {
-    console.error('Failed to remove remote canvas stream', error);
-  }
+  const webRTCInstance = WebRTCService.get();
+  webRTCInstance?.removeInjectable('setRemoteCanvasStream');
 };
 
 const startCanvasStream = (
@@ -73,8 +81,8 @@ const startCanvasStream = (
 
 const stopCanvasStream = () => {
   try {
-    const webRTCInstance = _getWebRTCInstance();
-    webRTCInstance.removeCanvasStream();
+    const webRTCInstance = WebRTCService.get();
+    webRTCInstance?.removeCanvasStream();
   } catch (error) {
     console.error('Failed to stop canvas stream', error);
   }
@@ -85,6 +93,7 @@ const roundDispose = () => {
     _audioFrequencyService.close();
     _audioFrequencyService = null;
   }
+  mediaStore.closeLocalGameAudioStream();
   stopCanvasStream();
 };
 

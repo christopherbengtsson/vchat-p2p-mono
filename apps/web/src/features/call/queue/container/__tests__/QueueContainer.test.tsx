@@ -33,7 +33,7 @@ describe('QueueContainer', () => {
   };
 
   const mockMediaStore = {
-    closeAudioAndVideoStream: vi.fn(),
+    closeLocalCallStream: vi.fn(),
   };
 
   const mockSocketStore = {
@@ -71,7 +71,7 @@ describe('QueueContainer', () => {
     await user.click(screen.getByRole('button', { name: 'Cancel' }));
 
     expect(mockSocket.emit).toHaveBeenCalledWith('cancel-match', 'user-123');
-    expect(mockMediaStore.closeAudioAndVideoStream).toHaveBeenCalled();
+    expect(mockMediaStore.closeLocalCallStream).toHaveBeenCalled();
     expect(RouterStateUtil.clear).toHaveBeenCalled();
     expect(mockNavigate).toHaveBeenCalledWith(RoutePath.HOME);
   });

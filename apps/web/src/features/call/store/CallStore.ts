@@ -2,12 +2,12 @@ import { action, observable } from 'mobx';
 import { CallStoreParams } from '../in-call/model/CallStoreParams';
 
 export class CallStore {
-  static NEW_MATCH_TIMEOUT = 1500;
+  static readonly NEW_MATCH_TIMEOUT = 1500;
 
-  isPolite: boolean;
-  roomId: string;
-  partnerSocketId: string;
-  partnerUserId: string;
+  readonly isPolite: boolean;
+  readonly roomId: string;
+  readonly partnerSocketId: string;
+  readonly partnerUserId: string;
 
   @observable.ref accessor remoteStream: MediaStream | null = null;
   @observable accessor remoteVideoEnabled = true;

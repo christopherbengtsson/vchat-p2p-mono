@@ -86,7 +86,7 @@ describe('InCallContainer', () => {
     rootStore.authStore.session = {
       user: { id: 'userId' },
     } as any;
-    rootStore.mediaStore.stream = {
+    rootStore.mediaStore.localCallStream = {
       getVideoTracks: vi.fn().mockReturnValue([{ enabled: true }]),
       getAudioTracks: vi.fn().mockReturnValue([{ enabled: true }]),
       getTracks: vi.fn().mockReturnValue([{ stop: vi.fn() }]),

@@ -11,9 +11,9 @@ export class AudioFrequencyService {
   private detector: PitchDetector<Float32Array>;
   private input: Float32Array;
 
-  static MAX_FREQUENCY = 800;
-  static PITCH_THRESHOLD = 0;
-  static CLARITY_THRESHOLD = 0.8;
+  static readonly MAX_FREQUENCY = 800;
+  static readonly PITCH_THRESHOLD = 0;
+  static readonly CLARITY_THRESHOLD = 0.8;
 
   constructor(stream: MediaStream) {
     this.audioContext = new AudioContext();

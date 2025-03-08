@@ -154,7 +154,7 @@ describe('useGameEngine', () => {
   it("should handle endPlayerRound correctly when it is player's turn", () => {
     const { result } = renderTestee();
 
-    gameStore.state = GameState.ROUND_END;
+    gameStore.setState(GameState.ROUND_END);
 
     result.current.endPlayerRound();
 
@@ -165,7 +165,7 @@ describe('useGameEngine', () => {
   it('should not call notifyTurnSwitch when in GAME_OVER state', () => {
     const { result } = renderTestee();
 
-    gameStore.state = GameState.GAME_OVER;
+    gameStore.setState(GameState.GAME_OVER);
 
     result.current.endPlayerRound();
 
@@ -175,7 +175,7 @@ describe('useGameEngine', () => {
   it("should not call notifyTurnSwitch when it is not player's turn", () => {
     const { result } = renderTestee(undefined, false);
 
-    gameStore.state = GameState.ROUND_END;
+    gameStore.setState(GameState.ROUND_END);
 
     result.current.endPlayerRound();
 
@@ -338,7 +338,6 @@ describe('useGameEngine', () => {
     expect(gameStore.state).toBe(GameState.ROUND_END);
     expect(mockRoundDispose).toHaveBeenCalledTimes(1);
 
-    // End player round and switch turns
     result.current.endPlayerRound();
 
     // Round 1 - Player 2 (remote)
@@ -357,7 +356,6 @@ describe('useGameEngine', () => {
     expect(gameStore.roundResults).toHaveLength(3);
     result.current.endPlayerRound();
 
-    // Verify roundResults before final turn
     expect(gameStore.roundResults).toEqual([
       { playerId: 'player1', round: 1, score: 100 },
       { playerId: 'player2', round: 1, score: 150 },
@@ -372,7 +370,6 @@ describe('useGameEngine', () => {
       round: 2,
     });
 
-    // Verify all the conditions for GAME_OVER are met
     expect(gameStore.roundResults).toHaveLength(4);
     expect(gameStore.roundResults).toContainEqual({
       playerId: 'player2',
@@ -382,7 +379,6 @@ describe('useGameEngine', () => {
     expect(gameStore.currentRound).toBe(2);
     expect(gameStore.maxRounds).toBe(2);
 
-    // Now this should pass
     expect(gameStore.state).toBe(GameState.GAME_OVER);
     expect(GameEngineService.dispose).toHaveBeenCalled();
     expect(mockGameDispose).toHaveBeenCalled();

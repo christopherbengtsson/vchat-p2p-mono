@@ -15,7 +15,7 @@ import { noop } from '../common/utils/noop';
 import type { RootStore } from './RootStore';
 
 export class SocketStore {
-  private rootStore: RootStore;
+  private readonly rootStore: RootStore;
 
   @observable.ref accessor socket: Maybe<VChatSocket>;
   @observable accessor connected = false;

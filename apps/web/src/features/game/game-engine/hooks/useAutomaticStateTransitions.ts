@@ -1,5 +1,5 @@
 import { useCallback, useEffect } from 'react';
-import { autorun, reaction, runInAction } from 'mobx';
+import { autorun, reaction } from 'mobx';
 import { Maybe } from '@mono/common-dto';
 import { GameState, GameStore } from '../context/GameStore';
 
@@ -12,9 +12,7 @@ export const useAutomaticStateTransitions = (
       await prepareGameSpecifics();
     }
 
-    runInAction(() => {
-      gameStore.state = GameState.PREPARE_ROUND;
-    });
+    gameStore.setState(GameState.PREPARE_ROUND);
   }, [gameStore, prepareGameSpecifics]);
 
   // Use autorun to also trigger on init
@@ -36,11 +34,11 @@ export const useAutomaticStateTransitions = (
         () => gameStore.state,
         (state) => {
           if (state === GameState.ROUND_START) {
-            runInAction(() => {
-              gameStore.state = gameStore.isMyTurn
-                ? GameState.PLAYER_TURN
-                : GameState.SPECTATOR_TURN;
-            });
+            const newState = gameStore.isMyTurn
+              ? GameState.PLAYER_TURN
+              : GameState.SPECTATOR_TURN;
+
+            gameStore.setState(newState);
           }
         },
       ),
