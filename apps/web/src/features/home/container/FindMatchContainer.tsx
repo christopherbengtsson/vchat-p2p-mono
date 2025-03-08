@@ -7,6 +7,7 @@ import { RoutePath } from '@/RoutePath';
 import { CallLocation } from '@/features/call/queue/model/CallLocationState';
 import { PermissionsDialog } from '../component/PermissionsDialog';
 import { FindMatchButton } from '../component/FindMatchButton';
+import { FindMatchService } from '../service/FindMatchService';
 
 export const FindMatchContainer = observer(function FindMatchContainer() {
   const { socketStore, mediaStore } = useRootStore();
@@ -19,7 +20,7 @@ export const FindMatchContainer = observer(function FindMatchContainer() {
 
   const findMatch = async () => {
     setStartingMedia(true);
-    const granted = await mediaStore.getMediaPermissions();
+    const granted = await FindMatchService.getMediaPermissions();
 
     if (!granted) {
       setPermissionDialogOpen(true);
@@ -27,31 +28,34 @@ export const FindMatchContainer = observer(function FindMatchContainer() {
       return;
     }
 
-    const error = await mediaStore.requestAudioAndVideoStream();
+    const { stream, errorState } =
+      await FindMatchService.requestAudioAndVideoStream();
+
+    if (errorState) {
+      showToast(errorState);
+    } else {
+      mediaStore.setLocalStream(stream);
+    }
 
     setStartingMedia(false);
 
-    if (error) {
-      showToast(error);
-    }
-
-    const state: CallLocation = {
+    const routerState: CallLocation = {
       state: {
         findMatch: true,
       },
     };
-    navigate(RoutePath.CALL, state);
+    navigate(RoutePath.CALL, routerState);
   };
 
   const requestMedia = async () => {
     setWaitingForPermission(true);
-    const error = await mediaStore.requestAudioAndVideoStream();
+    const { errorState } = await FindMatchService.requestAudioAndVideoStream();
     setWaitingForPermission(false);
 
     setPermissionDialogOpen(false);
 
-    if (error) {
-      showToast(error);
+    if (errorState) {
+      showToast(errorState);
     }
   };
 

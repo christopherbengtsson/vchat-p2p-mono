@@ -1,19 +1,16 @@
-import { makeAutoObservable } from 'mobx';
+import { action, computed, observable } from 'mobx';
 import type { Session } from '@supabase/supabase-js';
 import { CustomError, type Maybe } from '@mono/common-dto';
 import { SupabaseClient } from '@/common/clients/supabase';
 
 export class AuthStore {
-  session: Maybe<Session>;
-  authenticated = false;
-  userUpgraded = false;
-  temporarilyBanned = false;
-  permanentlyBanned = false;
-  isLoading = true;
+  @observable.ref accessor session: Maybe<Session>;
+  @observable accessor userUpgraded = false;
+  @observable accessor temporarilyBanned = false;
+  @observable accessor permanentlyBanned = false;
+  @observable accessor isLoading = true;
 
   constructor() {
-    makeAutoObservable(this);
-
     SupabaseClient.instance.auth.getSession().then(({ data: { session } }) => {
       this.setSession(session);
       this.setLoading(false);
@@ -21,14 +18,15 @@ export class AuthStore {
 
     SupabaseClient.instance.auth.onAuthStateChange((_event, session) => {
       this.setSession(session);
-
-      const authenticated = !!session;
-      if (authenticated !== this.authenticated) {
-        this.setAuthenticated(authenticated);
-      }
     });
   }
 
+  @computed
+  get authenticated() {
+    return !!this.session;
+  }
+
+  @computed
   get userId() {
     if (!this.session?.user.id) {
       throw CustomError.unauthorized('User ID is not defined');
@@ -37,27 +35,28 @@ export class AuthStore {
     return this.session.user.id;
   }
 
-  setLoading(isLoading: boolean) {
+  @action
+  setLoading = (isLoading: boolean) => {
     this.isLoading = isLoading;
-  }
+  };
 
-  setSession(session: Maybe<Session>) {
+  @action
+  setSession = (session: Maybe<Session>) => {
     this.session = session;
-  }
+  };
 
-  setAuthenticated(authenticated: boolean) {
-    this.authenticated = authenticated;
-  }
-
-  setUserUpgraded(userUpgraded: boolean) {
+  @action
+  setUserUpgraded = (userUpgraded: boolean) => {
     this.userUpgraded = userUpgraded;
-  }
+  };
 
-  setTemporarilyBanned(banned: boolean) {
+  @action
+  setTemporarilyBanned = (banned: boolean) => {
     this.temporarilyBanned = banned;
-  }
+  };
 
-  setPermanentlyBanned(banned: boolean) {
+  @action
+  setPermanentlyBanned = (banned: boolean) => {
     this.permanentlyBanned = banned;
-  }
+  };
 }

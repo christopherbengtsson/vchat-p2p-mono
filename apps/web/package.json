@@ -55,6 +55,7 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
+    "@babel/plugin-proposal-decorators": "^7.25.9",
     "@eslint/js": "^9.19.0",
     "@playwright/test": "^1.50.1",
     "@tailwindcss/typography": "^0.5.16",
