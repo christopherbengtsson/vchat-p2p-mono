@@ -28,7 +28,10 @@ export const useMediaPermissions = () => {
       setStartingMedia(false);
       return { success: false };
     } else {
-      Assert.isDefined(stream);
+      Assert.isDefined(
+        stream,
+        'Unknown error: stream is undefined from FindMatchService.requestAudioAndVideoStream()',
+      );
       mediaStore.setLocalStream(stream);
     }
 

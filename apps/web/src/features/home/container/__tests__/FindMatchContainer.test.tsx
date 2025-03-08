@@ -17,8 +17,11 @@ vi.mock('react-router-dom', async () => {
 });
 vi.mock('../../service/FindMatchService', () => ({
   FindMatchService: {
-    getMediaPermissions: vi.fn(),
-    requestAudioAndVideoStream: vi.fn(),
+    getMediaPermissions: vi.fn().mockResolvedValue(true),
+    requestAudioAndVideoStream: vi.fn().mockResolvedValue({
+      stream: undefined,
+      errorState: undefined,
+    }),
   },
 }));
 
@@ -46,16 +49,17 @@ describe('FindMatchContainer', () => {
     getMediaPermissionsSpy = vi
       .spyOn(FindMatchService, 'getMediaPermissions')
       .mockResolvedValue(true);
+
     requestAudioAndVideoStreamSpy = vi
       .spyOn(FindMatchService, 'requestAudioAndVideoStream')
       .mockResolvedValue({
-        stream: {} as MediaStream,
+        stream: { active: true } as MediaStream,
         errorState: undefined,
       });
   });
 
   afterEach(() => {
-    vi.resetAllMocks();
+    vi.clearAllMocks();
   });
 
   it('should render enabled button when connected', async () => {
@@ -83,14 +87,12 @@ describe('FindMatchContainer', () => {
 
     await user.click(screen.getByRole('button', { name: 'Find match' }));
 
-    await waitFor(() => {
-      expect(getMediaPermissionsSpy).toHaveBeenCalled();
-      expect(requestAudioAndVideoStreamSpy).toHaveBeenCalled();
-      expect(mockNavigate).toHaveBeenCalledWith(RoutePath.CALL, {
-        state: {
-          findMatch: true,
-        },
-      });
+    expect(getMediaPermissionsSpy).toHaveBeenCalled();
+    expect(requestAudioAndVideoStreamSpy).toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith(RoutePath.CALL, {
+      state: {
+        findMatch: true,
+      },
     });
   });
 
@@ -165,6 +167,7 @@ describe('FindMatchContainer', () => {
     const user = userEvent.setup();
     const showToastSpy = vi.spyOn(showToastModule, 'showToast');
     requestAudioAndVideoStreamSpy.mockResolvedValueOnce({
+      stream: undefined,
       errorState: ErrorToastState.MEDIA_STREAM_NOT_ALLOWED,
     });
 
@@ -184,6 +187,7 @@ describe('FindMatchContainer', () => {
     const showToastSpy = vi.spyOn(showToastModule, 'showToast');
     getMediaPermissionsSpy.mockResolvedValueOnce(false);
     requestAudioAndVideoStreamSpy.mockResolvedValueOnce({
+      stream: undefined,
       errorState: ErrorToastState.MEDIA_STREAM_NOT_AVAILABLE,
     });
 
