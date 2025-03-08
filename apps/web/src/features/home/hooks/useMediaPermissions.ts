@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Assert } from '@mono/common-dto';
 import { showToast } from '@/common/utils/toast/showToast';
 import { useRootStore } from '@/stores/hooks/useRootStore';
 import { FindMatchService } from '../service/FindMatchService';
@@ -19,14 +20,16 @@ export const useMediaPermissions = () => {
       return { success: false };
     }
 
-    const result = await FindMatchService.requestAudioAndVideoStream();
+    const { stream, errorState } =
+      await FindMatchService.requestAudioAndVideoStream();
 
-    if (result.errorState) {
-      showToast(result.errorState);
+    if (errorState) {
+      showToast(errorState);
       setStartingMedia(false);
       return { success: false };
     } else {
-      mediaStore.setLocalStream(result.stream);
+      Assert.isDefined(stream);
+      mediaStore.setLocalStream(stream);
     }
 
     setStartingMedia(false);

@@ -7,6 +7,11 @@ import {
 } from '@/common/utils/toast/model/ToastState';
 import { PermissionService } from '@/common/service/PermissionService';
 
+interface MediaStreamResult {
+  stream?: MediaStream;
+  errorState?: ToastState;
+}
+
 const _getDomExceptionError = (error: DOMException | unknown): ToastState => {
   if (!(error as DOMException).name) {
     return ErrorToastState.UNKNOWN_ERROR;
@@ -42,7 +47,7 @@ const getMediaPermissions = async () => {
   return false;
 };
 
-const requestAudioAndVideoStream = async () => {
+const requestAudioAndVideoStream = async (): Promise<MediaStreamResult> => {
   try {
     const stream: MediaStream =
       await MediaStreamService.requestAudioAndVideoStream();
