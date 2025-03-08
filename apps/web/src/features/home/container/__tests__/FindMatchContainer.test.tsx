@@ -140,7 +140,13 @@ describe('FindMatchContainer', () => {
     getMediaPermissionsSpy.mockResolvedValueOnce(false);
     // Make the requestAudioAndVideoStream function delay to show loading state
     requestAudioAndVideoStreamSpy.mockImplementationOnce(
-      () => new Promise((resolve) => setTimeout(() => resolve(undefined), 100)),
+      () =>
+        new Promise((resolve) =>
+          setTimeout(
+            () => resolve({ stream: {} as MediaStream, errorState: undefined }),
+            100,
+          ),
+        ),
     );
 
     render(<FindMatchContainer />);
