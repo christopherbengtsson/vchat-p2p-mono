@@ -1,7 +1,7 @@
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { render, screen } from '@testing-library/react';
 import { CallRouterStateLocation, InCallPage } from '../InCallPage';
-
+import { RoutePath } from '../../../../../RoutePath';
 vi.mock('react-router-dom', () => ({
   useLocation: vi.fn(),
   useNavigate: vi.fn(),
@@ -42,7 +42,7 @@ describe('InCallPage', () => {
 
     render(<InCallPage />);
 
-    expect(mockNavigate).toHaveBeenCalledWith(-1);
+    expect(mockNavigate).toHaveBeenCalledWith(RoutePath.CALL, { state: null });
   });
 
   it('should navigate away when state is missing', () => {
@@ -51,7 +51,7 @@ describe('InCallPage', () => {
 
     render(<InCallPage />);
 
-    expect(mockNavigate).toHaveBeenCalledWith(-1);
+    expect(mockNavigate).toHaveBeenCalledWith(RoutePath.CALL, { state: null });
   });
 
   it('should render call container when both roomId and state are valid', () => {
@@ -83,6 +83,6 @@ describe('InCallPage', () => {
     const { container } = render(<InCallPage />);
 
     expect(container.firstChild).toBeNull();
-    expect(mockNavigate).toHaveBeenCalledWith(-1);
+    expect(mockNavigate).toHaveBeenCalledWith(RoutePath.CALL, { state: null });
   });
 });
