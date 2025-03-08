@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { autorun } from 'mobx';
 import { observer } from 'mobx-react';
 import { Navigate, Outlet } from 'react-router-dom';
 import { useRootStore } from '@/stores/hooks/useRootStore';
@@ -10,11 +11,16 @@ export const AuthenticatedRoutesContainer = observer(
     const { authStore, socketStore } = useRootStore();
 
     useEffect(() => {
-      if (authStore.authenticated && !socketStore.connected) {
-        socketStore.connect();
-      }
+      const dispose = autorun(() => {
+        if (authStore.authenticated && !socketStore.connected) {
+          socketStore.connect();
+        }
+      });
 
-      return () => socketStore.disconnect();
+      return () => {
+        socketStore.disconnect();
+        dispose();
+      };
     }, [authStore.authenticated, socketStore]);
 
     if (authStore.isLoading) {

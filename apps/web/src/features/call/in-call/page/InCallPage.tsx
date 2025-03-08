@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { observer } from 'mobx-react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Maybe } from '@mono/common-dto';
+import { RoutePath } from '@/RoutePath';
 import { CallStoreProvider } from '@/features/call/context/CallStoreProvider';
 import type { CallRouterStateProps } from '../model/CallRouterStateProps';
 import { CallContainer } from '../container/CallContainer';
@@ -18,7 +19,7 @@ export const InCallPage = observer(function InCallPage() {
 
   useEffect(() => {
     if (!validState) {
-      navigate(-1);
+      navigate(RoutePath.CALL, { state: null });
     }
   }, [navigate, validState]);
 

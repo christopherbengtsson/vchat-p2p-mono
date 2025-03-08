@@ -126,13 +126,16 @@ export const videoCallActions = async (
   ]);
 
   await user.page.reload();
-  await expect(
-    user.page.getByRole('button', { name: 'Find match' }),
-  ).toBeVisible();
 
   await expect(
     partner.page.getByRole('button', { name: 'Cancel' }),
   ).toBeVisible();
+
+  await user.page.waitForURL('/');
+  await expect(
+    user.page.getByRole('button', { name: 'Find match' }),
+  ).toBeVisible();
+
   await partner.page.getByRole('button', { name: 'Cancel' }).click();
 
   await expect(
