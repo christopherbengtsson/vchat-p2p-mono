@@ -55,7 +55,7 @@ describe('FindMatchContainer', () => {
   });
 
   afterEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
   });
 
   it('should render enabled button when connected', async () => {
