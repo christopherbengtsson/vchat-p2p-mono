@@ -17,7 +17,7 @@ export const GameInitiatorContainer = observer(function GameInitiatorContainer({
   setGameActive,
 }: Props) {
   const [initiator, setInitiator] = useState(false);
-  const { setPlayersReady } = useValidatePlayersReady(userId, setGameActive); // TODO: Needs to be cleaned up after game finished
+  const { setPlayersReady } = useValidatePlayersReady(userId, setGameActive);
 
   const onMessageCallback = useCallback(
     (inviteData: InviteData) => {

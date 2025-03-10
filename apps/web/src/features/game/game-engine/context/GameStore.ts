@@ -1,32 +1,22 @@
 import { Maybe } from '@mono/common-dto';
 import { action, computed, observable } from 'mobx';
+import { GameState } from '../model/GameState';
 
-export type GameType = 'pitchPlane' | 'otherGame';
+type GameType = 'pitchPlane';
 
-export enum GameState {
-  IDLE = 'IDLE',
-  PREPARE_ROUND = 'PREPARE_ROUND',
-  ROUND_START = 'ROUND_START',
-  PLAYER_TURN = 'PLAYER_TURN',
-  SPECTATOR_TURN = 'SPECTATOR_TURN',
-  ROUND_END = 'ROUND_END',
-  GAME_OVER = 'GAME_OVER',
-}
-
-export interface RoundResult {
+interface RoundResult {
   playerId: string;
   round: number;
   score: number;
   gameSpecificData?: unknown;
 }
 
-export interface Params {
+interface Params {
   gameType: GameType;
   maxRounds: number;
 }
 
 export class GameStore {
-  // Core game state
   @observable accessor opponentId: Maybe<string>;
   @observable accessor state: GameState = GameState.IDLE;
   @observable accessor currentRound = 1;
@@ -34,7 +24,6 @@ export class GameStore {
   @observable accessor isMyTurn: boolean;
   @observable accessor roundResults: RoundResult[] = [];
 
-  // Player identifiers
   readonly playerId: string;
   readonly gameType: GameType;
 

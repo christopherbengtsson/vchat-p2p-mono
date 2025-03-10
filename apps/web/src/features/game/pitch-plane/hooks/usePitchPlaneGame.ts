@@ -8,6 +8,16 @@ export const usePitchPlaneGame = (
   gameStore: GameStore,
   setGameActive: (val: boolean) => void,
 ) => {
+  const [remoteCanvasStream, setRemoteCanvasStream] =
+    useState<Maybe<MediaStream>>();
+
+  useEffect(() => {
+    PitchPlaneService.setRemoteCanvasStream(setRemoteCanvasStream);
+    return () => {
+      PitchPlaneService.removeRemoteCanvasStream();
+    };
+  }, [setRemoteCanvasStream]);
+
   const initGamePerquisites = useCallback(async () => {
     await PitchPlaneService.initGamePerquisites();
 
@@ -27,16 +37,6 @@ export const usePitchPlaneGame = (
       },
     },
   );
-
-  const [remoteCanvasStream, setRemoteCanvasStream] =
-    useState<Maybe<MediaStream>>();
-
-  useEffect(() => {
-    PitchPlaneService.setRemoteCanvasStream(setRemoteCanvasStream);
-    return () => {
-      PitchPlaneService.removeRemoteCanvasStream();
-    };
-  }, [setRemoteCanvasStream]);
 
   return {
     startNewRound,

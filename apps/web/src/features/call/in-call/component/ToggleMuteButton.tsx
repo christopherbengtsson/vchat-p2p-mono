@@ -1,3 +1,4 @@
+import { observer } from 'mobx-react';
 import { MdMic, MdMicOff } from 'react-icons/md';
 import { Button } from '@/common/components/ui/button';
 
@@ -7,7 +8,7 @@ interface Props {
   onToggle: VoidFunction;
 }
 
-export function ToggleMuteButton({
+export const ToggleMuteButton = observer(function ToggleMuteButton({
   localStream,
   audioEnabled,
   onToggle,
@@ -27,4 +28,4 @@ export function ToggleMuteButton({
       )}
     </Button>
   );
-}
+});

@@ -1,3 +1,4 @@
+import { observer } from 'mobx-react';
 import { MdVideocam, MdVideocamOff } from 'react-icons/md';
 import { Button } from '@/common/components/ui/button';
 
@@ -7,7 +8,7 @@ interface Props {
   onToggle: VoidFunction;
 }
 
-export function ToggleCameraButton({
+export const ToggleCameraButton = observer(function ToggleCameraButton({
   localStream,
   videoEnabled,
   onToggle,
@@ -27,4 +28,4 @@ export function ToggleCameraButton({
       )}
     </Button>
   );
-}
+});

@@ -19,7 +19,7 @@ export const InCallPage = observer(function InCallPage() {
 
   useEffect(() => {
     if (!validState) {
-      navigate(RoutePath.CALL, { state: null });
+      navigate(RoutePath.HOME, { state: null, replace: true });
     }
   }, [navigate, validState]);
 

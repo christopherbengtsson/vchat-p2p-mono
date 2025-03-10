@@ -4,7 +4,9 @@ import { userEvent } from '@testing-library/user-event';
 import { toast } from 'sonner';
 import { Assert, InviteData } from '@mono/common-dto';
 import { WebRTCService } from '@mono/fe-webrtc';
+import { RoutePath } from '@/RoutePath';
 import { RootStore } from '@/stores/RootStore';
+import { FeatureFlagUtil } from '@/common/utils/FeatureFlagUtil';
 import { RouterStateUtil } from '@/common/utils/RouterStateUtil';
 import {
   TestWithCallStoreContext,
@@ -14,8 +16,6 @@ import {
 import { InCallContainer } from '../InCallContainer';
 import { CallStore } from '../../../store/CallStore';
 import type { CallStoreParams } from '../../model/CallStoreParams';
-import { FeatureFlagUtil } from '../../../../../common/utils/FeatureFlagUtil';
-import { RoutePath } from '../../../../../RoutePath';
 
 const routerState: CallStoreParams = {
   partnerSocketId: 'socket-123',

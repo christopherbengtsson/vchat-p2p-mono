@@ -1,8 +1,9 @@
 import { useCallback } from 'react';
-import { Maybe } from '@mono/common-dto';
-import { GameStore, GameState } from '../context/GameStore';
-import { GameSpecificDispose } from '../model/GameSpecificDispose';
+import type { Maybe } from '@mono/common-dto';
+import type { GameStore } from '../context/GameStore';
+import type { GameSpecificDispose } from '../model/GameSpecificDispose';
 import { GameEngineService } from '../service/GameEngineService';
+import { GameState } from '../model/GameState';
 
 export const useGameStateHandlers = (
   gameStore: GameStore,

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { autorun } from 'mobx';
 import { observer } from 'mobx-react';
-import { GameState } from '../../game-engine/context/GameStore';
+import { GameState } from '../../game-engine/model/GameState';
 import { useGameStore } from '../../game-engine/context/useGameStore';
 import { StartGameAlertDialog } from '../../game-engine/component/StartGameAlertDialog';
 import { ResultDialogContainer } from '../../game-engine/container/ResultDialogContainer';

@@ -3,14 +3,12 @@ import { autorun, IReactionDisposer } from 'mobx';
 import { Maybe, RoundData } from '@mono/common-dto';
 import { renderHook, waitFor } from '@testing-library/react';
 import { noop } from '@/common/utils/noop';
-import {
-  GameState,
-  GameStore,
-} from '@/features/game/game-engine/context/GameStore';
+import { GameStore } from '@/features/game/game-engine/context/GameStore';
 import { GameEngineService } from '../../service/GameEngineService';
 import { useGameStore } from '../../context/useGameStore';
 import { useGameEngine } from '../useGameEngine';
 import { GameSpecificDispose } from '../../model/GameSpecificDispose';
+import { GameState } from '../../model/GameState';
 
 vi.mock('../../context/useGameStore', () => ({
   useGameStore: vi.fn(),

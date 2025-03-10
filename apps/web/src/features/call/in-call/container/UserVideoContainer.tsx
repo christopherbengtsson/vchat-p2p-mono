@@ -1,5 +1,6 @@
+import { observer } from 'mobx-react';
 import { useIsPortraitVideoOrientation } from '@/common/hooks/useIsPortraitVideoOrientation';
-import { Video } from './Video';
+import { Video } from '../component/Video';
 
 interface Props {
   videoRef?: React.RefObject<HTMLVideoElement>;
@@ -7,8 +8,11 @@ interface Props {
   videoEnabled: boolean;
 }
 
-export function UserVideoContainer({ videoRef, ...props }: Props) {
+export const UserVideoContainer = observer(function UserVideoContainer({
+  videoRef,
+  ...props
+}: Props) {
   const isPortrait = useIsPortraitVideoOrientation(videoRef);
 
   return <Video videoRef={videoRef} {...props} isPortrait={isPortrait} />;
-}
+});

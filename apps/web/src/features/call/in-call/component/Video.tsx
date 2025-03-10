@@ -1,3 +1,4 @@
+import { observer } from 'mobx-react';
 import { BsCameraVideoOff } from 'react-icons/bs';
 import { TypographyP } from '@/common/components/typography/Typography';
 
@@ -8,7 +9,12 @@ interface Props {
   isPortrait: boolean;
 }
 
-export function Video({ videoRef, isLocal, videoEnabled, isPortrait }: Props) {
+export const Video = observer(function Video({
+  videoRef,
+  isLocal,
+  videoEnabled,
+  isPortrait,
+}: Props) {
   return (
     <div className="relative flex justify-center w-full h-full">
       <video
@@ -41,4 +47,4 @@ export function Video({ videoRef, isLocal, videoEnabled, isPortrait }: Props) {
       )}
     </div>
   );
-}
+});

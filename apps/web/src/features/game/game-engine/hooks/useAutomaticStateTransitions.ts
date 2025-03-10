@@ -1,7 +1,8 @@
 import { useCallback, useEffect } from 'react';
 import { autorun, reaction } from 'mobx';
 import { Maybe } from '@mono/common-dto';
-import { GameState, GameStore } from '../context/GameStore';
+import { GameStore } from '../context/GameStore';
+import { GameState } from '../model/GameState';
 
 export const useAutomaticStateTransitions = (
   gameStore: GameStore,

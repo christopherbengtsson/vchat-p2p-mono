@@ -1,7 +1,8 @@
 import { useCallback } from 'react';
-import { Maybe } from '@mono/common-dto';
-import { GameState, GameStore } from '../context/GameStore';
-import { GameSpecificDispose } from '../model/GameSpecificDispose';
+import type { Maybe } from '@mono/common-dto';
+import type { GameStore } from '../context/GameStore';
+import type { GameSpecificDispose } from '../model/GameSpecificDispose';
+import { GameState } from '../model/GameState';
 import { GameEngineService } from '../service/GameEngineService';
 import { useAutomaticStateTransitions } from './useAutomaticStateTransitions';
 import { useGameStateHandlers } from './useGameStateHandlers';

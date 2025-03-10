@@ -5,7 +5,7 @@ import { ReportContainer } from '@/features/user-report/container/ReportContaine
 import { GameInitiatorContainer } from '@/features/game/game-invite/container/GameInitiatorContainer';
 import { useCallStore } from '../../context/useCallStore';
 import { useVideoStreams } from '../hooks/useVideoStreams';
-import { UserVideoContainer } from '../component/UserVideoContainer';
+import { UserVideoContainer } from './UserVideoContainer';
 import { CallActionContainer } from './CallActionContainer';
 
 export const InCallContainer = observer(function InCallPage() {
