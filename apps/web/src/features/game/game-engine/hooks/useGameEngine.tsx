@@ -10,7 +10,7 @@ import { useGameStateListeners } from './useGameStateListeners';
 export const RESULT_DIALOG_TIMEOUT = 7_000;
 
 interface GameSpecifics {
-  prepareGame: Maybe<() => Promise<void>>;
+  prepareGame: Maybe<() => Promise<() => void>>;
   disposables: Maybe<GameSpecificDispose>;
 }
 

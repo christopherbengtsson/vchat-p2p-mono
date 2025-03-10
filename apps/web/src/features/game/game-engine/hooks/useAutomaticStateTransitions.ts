@@ -5,7 +5,7 @@ import { GameState, GameStore } from '../context/GameStore';
 
 export const useAutomaticStateTransitions = (
   gameStore: GameStore,
-  prepareGameSpecifics: Maybe<() => Promise<void>>,
+  prepareGameSpecifics: Maybe<() => Promise<() => void>>,
 ) => {
   const prepareRound = useCallback(async () => {
     if (prepareGameSpecifics) {

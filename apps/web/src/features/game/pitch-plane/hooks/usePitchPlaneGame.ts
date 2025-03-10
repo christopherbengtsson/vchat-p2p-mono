@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type { Maybe } from '@mono/common-dto';
 import { useGameEngine } from '../../game-engine/hooks/useGameEngine';
 import { GameStore } from '../../game-engine/context/GameStore';
@@ -8,11 +8,19 @@ export const usePitchPlaneGame = (
   gameStore: GameStore,
   setGameActive: (val: boolean) => void,
 ) => {
+  const initGamePerquisites = useCallback(async () => {
+    await PitchPlaneService.initGamePerquisites();
+
+    return () => {
+      PitchPlaneService.gameDispose();
+    };
+  }, []);
+
   const { startNewRound, playerTurnComplete, endPlayerRound } = useGameEngine(
     gameStore,
     setGameActive,
     {
-      prepareGame: PitchPlaneService.initGamePerquisites,
+      prepareGame: initGamePerquisites,
       disposables: {
         roundDispose: PitchPlaneService.roundDispose,
         gameDispose: PitchPlaneService.gameDispose,
@@ -29,13 +37,6 @@ export const usePitchPlaneGame = (
       PitchPlaneService.removeRemoteCanvasStream();
     };
   }, [setRemoteCanvasStream]);
-
-  useEffect(
-    () => () => {
-      PitchPlaneService.gameDispose();
-    },
-    [],
-  );
 
   return {
     startNewRound,
