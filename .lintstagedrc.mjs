@@ -1,8 +1,8 @@
 export default {
   '*': 'eslint',
-  'apps/server/**/*.{ts,tsx}?(x)': () => 'pnpm run server run typecheck',
-  'apps/web/**/*.{ts,tsx}?(x)': () => 'pnpm run web run typecheck',
-  'packages/**/*.{ts,tsx}?(x)': (filePaths) => {
+  'apps/server/**/*.{ts,tsx}': () => 'pnpm run server run typecheck',
+  'apps/web/**/*.{ts,tsx}': () => 'pnpm run web run typecheck',
+  'packages/**/*.{ts,tsx}': (filePaths) => {
     const packageNames = [
       ...new Set(
         filePaths
