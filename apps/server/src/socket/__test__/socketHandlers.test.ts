@@ -79,7 +79,7 @@ describe('Non-blocking socket handlers', async () => {
 
     io.on('connection', (socket) => {
       setupMatchmaking(socket, redisQueue, wrapSocketHandler);
-      setupRoomManagement(socket, wrapSocketHandler);
+      setupRoomManagement(socket, redisQueue, wrapSocketHandler);
     });
 
     roomClient1.connect();

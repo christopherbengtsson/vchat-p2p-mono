@@ -2,9 +2,11 @@ import { BanDuration } from '@mono/common-dto';
 import logger from '../../utils/logger.js';
 import type { VChatSocket } from '../../model/VChatSocket.js';
 import { SupabaseService } from '../../service/SupabaseService.js';
+import type { WaitingQueueService } from '../../service/WaitingQueueService.js';
 
 export function setupRoomManagement(
   socket: VChatSocket,
+  redisQueue: WaitingQueueService,
   wrapHandler: <T extends unknown[], R extends Promise<void> | void>(
     handler: (...args: T) => R,
   ) => (...args: T) => Promise<void>,
@@ -21,7 +23,9 @@ export function setupRoomManagement(
 
   socket.on(
     'leave-room',
-    wrapHandler((roomId, userId) => {
+    wrapHandler(async (roomId, userId) => {
+      await redisQueue.cleanupMatchAssignments(socket.id);
+
       socket.leave(roomId);
       socket.to(roomId).emit('user-left', userId);
 
@@ -75,6 +79,19 @@ export function setupRoomManagement(
         socket.request.headers,
         browserSignature,
       );
+    }),
+  );
+
+  socket.on(
+    'disconnecting',
+    wrapHandler(async () => {
+      await redisQueue.cleanupMatchAssignments(socket.id);
+
+      Array.from(socket.rooms.values()).forEach((roomId) => {
+        if (roomId !== socket.id) {
+          socket.to(roomId).emit('partner-disconnected');
+        }
+      });
     }),
   );
 }

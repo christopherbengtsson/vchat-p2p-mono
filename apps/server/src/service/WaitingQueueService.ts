@@ -153,8 +153,10 @@ export class WaitingQueueService {
     const matchData = await this.getMatchAssignment(socketId);
 
     if (matchData) {
-      await this.removeMatchAssignment(socketId);
-      await this.removeMatchAssignment(matchData.partnerSocketId);
+      await Promise.all([
+        this.removeMatchAssignment(socketId),
+        this.removeMatchAssignment(matchData.partnerSocketId),
+      ]);
 
       return matchData;
     }

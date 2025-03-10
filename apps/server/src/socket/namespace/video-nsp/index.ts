@@ -35,15 +35,7 @@ const bootstrap = (io: Server, redisClient: Redis) => {
 
     setupMatchmaking(socket, redisQueue, wrapSocketHandler);
     setupWebRTC(socket, wrapSocketHandler);
-    setupRoomManagement(socket, wrapSocketHandler);
-
-    socket.on('disconnecting', async () => {
-      Array.from(socket.rooms.values()).forEach((roomId) => {
-        if (roomId !== socket.id) {
-          socket.to(roomId).emit('partner-disconnected');
-        }
-      });
-    });
+    setupRoomManagement(socket, redisQueue, wrapSocketHandler);
 
     socket.on('disconnect', () => {
       logger.debug('User disconnected');
