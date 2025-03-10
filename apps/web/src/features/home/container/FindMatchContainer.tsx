@@ -1,3 +1,4 @@
+import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { observer } from 'mobx-react';
 import { useRootStore } from '@/stores/hooks/useRootStore';
@@ -6,6 +7,12 @@ import { CallLocation } from '@/features/call/queue/model/CallLocationState';
 import { PermissionsDialog } from '../component/PermissionsDialog';
 import { FindMatchButton } from '../component/FindMatchButton';
 import { useMediaPermissions } from '../hooks/useMediaPermissions';
+
+const FIND_MATCH_ROUTER_STATE: CallLocation = {
+  state: {
+    findMatch: true,
+  },
+};
 
 export const FindMatchContainer = observer(function FindMatchContainer() {
   const { socketStore } = useRootStore();
@@ -18,19 +25,21 @@ export const FindMatchContainer = observer(function FindMatchContainer() {
     requestMediaPermissions,
   } = useMediaPermissions();
 
-  const handleFindMatch = async () => {
-    // TODO: requestMediaPermissions func should call this
+  const navigateToCall = useCallback(() => {
+    navigate(RoutePath.CALL, FIND_MATCH_ROUTER_STATE);
+  }, [navigate]);
+
+  const handleFindMatch = useCallback(async () => {
     const { success } = await checkAndRequestMedia();
 
     if (success) {
-      const routerState: CallLocation = {
-        state: {
-          findMatch: true,
-        },
-      };
-      navigate(RoutePath.CALL, routerState);
+      navigateToCall();
     }
-  };
+  }, [checkAndRequestMedia, navigateToCall]);
+
+  const handlePermissionRequest = useCallback(async () => {
+    return await requestMediaPermissions(navigateToCall);
+  }, [requestMediaPermissions, navigateToCall]);
 
   return (
     <>
@@ -43,7 +52,7 @@ export const FindMatchContainer = observer(function FindMatchContainer() {
       <PermissionsDialog
         open={permissionDialogOpen}
         isLoading={waitingForPermission}
-        onClick={requestMediaPermissions}
+        onClick={handlePermissionRequest}
       />
     </>
   );

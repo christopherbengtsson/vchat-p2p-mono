@@ -213,4 +213,35 @@ describe('FindMatchContainer', () => {
       );
     });
   });
+
+  it('should automatically navigate to call page after granting permissions from dialog', async () => {
+    const user = userEvent.setup();
+
+    getMediaPermissionsSpy.mockResolvedValueOnce(false);
+
+    requestAudioAndVideoStreamSpy.mockResolvedValueOnce({
+      stream: { active: true } as MediaStream,
+      errorState: undefined,
+    });
+
+    render(<FindMatchContainer />);
+
+    await user.click(screen.getByRole('button', { name: 'Find match' }));
+
+    await waitFor(() => {
+      expect(screen.getByText("Let's get started")).toBeInTheDocument();
+    });
+
+    await user.click(screen.getByRole('button', { name: 'Continue' }));
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith(RoutePath.CALL, {
+        state: {
+          findMatch: true,
+        },
+      });
+    });
+
+    expect(requestAudioAndVideoStreamSpy).toHaveBeenCalled();
+  });
 });
