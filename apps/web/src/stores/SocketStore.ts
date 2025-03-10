@@ -1,7 +1,8 @@
-import { makeAutoObservable } from 'mobx';
+import { action, computed, observable } from 'mobx';
 import { io } from 'socket.io-client';
 import { toast } from 'sonner';
 import { CustomError, type Maybe } from '@mono/common-dto';
+import type { VChatSocket } from '@mono/fe-dto';
 import { ClientAuthService } from '@mono/fe-supabase';
 import {
   DefaultToastState,
@@ -11,21 +12,19 @@ import { showToast } from '@/common/utils/toast/showToast';
 import { SupabaseClient } from '@/common/clients/supabase';
 import { BrowserSignatureUtil } from '../common/utils/BrowserSignatureUtil';
 import { noop } from '../common/utils/noop';
-import type { ChatSocket } from './model/SocketModel';
 import type { RootStore } from './RootStore';
 
 export class SocketStore {
-  private rootStore: RootStore;
+  private readonly rootStore: RootStore;
 
-  socket: Maybe<ChatSocket>;
-  connected = false;
+  @observable.ref accessor socket: Maybe<VChatSocket>;
+  @observable accessor connected = false;
 
   constructor(rootStore: RootStore) {
     this.rootStore = rootStore;
-
-    makeAutoObservable(this);
   }
 
+  @computed
   get id() {
     const id = this.socket?.id;
     if (!id) {
@@ -35,7 +34,8 @@ export class SocketStore {
     return id;
   }
 
-  connect() {
+  @action
+  connect = () => {
     this.socket = io(`${import.meta.env.VITE_SERVER_URL}/video-chat`, {
       withCredentials: true,
       extraHeaders: {
@@ -66,12 +66,14 @@ export class SocketStore {
       'request-browser-signature',
       this.handleBrowserSignatureRequest,
     );
-  }
+  };
 
+  @action
   handleConnect = () => {
     this.connected = true;
   };
 
+  @action
   handleDisconnect = (reason: string) => {
     this.connected = false;
 
@@ -80,19 +82,21 @@ export class SocketStore {
       console.debug('Disconnected by server');
       showToast(ErrorToastState.SERVER_DISCONNECTED);
     }
-    this.rootStore.callStore.resetCallState();
   };
 
+  @action
   handleConnectError = (_err: Error) => {
     showToast(ErrorToastState.CONNECT_ERROR);
     this.socket?.once('connect', this.handleSocketReconnect);
   };
 
+  @action
   handleSocketReconnect = () => {
     this.connected = true;
     showToast(DefaultToastState.CONNECTION_RESTORED); // TODO: Remove or keep using this showToast util?
   };
 
+  @action
   handleUserReported = () => {
     toast('Report Received', {
       description:
@@ -106,6 +110,7 @@ export class SocketStore {
     });
   };
 
+  @action
   handleBrowserSignatureRequest = async (permanentBan: boolean) => {
     this.socket?.emit('browser-signature', BrowserSignatureUtil.get());
 
@@ -121,8 +126,8 @@ export class SocketStore {
     }
   };
 
-  disconnect() {
-    this.rootStore.callStore.resetCallState();
+  @action
+  disconnect = () => {
     this.socket?.disconnect();
-  }
+  };
 }

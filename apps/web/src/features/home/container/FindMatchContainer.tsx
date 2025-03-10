@@ -1,59 +1,50 @@
-import { useState } from 'react';
+import { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { observer } from 'mobx-react';
-import { showToast } from '@/common/utils/toast/showToast';
 import { useRootStore } from '@/stores/hooks/useRootStore';
 import { RoutePath } from '@/RoutePath';
+import { CallLocation } from '@/features/call/queue/model/CallLocationState';
 import { PermissionsDialog } from '../component/PermissionsDialog';
 import { FindMatchButton } from '../component/FindMatchButton';
+import { useMediaPermissions } from '../hooks/useMediaPermissions';
+
+const FIND_MATCH_ROUTER_STATE: CallLocation = {
+  state: {
+    findMatch: true,
+  },
+};
 
 export const FindMatchContainer = observer(function FindMatchContainer() {
-  const { socketStore, callStore, mediaStore } = useRootStore();
+  const { socketStore } = useRootStore();
   const navigate = useNavigate();
+  const {
+    startingMedia,
+    permissionDialogOpen,
+    waitingForPermission,
+    checkAndRequestMedia,
+    requestMediaPermissions,
+  } = useMediaPermissions();
 
-  const [startingMedia, setStartingMedia] = useState(false);
+  const navigateToCall = useCallback(() => {
+    navigate(RoutePath.CALL, FIND_MATCH_ROUTER_STATE);
+  }, [navigate]);
 
-  const [permissionDialogOpen, setPermissionDialogOpen] = useState(false);
-  const [waitingForPermission, setWaitingForPermission] = useState(false);
+  const handleFindMatch = useCallback(async () => {
+    const { success } = await checkAndRequestMedia();
 
-  const findMatch = async () => {
-    setStartingMedia(true);
-    const granted = await mediaStore.getMediaPermissions();
-
-    if (!granted) {
-      setPermissionDialogOpen(true);
-      setStartingMedia(false);
-      return;
+    if (success) {
+      navigateToCall();
     }
+  }, [checkAndRequestMedia, navigateToCall]);
 
-    const error = await mediaStore.requestAudioAndVideoStream();
-
-    setStartingMedia(false);
-
-    if (error) {
-      showToast(error);
-    }
-
-    callStore.findMatch();
-    navigate(RoutePath.CALL);
-  };
-
-  const requestMedia = async () => {
-    setWaitingForPermission(true);
-    const error = await mediaStore.requestAudioAndVideoStream();
-    setWaitingForPermission(false);
-
-    setPermissionDialogOpen(false);
-
-    if (error) {
-      showToast(error);
-    }
-  };
+  const handlePermissionRequest = useCallback(async () => {
+    return await requestMediaPermissions(navigateToCall);
+  }, [requestMediaPermissions, navigateToCall]);
 
   return (
     <>
       <FindMatchButton
-        onClick={findMatch}
+        onClick={handleFindMatch}
         startingMedia={startingMedia}
         connecting={!socketStore.connected}
       />
@@ -61,7 +52,7 @@ export const FindMatchContainer = observer(function FindMatchContainer() {
       <PermissionsDialog
         open={permissionDialogOpen}
         isLoading={waitingForPermission}
-        onClick={requestMedia}
+        onClick={handlePermissionRequest}
       />
     </>
   );

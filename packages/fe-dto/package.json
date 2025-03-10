@@ -1,0 +1,25 @@
+{
+  "name": "@mono/fe-dto",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "types": "./dist/index.d.ts",
+  "main": "./dist/index.js",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "rm -rf dist && tsc",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@mono/common-dto": "workspace:*"
+  },
+  "devDependencies": {
+    "socket.io-client": "^4.8.1",
+    "typescript": "^5.5.3"
+  },
+  "peerDependencies": {
+    "socket.io-client": "^4.8.1"
+  }
+}

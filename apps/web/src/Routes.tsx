@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import { withFaroRouterInstrumentation } from '@grafana/faro-react';
 import { LayoutContainer } from './common/layout/container/LayoutContainer';
@@ -7,10 +8,11 @@ import { TermsOfServicePage } from './features/consent/page/TermsOfServicePage';
 import { AuthPage } from './features/auth/page/AuthPage';
 import { UserBannedPage } from './features/user-report/page/UserBannedPage';
 import { HomePage } from './features/home/page/HomePage';
-import { RandomCallPage } from './features/call/page/RandomCallPage';
+import { QueuePage } from './features/call/page/QueuePage';
+import { InCallPage } from './features/call/in-call/page/InCallPage';
 
-export function Routes() {
-  const router = createBrowserRouter([
+const router = createBrowserRouter(
+  [
     {
       path: RoutePath.TERMS,
       element: <TermsOfServicePage />,
@@ -36,15 +38,35 @@ export function Routes() {
             },
             {
               path: RoutePath.CALL,
-              element: <RandomCallPage />,
+              element: <QueuePage />,
+            },
+            {
+              path: RoutePath.IN_CALL,
+              element: <InCallPage />,
             },
           ],
         },
       ],
     },
-  ]);
+  ],
+  {
+    future: {
+      v7_relativeSplatPath: true,
+    },
+  },
+);
 
-  const routerWithAnalytics = withFaroRouterInstrumentation(router);
+const createRouter = () => withFaroRouterInstrumentation(router);
 
-  return <RouterProvider router={routerWithAnalytics} />;
+export function Routes() {
+  const [router] = useState(() => createRouter());
+
+  return (
+    <RouterProvider
+      router={router}
+      future={{
+        v7_startTransition: true,
+      }}
+    />
+  );
 }

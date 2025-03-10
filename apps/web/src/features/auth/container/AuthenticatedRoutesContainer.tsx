@@ -1,20 +1,35 @@
 import { useEffect } from 'react';
+import { autorun } from 'mobx';
 import { observer } from 'mobx-react';
 import { Navigate, Outlet } from 'react-router-dom';
 import { useRootStore } from '@/stores/hooks/useRootStore';
 import { RoutePath, RouteParamValue } from '@/RoutePath';
+import { LoadingSpinner } from '@/common/components/loading-spinner/LoadingSpinner';
 
 export const AuthenticatedRoutesContainer = observer(
   function AuthenticatedRoutesContainer() {
     const { authStore, socketStore } = useRootStore();
 
     useEffect(() => {
-      if (authStore.authenticated && !socketStore.connected) {
-        socketStore.connect();
-      }
+      const dispose = autorun(() => {
+        if (authStore.authenticated && !socketStore.connected) {
+          socketStore.connect();
+        }
+      });
 
-      return () => socketStore.disconnect();
+      return () => {
+        socketStore.disconnect();
+        dispose();
+      };
     }, [authStore.authenticated, socketStore]);
+
+    if (authStore.isLoading) {
+      return (
+        <div className="absolute h-full w-full flex items-center justify-center">
+          <LoadingSpinner className="h-16 w-16 text-primary" />
+        </div>
+      );
+    }
 
     if (
       !authStore.session &&

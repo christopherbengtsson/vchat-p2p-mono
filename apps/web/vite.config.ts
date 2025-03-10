@@ -5,7 +5,20 @@ import path from 'path';
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
-  plugins: [react()],
+  plugins: [
+    react({
+      babel: {
+        plugins: [
+          [
+            '@babel/plugin-proposal-decorators',
+            {
+              version: '2023-05',
+            },
+          ],
+        ],
+      },
+    }),
+  ],
   assetsInclude: ['**/*.md'],
   define: {
     APP_VERSION: JSON.stringify(process.env.npm_package_version),

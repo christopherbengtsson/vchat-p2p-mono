@@ -9,7 +9,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/common/components/ui/alert-dialog';
-import { LoadingButton } from '@/common/components/loading-button/LoadingButton';
+import { LoadingSpinner } from '@/common/components/loading-spinner/LoadingSpinner';
 
 interface Props {
   open: boolean;
@@ -40,7 +40,7 @@ export function ReportDialog({ open, onCancel, onReport, isLoading }: Props) {
             Cancel
           </AlertDialogCancel>
           <AlertDialogAction onClick={onReport} disabled={isLoading}>
-            {isLoading && <LoadingButton />}
+            {isLoading && <LoadingSpinner />}
             {isLoading ? 'Sending report...' : 'Report user'}
           </AlertDialogAction>
         </AlertDialogFooter>

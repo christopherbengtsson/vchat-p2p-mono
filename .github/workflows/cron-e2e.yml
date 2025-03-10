@@ -39,11 +39,7 @@ jobs:
           cat apps/web/.env.e2e
 
       - name: Build packages
-        run: |
-          pnpm common-dto build
-          pnpm common-supabase build
-          pnpm be-supabase build
-          pnpm fe-supabase build
+        run: pnpm --filter "./packages/*" build
 
       - name: Web E2E tests
         run: pnpm run web e2e supabaseKeepAlive.test

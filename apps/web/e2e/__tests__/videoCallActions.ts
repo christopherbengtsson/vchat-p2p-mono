@@ -27,10 +27,14 @@ export const videoCallActions = async (
   await user.page.getByRole('button', { name: 'Find match' }).click();
   await expect(user.page.getByRole('button', { name: 'Cancel' })).toBeVisible();
 
+  const matchPromises1 = [
+    expect(user.page.getByText(/Match with/)).toBeVisible(),
+    expect(partner.page.getByText(/Match with/)).toBeVisible(),
+  ];
+
   await partner.page.getByRole('button', { name: 'Find match' }).click();
 
-  await expect(user.page.getByText(/Match with/)).toBeVisible();
-  await expect(partner.page.getByText(/Match with/)).toBeVisible();
+  await Promise.all(matchPromises1);
 
   /** Camera toggle */
 
@@ -39,32 +43,37 @@ export const videoCallActions = async (
   await expect(
     user.page.getByRole('button', { name: 'Turn camera on' }),
   ).toBeEnabled();
-  await expect(
-    user.page.locator('[aria-label="Your camera is off"]'),
-  ).toBeVisible();
-  await expect(partner.page.getByText("Partner's camera is off")).toBeVisible();
+
+  await Promise.all([
+    expect(
+      user.page.locator('[aria-label="Your camera is off"]'),
+    ).toBeVisible(),
+    expect(partner.page.getByText("Partner's camera is off")).toBeVisible(),
+  ]);
 
   await user.page.getByRole('button', { name: 'Turn camera on' }).click();
   await expect(
     user.page.getByRole('button', { name: 'Turn camera off' }),
   ).toBeEnabled();
-  // TODO: Check overlay not visible insted
+  // TODO: Check overlay not visible instead?
 
   // Toggle camera for partner
   await partner.page.getByRole('button', { name: 'Turn camera off' }).click();
   await expect(
     partner.page.getByRole('button', { name: 'Turn camera on' }),
   ).toBeEnabled();
-  await expect(
-    partner.page.locator('[aria-label="Your camera is off"]'),
-  ).toBeVisible();
-  await expect(user.page.getByText("Partner's camera is off")).toBeVisible();
+  await Promise.all([
+    expect(
+      partner.page.locator('[aria-label="Your camera is off"]'),
+    ).toBeVisible(),
+    expect(user.page.getByText("Partner's camera is off")).toBeVisible(),
+  ]);
 
   await partner.page.getByRole('button', { name: 'Turn camera on' }).click();
   await expect(
     partner.page.getByRole('button', { name: 'Turn camera off' }),
   ).toBeEnabled();
-  // TODO: Check overlay not visible insted
+  // TODO: Check overlay not visible instead?
 
   /** Microphone toggle */
 
@@ -73,9 +82,6 @@ export const videoCallActions = async (
   await expect(
     user.page.getByRole('button', { name: 'Turn microphone on' }),
   ).toBeEnabled();
-  // TODO: Add label for muted users
-  //   await expect(user.getByText('Your microphone is off')).toBeVisible();
-  //   await expect(partner.getByText("Partner's microphone is off")).toBeVisible();
 
   await user.page.getByRole('button', { name: 'Turn microphone on' }).click();
   await expect(
@@ -89,9 +95,6 @@ export const videoCallActions = async (
   await expect(
     partner.page.getByRole('button', { name: 'Turn microphone on' }),
   ).toBeEnabled();
-  // TODO: Add label for muted users
-  //   await expect(user.getByText('Your microphone is off')).toBeVisible();
-  //   await expect(partner.getByText("Partner's microphone is off")).toBeVisible();
 
   await partner.page
     .getByRole('button', { name: 'Turn microphone on' })
@@ -101,42 +104,45 @@ export const videoCallActions = async (
   ).toBeEnabled();
 
   /**  End of call */
+  const cancelPromises = [
+    expect(user.page.getByRole('button', { name: 'Cancel' })).toBeVisible(),
+    expect(partner.page.getByRole('button', { name: 'Cancel' })).toBeVisible(),
+  ];
+
+  const matchPromises2 = [
+    expect(user.page.getByText(/Match with/)).toBeVisible(),
+    expect(partner.page.getByText(/Match with/)).toBeVisible(),
+  ];
+
   await user.page.getByRole('button', { name: 'End call' }).click();
 
-  await expect(user.page.getByRole('button', { name: 'Cancel' })).toBeVisible();
-  await expect(
-    partner.page.getByRole('button', { name: 'Cancel' }),
-  ).toBeVisible();
+  await Promise.all([...cancelPromises, ...matchPromises2]);
 
-  await expect(user.page.getByText(/Match with/)).toBeVisible();
-  await expect(partner.page.getByText(/Match with/)).toBeVisible();
-
-  // TODO: Redo toggle functionality tests?
-
-  await expect(
-    user.page.getByRole('button', { name: 'Turn camera off' }),
-  ).toBeEnabled();
-  await expect(
-    partner.page.getByRole('button', { name: 'Turn camera off' }),
-  ).toBeEnabled();
+  await Promise.all([
+    expect(user.page.getByRole('button', { name: 'End call' })).toBeVisible(),
+    expect(
+      partner.page.getByRole('button', { name: 'End call' }),
+    ).toBeVisible(),
+  ]);
 
   await user.page.reload();
 
   await expect(
     partner.page.getByRole('button', { name: 'Cancel' }),
   ).toBeVisible();
+
+  await user.page.waitForURL('/');
+  await expect(
+    user.page.getByRole('button', { name: 'Find match' }),
+  ).toBeVisible();
+
   await partner.page.getByRole('button', { name: 'Cancel' }).click();
 
   await expect(
-    user.page.getByText('Currently 1 more users online', {
-      exact: true,
-    }),
-  ).toBeVisible({ timeout: 6_000 });
-  await expect(
-    partner.page.getByText('Currently 1 more users online', { exact: true }),
+    partner.page.getByRole('button', { name: 'Find match' }),
   ).toBeVisible();
 
-  // Clean up
+  /** Clean up */
   await user.page.context().close();
   await partner.page.context().close();
 };

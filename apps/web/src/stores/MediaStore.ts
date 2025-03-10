@@ -1,106 +1,64 @@
-import { makeAutoObservable, observable } from 'mobx';
-import { PermissionService } from '@/common/service/PermissionService';
-import { LocalStorageService } from '@/common/service/LocalStorageService';
-import { STORAGE_KEYS } from '@/common/model/LocalStorageKeys';
-import { MediaStreamService } from '@/common/service/MediaStreamService';
-import {
-  ToastState,
-  ErrorToastState,
-} from '@/common/utils/toast/model/ToastState';
+import { action, observable, onBecomeUnobserved } from 'mobx';
 
 export class MediaStore {
-  stream: MediaStream | null = null;
-  videoEnabled = true;
-  audioEnabled = true;
+  @observable.ref accessor localAudioGameStream: MediaStream | null = null;
+  @observable.ref accessor localCallStream: MediaStream | null = null;
+  @observable accessor localVideoEnabled = true;
+  @observable accessor localAudioEnabled = true;
 
   constructor() {
-    makeAutoObservable(this, {
-      stream: observable.ref,
-
-      getMediaPermissions: false,
-      requestGameAudioStream: false,
-    });
+    onBecomeUnobserved(
+      this,
+      'localAudioGameStream',
+      this.closeLocalGameAudioStream,
+    );
   }
 
-  setVideoEnabled(toggle: boolean) {
-    if (!this.stream) {
+  @action
+  setGameAudioStream = (stream: MediaStream) => {
+    this.localAudioGameStream = stream;
+  };
+
+  @action
+  setLocalStream = (stream: MediaStream) => {
+    this.localCallStream = stream;
+    this.localVideoEnabled = stream.getVideoTracks()[0].enabled;
+    this.localAudioEnabled = this.localCallStream.getAudioTracks()[0].enabled;
+  };
+
+  @action
+  setLocalVideoEnabled = (toggle: boolean) => {
+    if (!this.localCallStream) {
       return;
     }
-    this.stream.getVideoTracks()[0].enabled = toggle;
-    this.videoEnabled = toggle;
-  }
+    this.localCallStream.getVideoTracks()[0].enabled = toggle;
+    this.localVideoEnabled = toggle;
+  };
 
-  setAudioEnabled(toggle: boolean) {
-    if (!this.stream) {
+  @action
+  setLocalAudioEnabled = (toggle: boolean) => {
+    if (!this.localCallStream) {
       return;
     }
-    this.stream.getAudioTracks()[0].enabled = toggle;
-    this.audioEnabled = toggle;
-  }
+    this.localCallStream.getAudioTracks()[0].enabled = toggle;
+    this.localAudioEnabled = toggle;
+  };
 
-  async getMediaPermissions(this: MediaStore) {
-    const state: PermissionState =
-      await PermissionService.checkMediaPermissions();
-
-    if (state === 'granted') {
-      return true;
-    }
-
-    const storedState = LocalStorageService.get(STORAGE_KEYS.MEDIA_PERMISSIONS);
-    if (storedState === 'granted') {
-      return true;
-    }
-
-    return false;
-  }
-
-  async requestAudioAndVideoStream(this: MediaStore) {
-    try {
-      const stream: MediaStream =
-        await MediaStreamService.requestAudioAndVideoStream();
-
-      this.stream = stream;
-      this.videoEnabled = stream.getVideoTracks()[0].enabled;
-      this.audioEnabled = stream.getAudioTracks()[0].enabled;
-
-      LocalStorageService.set(STORAGE_KEYS.MEDIA_PERMISSIONS, 'granted');
-    } catch (error) {
-      LocalStorageService.set(STORAGE_KEYS.MEDIA_PERMISSIONS, 'error');
-      return this._getDomExceptionError(error as DOMException);
-    }
-  }
-
-  closeAudioAndVideoStream() {
-    this.stream?.getTracks()?.forEach((track) => {
+  @action
+  closeLocalGameAudioStream = () => {
+    this.localAudioGameStream?.getTracks().forEach((track) => {
       track.stop();
     });
-  }
+    this.localAudioGameStream = null;
+  };
 
-  async requestGameAudioStream(this: MediaStore) {
-    try {
-      return await MediaStreamService.requestGameAudioStream();
-    } catch (error) {
-      console.error(error);
-      throw error;
-    }
-  }
-
-  private _getDomExceptionError(error: DOMException | unknown): ToastState {
-    if (!(error as DOMException).name) {
-      return ErrorToastState.UNKNOWN_ERROR;
-    }
-
-    switch ((error as DOMException).name) {
-      case 'NotAllowedError':
-        return ErrorToastState.MEDIA_STREAM_NOT_ALLOWED;
-
-      case 'NotFoundError':
-      case 'NotReadableError':
-        return ErrorToastState.MEDIA_STREAM_NOT_AVAILABLE;
-
-      default:
-        console.error('requestAudioAndVideoStream()', error);
-        return ErrorToastState.MEDIA_STREAM_UNKNOWN;
-    }
-  }
+  @action
+  closeLocalCallStream = () => {
+    this.localCallStream?.getTracks().forEach((track) => {
+      track.stop();
+    });
+    this.localCallStream = null;
+  };
 }
+
+export const mediaStore = new MediaStore();
