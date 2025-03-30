@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { observer } from 'mobx-react';
-import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router';
 import { Maybe } from '@mono/common-dto';
 import { RoutePath } from '@/RoutePath';
 import { CallStoreProvider } from '@/features/call/context/CallStoreProvider';

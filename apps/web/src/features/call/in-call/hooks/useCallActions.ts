@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { WebRTCService } from '@mono/fe-webrtc';
 import { RouterStateUtil } from '@/common/utils/RouterStateUtil';
 import { SocketStore } from '@/stores/SocketStore';

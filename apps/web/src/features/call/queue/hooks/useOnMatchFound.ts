@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { generatePath, useNavigate } from 'react-router-dom';
+import { generatePath, useNavigate } from 'react-router';
 import type { Maybe } from '@mono/common-dto';
 import type { VChatSocket } from '@mono/fe-dto';
 import { RoutePath } from '@/RoutePath';

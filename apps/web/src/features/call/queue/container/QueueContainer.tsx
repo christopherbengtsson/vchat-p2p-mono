@@ -1,5 +1,5 @@
 import { observer } from 'mobx-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { Button } from '@/common/components/ui/button';
 import { RouterStateUtil } from '@/common/utils/RouterStateUtil';
 import { RoutePath } from '@/RoutePath';

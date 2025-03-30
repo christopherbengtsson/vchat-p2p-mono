@@ -22,8 +22,8 @@ const routerState: CallStoreParams = {
 
 const mockNavigate = vi.fn();
 
-vi.mock('react-router-dom', async () => {
-  const actualRouter = await vi.importActual('react-router-dom');
+vi.mock('react-router', async () => {
+  const actualRouter = await vi.importActual('react-router');
   return { ...actualRouter, useNavigate: () => mockNavigate };
 });
 

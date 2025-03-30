@@ -1,4 +1,4 @@
-import type { NavigateFunction } from 'react-router-dom';
+import type { NavigateFunction } from 'react-router';
 import { toast } from 'sonner';
 import { type Maybe } from '@mono/common-dto';
 import type { VChatSocket } from '@mono/fe-dto';

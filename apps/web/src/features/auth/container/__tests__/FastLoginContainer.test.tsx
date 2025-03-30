@@ -4,7 +4,7 @@ import { TestWithQueryContext } from '@/testUtils';
 import { FastLoginContainer } from '../FastLoginContainer';
 import { AuthService } from '../../service/AuthService';
 
-vi.mock('react-router-dom');
+vi.mock('react-router');
 
 describe('FastLoginContainer', () => {
   const authServiceSpy = vi

@@ -1,4 +1,4 @@
-import { generatePath } from 'react-router-dom';
+import { generatePath } from 'react-router';
 import { renderHook } from '@testing-library/react';
 import type { VChatSocket } from '@mono/fe-dto';
 import { RoutePath } from '@/RoutePath';
@@ -6,8 +6,8 @@ import { useOnMatchFound } from '../useOnMatchFound';
 
 const mockNavigate = vi.fn();
 
-vi.mock('react-router-dom', async () => {
-  const actualRouter = await vi.importActual('react-router-dom');
+vi.mock('react-router', async () => {
+  const actualRouter = await vi.importActual('react-router');
   return {
     ...actualRouter,
     useNavigate: () => mockNavigate,

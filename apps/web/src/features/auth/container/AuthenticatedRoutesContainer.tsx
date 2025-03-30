@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { autorun } from 'mobx';
 import { observer } from 'mobx-react';
-import { Navigate, Outlet } from 'react-router-dom';
+import { Navigate, Outlet } from 'react-router';
 import { useRootStore } from '@/stores/hooks/useRootStore';
 import { RoutePath, RouteParamValue } from '@/RoutePath';
 import { LoadingSpinner } from '@/common/components/loading-spinner/LoadingSpinner';
@@ -21,7 +21,8 @@ export const AuthenticatedRoutesContainer = observer(
         socketStore.disconnect();
         dispose();
       };
-    }, [authStore.authenticated, socketStore]);
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     if (authStore.isLoading) {
       return (

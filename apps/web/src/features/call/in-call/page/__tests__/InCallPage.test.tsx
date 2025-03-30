@@ -1,9 +1,9 @@
-import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router';
 import { render, screen } from '@testing-library/react';
 import { RoutePath } from '@/RoutePath';
 import { CallRouterStateLocation, InCallPage } from '../InCallPage';
 
-vi.mock('react-router-dom', () => ({
+vi.mock('react-router', () => ({
   useLocation: vi.fn(),
   useNavigate: vi.fn(),
   useParams: vi.fn(),

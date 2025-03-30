@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { observer } from 'mobx-react';
 import { BanDuration } from '@mono/common-dto';
 import { useRootStore } from '@/stores/hooks/useRootStore';

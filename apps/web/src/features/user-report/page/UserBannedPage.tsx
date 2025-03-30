@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Navigate, useSearchParams } from 'react-router-dom';
+import { Navigate, useSearchParams } from 'react-router';
 import { observer } from 'mobx-react';
 import { Maybe } from '@mono/common-dto';
 import {

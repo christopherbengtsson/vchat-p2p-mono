@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router';
 import type { VChatSocket } from '@mono/fe-dto';
 import type { Maybe } from '@mono/common-dto';
 import { RouterStateUtil } from '@/common/utils/RouterStateUtil';

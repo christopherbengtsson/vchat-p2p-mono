@@ -1,5 +1,5 @@
 import { useCallback, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import type { Maybe } from '@mono/common-dto';
 import type { VChatSocket } from '@mono/fe-dto';
 import { InCallService } from '../service/InCallService';

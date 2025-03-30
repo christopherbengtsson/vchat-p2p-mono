@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { RoutePath } from '@/RoutePath';
 import type { SocketStore } from '@/stores/SocketStore';
 import type { MediaStore } from '@/stores/MediaStore';
