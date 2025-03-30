@@ -11,6 +11,7 @@ import { UserBannedPage } from './features/user-report/page/UserBannedPage';
 import { HomePage } from './features/home/page/HomePage';
 import { QueuePage } from './features/call/page/QueuePage';
 import { InCallPage } from './features/call/in-call/page/InCallPage';
+import { ErrorBoundary } from './common/components/error-boundary/ErrorBoundary';
 
 const router = createBrowserRouter([
   {
@@ -19,7 +20,7 @@ const router = createBrowserRouter([
   },
   {
     element: <LayoutContainer />,
-    errorElement: <div>Root error</div>,
+    errorElement: <ErrorBoundary />,
     children: [
       {
         path: RoutePath.AUTH,
