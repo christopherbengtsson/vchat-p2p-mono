@@ -34,6 +34,11 @@ export class SocketStore {
     return id;
   }
 
+  @computed
+  get maybeId() {
+    return this.socket?.id;
+  }
+
   @action
   connect = () => {
     this.socket = io(`${import.meta.env.VITE_SERVER_URL}/video-chat`, {
