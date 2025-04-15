@@ -3,7 +3,7 @@ import { BsCameraVideoOff } from 'react-icons/bs';
 import { TypographyP } from '@/common/components/typography/Typography';
 
 interface Props {
-  videoRef?: React.RefObject<HTMLVideoElement>;
+  videoRef?: React.RefObject<HTMLVideoElement | null>;
   isLocal?: boolean;
   videoEnabled: boolean;
   isPortrait: boolean;

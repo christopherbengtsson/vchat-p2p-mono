@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 
 export const useIsPortraitVideoOrientation = (
-  videoRef?: React.RefObject<HTMLVideoElement>,
+  videoRef?: React.RefObject<HTMLVideoElement | null>,
 ) => {
   const [isPortrait, setIsPortrait] = useState(true);
 

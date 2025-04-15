@@ -1,4 +1,3 @@
-// eslint-disable-next-line import/default
 import axios from 'axios';
 
 const API_KEY: string = import.meta.env.VITE_API_KEY;

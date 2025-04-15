@@ -8,7 +8,7 @@ import { CanvasBallService } from '../service/CanvasBallService';
 import { CanvasWallService } from '../service/CanvasWallService';
 
 interface In {
-  canvasRef: React.RefObject<HTMLCanvasElement>;
+  canvasRef: React.RefObject<HTMLCanvasElement | null>;
   draw: (drawProps: DrawProps) => void;
   onGameOver: (score: number) => void;
   getPitch: () => Maybe<[number, number]>;
@@ -20,7 +20,7 @@ export const useCanvasAnimate = ({
   onGameOver,
   getPitch,
 }: In) => {
-  const requestRef = useRef<number>();
+  const requestRef = useRef<number>(null);
   const frameCountRef = useRef<number>(0);
 
   const wallsRef = useRef<Wall[]>([]);

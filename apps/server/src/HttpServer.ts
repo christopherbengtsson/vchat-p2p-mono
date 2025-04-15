@@ -48,7 +48,8 @@ const init = () => {
 
         if (!fingerprint) {
           logger.error('Failed to generate fingerprint on signature route');
-          return res.status(400).send('Failed to generate fingerprint');
+          res.status(400).send('Failed to generate fingerprint');
+          return;
         }
 
         res.status(200).json({ fingerprint });

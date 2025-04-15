@@ -1,5 +1,5 @@
 interface Props {
-  remoteCanvasStreamRef: React.RefObject<HTMLVideoElement>;
+  remoteCanvasStreamRef: React.RefObject<HTMLVideoElement | null>;
 }
 
 export function SpectatorVideo({ remoteCanvasStreamRef }: Props) {

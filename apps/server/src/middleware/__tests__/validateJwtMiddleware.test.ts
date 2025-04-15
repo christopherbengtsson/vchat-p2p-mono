@@ -85,7 +85,9 @@ describe('validateJwtMiddleware', () => {
       },
     );
     validateJwtMiddleware(mockReq as IncomingMessage, mockNext);
-    expect(mockNext).toHaveBeenCalledWith(new Error('Invalid token'));
+    expect(mockNext).toHaveBeenCalledWith(
+      CustomError.forbidden('Invalid token'),
+    );
     expect(logger.error).toHaveBeenCalled();
 
     // TODO: Add an expectation here for emitting to socket to refresh token

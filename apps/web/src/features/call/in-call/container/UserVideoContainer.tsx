@@ -3,7 +3,7 @@ import { useIsPortraitVideoOrientation } from '@/common/hooks/useIsPortraitVideo
 import { Video } from '../component/Video';
 
 interface Props {
-  videoRef?: React.RefObject<HTMLVideoElement>;
+  videoRef?: React.RefObject<HTMLVideoElement | null>;
   isLocal?: boolean;
   videoEnabled: boolean;
 }

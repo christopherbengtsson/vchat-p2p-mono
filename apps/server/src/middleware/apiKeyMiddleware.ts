@@ -15,13 +15,15 @@ export const apiKeyMiddleware = (
   const apiKey = req.headers['x-api-key'] as Maybe<string>;
 
   if (!apiKey) {
-    return res.status(401).json({ error: 'Missing API key' });
+    res.status(401).json({ error: 'Missing API key' });
+    return;
   }
 
   const isValid = apiKey === API_KEY;
 
   if (!isValid) {
-    return res.status(403).json({ error: 'Invalid API key' });
+    res.status(403).json({ error: 'Invalid API key' });
+    return;
   }
 
   next();

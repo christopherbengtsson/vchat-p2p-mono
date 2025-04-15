@@ -14,7 +14,7 @@ export function AnimatedParticle() {
 
   return (
     <div
-      className="absolute bg-foreground rounded-full left-1/2 top-1/2 animate-moveToCenter"
+      className="absolute bg-foreground rounded-full left-1/2 top-1/2 animate-move-to-center"
       style={
         {
           '--tx': `${tx}px`,

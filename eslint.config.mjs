@@ -25,6 +25,12 @@ export default tseslint.config(
       importPlugin.flatConfigs.recommended,
       eslintPluginPrettierRecommended,
     ],
+    settings: {
+      'import/resolver': {
+        typescript: true,
+        node: true,
+      },
+    },
     rules: {
       '@typescript-eslint/no-unused-vars': [
         'error',

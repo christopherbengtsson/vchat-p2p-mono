@@ -1,8 +1,8 @@
 import { useEffect } from 'react';
 
 export const useCanvasResize = (
-  canvasRef: React.RefObject<HTMLCanvasElement>,
-  containerRef: React.RefObject<HTMLDivElement>,
+  canvasRef: React.RefObject<HTMLCanvasElement | null>,
+  containerRef: React.RefObject<HTMLDivElement | null>,
 ) => {
   useEffect(() => {
     const canvas = canvasRef.current;

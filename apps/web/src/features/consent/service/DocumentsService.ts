@@ -1,4 +1,3 @@
-// eslint-disable-next-line import/default
 import axios from 'axios';
 import termsOfServiceV1Url from '@/assets/docs/terms-of-service-v1.md?url';
 import { LegalDocuments } from '../model/LegalDocuments';

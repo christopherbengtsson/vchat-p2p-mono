@@ -44,7 +44,7 @@ export function TypographyP({
       className={cn(
         'leading-7',
         className,
-        !noFirstMarginTop ? '[&:not(:first-child)]:mt-6' : undefined,
+        !noFirstMarginTop ? 'not-first:mt-6' : undefined,
       )}
     >
       {children}
