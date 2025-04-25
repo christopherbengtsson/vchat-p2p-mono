@@ -259,8 +259,8 @@ sequenceDiagram
 
 4. **Implementing a New Game**:
 
-   - Create a game-specific service (like PitchPlaneService)
-   - Create a game-specific hook (like usePitchPlaneGame) that configures useGameEngine
+   - Create a game-specific service (like FlappyBirdService)
+   - Create a game-specific hook (like useFlappyBird) that configures useGameEngine
    - Implement game-specific UI components
    - The core game engine handles state management and communication
 

@@ -2,9 +2,9 @@ import { useCallback, useEffect, useState } from 'react';
 import type { Maybe } from '@mono/common-dto';
 import { useGameEngine } from '../../game-engine/hooks/useGameEngine';
 import { GameStore } from '../../game-engine/context/GameStore';
-import { PitchPlaneService } from '../service/PitchPlaneService';
+import { FlappyBirdService } from '../service/FlappyBirdService';
 
-export const usePitchPlaneGame = (
+export const useFlappyBird = (
   gameStore: GameStore,
   setGameActive: (val: boolean) => void,
 ) => {
@@ -12,17 +12,17 @@ export const usePitchPlaneGame = (
     useState<Maybe<MediaStream>>();
 
   useEffect(() => {
-    PitchPlaneService.setRemoteCanvasStream(setRemoteCanvasStream);
+    FlappyBirdService.setRemoteCanvasStream(setRemoteCanvasStream);
     return () => {
-      PitchPlaneService.removeRemoteCanvasStream();
+      FlappyBirdService.removeRemoteCanvasStream();
     };
   }, [setRemoteCanvasStream]);
 
   const initGamePerquisites = useCallback(async () => {
-    await PitchPlaneService.initGamePerquisites();
+    await FlappyBirdService.initGamePerquisites();
 
     return () => {
-      PitchPlaneService.gameDispose();
+      FlappyBirdService.gameDispose();
     };
   }, []);
 
@@ -32,8 +32,8 @@ export const usePitchPlaneGame = (
     {
       prepareGame: initGamePerquisites,
       disposables: {
-        roundDispose: PitchPlaneService.roundDispose,
-        gameDispose: PitchPlaneService.gameDispose,
+        roundDispose: FlappyBirdService.roundDispose,
+        gameDispose: FlappyBirdService.gameDispose,
       },
     },
   );

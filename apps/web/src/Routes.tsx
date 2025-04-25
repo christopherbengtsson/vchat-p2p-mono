@@ -1,10 +1,10 @@
-import { useState } from 'react';
-import { createBrowserRouter } from 'react-router';
+import { lazy, useState } from 'react';
+import { createBrowserRouter, type RouteObject } from 'react-router';
 import { RouterProvider } from 'react-router/dom';
 import { withFaroRouterInstrumentation } from '@grafana/faro-react';
 import { LayoutContainer } from './common/layout/container/LayoutContainer';
 import { AuthenticatedRoutesContainer } from './features/auth/container/AuthenticatedRoutesContainer';
-import { RoutePath } from './RoutePath';
+import { DevRoutePath, RoutePath } from './RoutePath';
 import { TermsOfServicePage } from './features/consent/page/TermsOfServicePage';
 import { AuthPage } from './features/auth/page/AuthPage';
 import { UserBannedPage } from './features/user-report/page/UserBannedPage';
@@ -12,6 +12,32 @@ import { HomePage } from './features/home/page/HomePage';
 import { QueuePage } from './features/call/page/QueuePage';
 import { InCallPage } from './features/call/in-call/page/InCallPage';
 import { ErrorBoundary } from './common/components/error-boundary/ErrorBoundary';
+
+const DevMenu = lazy(() =>
+  import('./features/dev/DevMenu').then(({ DevMenu }) => ({
+    default: DevMenu,
+  })),
+);
+const FlappyBirdDev = lazy(() =>
+  import('./features/dev/game/FlappyBirdDev').then(({ FlappyBirdDev }) => ({
+    default: FlappyBirdDev,
+  })),
+);
+
+const devRoutes: RouteObject[] = import.meta.env.DEV
+  ? [
+      {
+        path: DevRoutePath.DEV,
+        element: <DevMenu />,
+        children: [
+          {
+            path: DevRoutePath.FLAPPY_BIRD,
+            element: <FlappyBirdDev />,
+          },
+        ],
+      },
+    ]
+  : [];
 
 const router = createBrowserRouter([
   {
@@ -22,6 +48,7 @@ const router = createBrowserRouter([
     element: <LayoutContainer />,
     errorElement: <ErrorBoundary />,
     children: [
+      ...devRoutes,
       {
         path: RoutePath.AUTH,
         element: <AuthPage />,

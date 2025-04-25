@@ -1,0 +1,63 @@
+import { useEffect, useState } from 'react';
+import debounce from 'lodash.debounce';
+import { BREAKPOINTS } from '../model/CanvasConstants';
+import { ScaleFactor } from '../model/DrawProps';
+
+export const useCanvasResize = (
+  canvasRef: React.RefObject<HTMLCanvasElement | null>,
+  containerRef: React.RefObject<HTMLDivElement | null>,
+) => {
+  const [scaleFactor, setScaleFactor] = useState<ScaleFactor>({
+    widthScale: 1,
+    heightScale: 1,
+    devicePixelRatio: window.devicePixelRatio || 1,
+  });
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const container = containerRef.current;
+    if (!canvas || !container) return;
+
+    const updateCanvasSize = () => {
+      const { clientWidth: width, clientHeight: height } = container;
+      const dpr = window.devicePixelRatio || 1;
+
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+
+      canvas.style.width = `${width}px`;
+      canvas.style.height = `${height}px`;
+
+      setScaleFactor({
+        widthScale: width / BREAKPOINTS.MD,
+        heightScale: height / (BREAKPOINTS.MD * 0.75),
+        devicePixelRatio: dpr,
+      });
+
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.scale(dpr, dpr);
+        ctx.clearRect(0, 0, width, height);
+      }
+    };
+
+    // Initial sizing - no debounce
+    updateCanvasSize();
+
+    // Debounced resize for subsequent resizing
+    const handleResize = debounce(updateCanvasSize, 100);
+
+    const resizeObserver = new ResizeObserver(handleResize);
+    resizeObserver.observe(container);
+
+    window.addEventListener('orientationchange', handleResize);
+
+    return () => {
+      resizeObserver.disconnect();
+      window.removeEventListener('orientationchange', handleResize);
+      handleResize.cancel();
+    };
+  }, [canvasRef, containerRef]);
+
+  return scaleFactor;
+};

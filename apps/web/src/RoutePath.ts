@@ -1,3 +1,8 @@
+export enum DevRoutePath {
+  DEV = '/dev',
+  FLAPPY_BIRD = '/dev/flappy-bird',
+}
+
 export enum RoutePath {
   TERMS = '/terms',
   AUTH = '/auth',

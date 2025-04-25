@@ -2,7 +2,7 @@ import { Maybe } from '@mono/common-dto';
 import { action, computed, observable } from 'mobx';
 import { GameState } from '../model/GameState';
 
-type GameType = 'pitchPlane';
+type GameType = 'flappyBird';
 
 interface RoundResult {
   playerId: string;
@@ -34,7 +34,7 @@ export class GameStore {
   ) {
     this.playerId = playerId;
     this.isMyTurn = isMyTurn;
-    this.gameType = config.gameType ?? 'pitchPlane';
+    this.gameType = config.gameType ?? 'flappyBird';
     this.maxRounds = config.maxRounds ?? 1;
   }
 

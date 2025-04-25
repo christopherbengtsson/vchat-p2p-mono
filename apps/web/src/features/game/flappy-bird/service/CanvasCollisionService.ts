@@ -1,11 +1,10 @@
-import { PLANE_HEIGHT, PLANE_WIDTH } from '../model/CanvasConstants';
+import { PLAYER_WIDTH_PERCENT } from '../model/CanvasConstants';
 import { Wall } from '../model/Wall';
 
 const isRectCollision = (
   rect1X: number,
   rect1Y: number,
-  rect1Width: number,
-  rect1Height: number,
+  rectSize: number,
   rect2X: number,
   rect2Y: number,
   rect2Width: number,
@@ -13,33 +12,38 @@ const isRectCollision = (
 ): boolean => {
   return (
     rect1X < rect2X + rect2Width &&
-    rect1X + rect1Width > rect2X &&
+    rect1X + rectSize > rect2X &&
     rect1Y < rect2Y + rect2Height &&
-    rect1Y + rect1Height > rect2Y
+    rect1Y + rectSize > rect2Y
   );
 };
 
 const isCollision = ({
-  planeX,
-  planeY,
+  playerX,
+  playerY,
   walls,
+  canvasWidth,
 }: {
   walls: Wall[];
-  planeX: number;
-  planeY: number;
-}): boolean =>
-  walls.some((wall) =>
+  playerX: number;
+  playerY: number;
+  canvasWidth: number;
+}): boolean => {
+  // Use only width for both dimensions to maintain square shape
+  const playerSize = canvasWidth * PLAYER_WIDTH_PERCENT;
+
+  return walls.some((wall) =>
     isRectCollision(
-      planeX,
-      planeY,
-      PLANE_WIDTH,
-      PLANE_HEIGHT,
+      playerX,
+      playerY,
+      playerSize,
       wall.x,
       wall.y,
       wall.width,
       wall.height,
     ),
   );
+};
 
 export const CanvasCollisionService = {
   isCollision,
