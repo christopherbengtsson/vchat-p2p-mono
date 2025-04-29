@@ -6,15 +6,21 @@ import {
 import { ScaleFactor } from '../model/DrawProps';
 import { AudioFrequencyService } from './AudioFrequencyService';
 
-const setObjectPosition = (
+const updateObjectPosition = (
   [pitch, clarity]: [number, number],
   canvas: HTMLCanvasElement,
   objectYRef: React.RefObject<number>,
   velocityRef: React.RefObject<number>,
   scaleFactor: ScaleFactor,
 ) => {
-  let voiceInputDetected = false;
+  // Calculate logical canvas dimensions (removing device pixel ratio) - do once
+  const canvasWidth = canvas.width / scaleFactor.devicePixelRatio;
+  const canvasHeight = canvas.height / scaleFactor.devicePixelRatio;
+  const playerSize = canvasWidth * PLAYER_WIDTH_PERCENT;
+  const maxY = canvasHeight - playerSize;
   const scaledGravity = GRAVITY * scaleFactor.heightScale;
+
+  let voiceInputDetected = false;
 
   if (
     pitch > AudioFrequencyService.PITCH_THRESHOLD &&
@@ -26,8 +32,7 @@ const setObjectPosition = (
     const normalizedPitch =
       Math.min(pitch, AudioFrequencyService.MAX_FREQUENCY) /
       AudioFrequencyService.MAX_FREQUENCY;
-    const targetY =
-      (1 - normalizedPitch) * (canvas.height / scaleFactor.devicePixelRatio);
+    const targetY = (1 - normalizedPitch) * canvasHeight;
 
     // Calculate velocity based on position change
     const previousY = objectYRef.current;
@@ -43,36 +48,23 @@ const setObjectPosition = (
     velocityRef.current += scaledGravity;
     objectYRef.current += velocityRef.current;
   }
-};
 
-const setObjectBoundaries = (
-  playerYRef: React.RefObject<number>,
-  canvas: HTMLCanvasElement,
-  velocityRef: React.RefObject<number>,
-  scaleFactor: ScaleFactor, // Make sure to pass this from useCanvasAnimate
-) => {
-  // Calculate logical canvas dimensions (removing device pixel ratio)
-  const canvasWidth = canvas.width / scaleFactor.devicePixelRatio;
-  const canvasHeight = canvas.height / scaleFactor.devicePixelRatio;
-
-  // Use width-based size for consistent square player
-  const playerSize = canvasWidth * PLAYER_WIDTH_PERCENT;
-
+  // Apply boundaries in the same function
   // Prevent the player from going above the canvas
-  if (playerYRef.current < 0) {
-    playerYRef.current = 0;
+  if (objectYRef.current < 0) {
+    objectYRef.current = 0;
     velocityRef.current = 0;
   }
 
   // Prevent the player from falling below the canvas
-  const maxY = canvasHeight - playerSize;
-  if (playerYRef.current > maxY) {
-    playerYRef.current = maxY;
+  if (objectYRef.current > maxY) {
+    objectYRef.current = maxY;
     velocityRef.current = 0;
   }
+
+  return voiceInputDetected;
 };
 
 export const CanvasObjectService = {
-  setObjectPosition,
-  setObjectBoundaries,
+  updateObjectPosition,
 };

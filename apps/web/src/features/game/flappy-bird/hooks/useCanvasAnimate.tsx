@@ -36,6 +36,7 @@ export const useCanvasAnimate = ({
     }
 
     cancelAnimationFrame(requestRef.current);
+    CanvasDrawService.clearCache();
     onGameOver(wallsPassedRef.current);
   }, [onGameOver]);
 
@@ -49,7 +50,7 @@ export const useCanvasAnimate = ({
 
     const pitchData = getPitch();
     if (pitchData) {
-      CanvasObjectService.setObjectPosition(
+      CanvasObjectService.updateObjectPosition(
         pitchData,
         canvas,
         playerYRef,
@@ -57,13 +58,6 @@ export const useCanvasAnimate = ({
         scaleFactor,
       );
     }
-
-    CanvasObjectService.setObjectBoundaries(
-      playerYRef,
-      canvas,
-      velocityRef,
-      scaleFactor,
-    );
 
     CanvasWallService.addWall(
       frameCountRef,
@@ -101,6 +95,8 @@ export const useCanvasAnimate = ({
       walls: wallsRef.current,
       score: wallsPassedRef.current,
       scaleFactor,
+      velocity: velocityRef.current,
+      wallSpeed: CanvasWallService.getWallSpeed(wallsPassedRef, scaleFactor),
     });
 
     requestRef.current = requestAnimationFrame(animate);

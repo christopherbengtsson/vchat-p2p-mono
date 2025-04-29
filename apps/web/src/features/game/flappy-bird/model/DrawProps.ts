@@ -11,6 +11,7 @@ export interface DrawProps {
   yPos: number;
   walls: Wall[];
   score: number;
-  velocity?: number;
+  velocity: number;
   scaleFactor: ScaleFactor;
+  wallSpeed: number;
 }

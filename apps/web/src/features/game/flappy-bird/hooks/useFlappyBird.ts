@@ -3,6 +3,7 @@ import type { Maybe } from '@mono/common-dto';
 import { useGameEngine } from '../../game-engine/hooks/useGameEngine';
 import { GameStore } from '../../game-engine/context/GameStore';
 import { FlappyBirdService } from '../service/FlappyBirdService';
+import { AssetService } from '../service/AssetService';
 
 export const useFlappyBird = (
   gameStore: GameStore,
@@ -20,6 +21,7 @@ export const useFlappyBird = (
 
   const initGamePerquisites = useCallback(async () => {
     await FlappyBirdService.initGamePerquisites();
+    await AssetService.preload();
 
     return () => {
       FlappyBirdService.gameDispose();
