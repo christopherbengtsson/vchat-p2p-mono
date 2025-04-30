@@ -23,6 +23,13 @@ const FlappyBirdDev = lazy(() =>
     default: FlappyBirdDev,
   })),
 );
+const ResultsDialogDev = lazy(() =>
+  import('./features/dev/game/ResultDialogsDev').then(
+    ({ ResultsDialogDev }) => ({
+      default: ResultsDialogDev,
+    }),
+  ),
+);
 
 const devRoutes: RouteObject[] = import.meta.env.DEV
   ? [
@@ -33,6 +40,10 @@ const devRoutes: RouteObject[] = import.meta.env.DEV
           {
             path: DevRoutePath.FLAPPY_BIRD,
             element: <FlappyBirdDev />,
+          },
+          {
+            path: DevRoutePath.RESULTS_DIALOG,
+            element: <ResultsDialogDev />,
           },
         ],
       },

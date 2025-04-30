@@ -13,6 +13,8 @@ export function DevMenu() {
         <Button onClick={goBack}>Go back</Button>
         <span>|</span>
         <Link to={DevRoutePath.FLAPPY_BIRD}>Flappy Bird</Link>
+        <span>|</span>
+        <Link to={DevRoutePath.RESULTS_DIALOG}>Result dialogs</Link>
       </header>
 
       <Outlet />

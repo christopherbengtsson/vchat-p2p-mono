@@ -21,7 +21,7 @@ interface Props {
   open: boolean;
   toggle: VoidFunction;
 
-  title: string;
+  title: string | React.ReactNode;
   description?: string;
 
   mainContent: React.ReactNode;
