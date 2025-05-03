@@ -1,4 +1,4 @@
-import { PLAYER_WIDTH_PERCENT } from '../model/CanvasConstants';
+import { PLAYER_WIDTH_PERCENT, ASSETS } from '../model/CanvasConstants'; // Import ASSETS
 import { Wall } from '../model/Wall';
 
 interface CollisionParams {
@@ -35,6 +35,7 @@ const isCollision = ({
     const roundedWallX = Math.round(wall.x);
 
     // Only check walls that are within a reasonable range
+    // Use wall.width (max width) for broad phase check
     return (
       roundedWallX + wall.width >= roundedPlayerX - playerSize &&
       roundedWallX <= roundedPlayerX + playerSize * 2
@@ -43,22 +44,107 @@ const isCollision = ({
 
   // Narrow-phase: Check actual collisions
   for (const wall of relevantWalls) {
-    // Round wall position to match visual rendering
+    // Round wall position and dimensions for consistency with rendering/cache
     const roundedWallX = Math.round(wall.x);
     const roundedWallY = Math.round(wall.y);
+    // Use rounded dimensions consistent with how cache canvases are created
+    const roundedWallWidth = Math.round(wall.width);
+    const roundedWallHeight = Math.round(wall.height);
 
-    // Axis-Aligned Bounding Box collision detection with rounded positions
-    if (
-      playerHitbox.x < roundedWallX + wall.width &&
-      playerHitbox.x + playerHitbox.width > roundedWallX &&
-      playerHitbox.y < roundedWallY + wall.height &&
-      playerHitbox.y + playerHitbox.height > roundedWallY
-    ) {
-      return true;
+    // --- Calculate Cap and Body Dimensions (mirroring CanvasDrawService) ---
+    const pipeCoords = ASSETS.COORDS.PIPE;
+    let capCoords, capHeight, middleWidth, xOffset;
+
+    if (wall.isUpperWall) {
+      // Upper Pipe (Bottom Cap)
+      capCoords = ASSETS.COORDS.PIPE_BOTTOM;
+      const pipeWidthRatio = roundedWallWidth / capCoords.width;
+      capHeight = Math.round(capCoords.height * pipeWidthRatio);
+
+      const middleWidthRatio = pipeCoords.width / capCoords.width;
+      middleWidth = Math.round(roundedWallWidth * middleWidthRatio);
+      xOffset = Math.round((roundedWallWidth - middleWidth) / 2);
+
+      // Define collision zones for upper pipe
+      const capZone = {
+        x: roundedWallX,
+        y: roundedWallY + roundedWallHeight - capHeight,
+        width: roundedWallWidth, // Cap uses full width
+        height: capHeight,
+      };
+      const bodyZone = {
+        x: roundedWallX + xOffset, // Body is narrower and offset
+        y: roundedWallY,
+        width: middleWidth, // Body uses narrow width
+        height: roundedWallHeight - capHeight,
+      };
+
+      // Check collision with Cap Zone (using full width)
+      if (
+        playerHitbox.x < capZone.x + capZone.width &&
+        playerHitbox.x + playerHitbox.width > capZone.x &&
+        playerHitbox.y < capZone.y + capZone.height &&
+        playerHitbox.y + playerHitbox.height > capZone.y
+      ) {
+        return true; // Collision with cap
+      }
+
+      // Check collision with Body Zone (using narrow width)
+      if (
+        playerHitbox.x < bodyZone.x + bodyZone.width &&
+        playerHitbox.x + playerHitbox.width > bodyZone.x &&
+        playerHitbox.y < bodyZone.y + bodyZone.height &&
+        playerHitbox.y + playerHitbox.height > bodyZone.y
+      ) {
+        return true; // Collision with body
+      }
+    } else {
+      // Lower Pipe (Top Cap)
+      capCoords = ASSETS.COORDS.PIPE_TOP;
+      const pipeWidthRatio = roundedWallWidth / capCoords.width;
+      capHeight = Math.round(capCoords.height * pipeWidthRatio);
+
+      const middleWidthRatio = pipeCoords.width / capCoords.width;
+      middleWidth = Math.round(roundedWallWidth * middleWidthRatio);
+      xOffset = Math.round((roundedWallWidth - middleWidth) / 2);
+
+      // Define collision zones for lower pipe
+      const capZone = {
+        x: roundedWallX,
+        y: roundedWallY,
+        width: roundedWallWidth, // Cap uses full width
+        height: capHeight,
+      };
+      const bodyZone = {
+        x: roundedWallX + xOffset, // Body is narrower and offset
+        y: roundedWallY + capHeight,
+        width: middleWidth, // Body uses narrow width
+        height: roundedWallHeight - capHeight,
+      };
+
+      // Check collision with Cap Zone (using full width)
+      if (
+        playerHitbox.x < capZone.x + capZone.width &&
+        playerHitbox.x + playerHitbox.width > capZone.x &&
+        playerHitbox.y < capZone.y + capZone.height &&
+        playerHitbox.y + playerHitbox.height > capZone.y
+      ) {
+        return true; // Collision with cap
+      }
+
+      // Check collision with Body Zone (using narrow width)
+      if (
+        playerHitbox.x < bodyZone.x + bodyZone.width &&
+        playerHitbox.x + playerHitbox.width > bodyZone.x &&
+        playerHitbox.y < bodyZone.y + bodyZone.height &&
+        playerHitbox.y + playerHitbox.height > bodyZone.y
+      ) {
+        return true; // Collision with body
+      }
     }
   }
 
-  return false;
+  return false; // No collision detected
 };
 
 export const CanvasCollisionService = {
