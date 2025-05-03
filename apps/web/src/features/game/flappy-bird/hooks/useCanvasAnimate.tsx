@@ -100,7 +100,7 @@ export const useCanvasAnimate = ({
     });
 
     requestRef.current = requestAnimationFrame(animate);
-  }, [canvasRef, endGame, getPitch, scaleFactor, playerYRef, velocityRef]);
+  }, [canvasRef, scaleFactor, getPitch, endGame]);
 
   // Initialize player position in the middle of the canvas
   useEffect(() => {

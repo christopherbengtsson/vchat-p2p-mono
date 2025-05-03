@@ -4,6 +4,7 @@ import { Canvas } from '../component/Canvas';
 import { useCanvasAnimate } from '../hooks/useCanvasAnimate';
 import { useCanvasResize } from '../hooks/useCanvasResize';
 import { FlappyBirdService } from '../service/FlappyBirdService';
+import { RandomTrumpSound } from '../component/RandomTrumpSound';
 
 interface Props {
   onEndRound: (score: number) => void;
@@ -14,18 +15,26 @@ export const PlayerContainer = observer(function PlayerContainer({
 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const startAudioRef = useRef<HTMLAudioElement>(null);
+  const endAudioRef = useRef<HTMLAudioElement>(null);
 
   const getPitch = useCallback(() => FlappyBirdService.getPitch(), []);
 
   const onGameOver = useCallback(
     (score: number) => {
+      playEndSound();
       onEndRound(score);
     },
     [onEndRound],
   );
 
   const scaleFactor = useCanvasResize(canvasRef, containerRef);
-  useCanvasAnimate({ canvasRef, onGameOver, getPitch, scaleFactor });
+  useCanvasAnimate({
+    canvasRef,
+    onGameOver,
+    getPitch,
+    scaleFactor,
+  });
 
   useEffect(() => {
     FlappyBirdService.startCanvasStream(canvasRef.current);
@@ -34,6 +43,14 @@ export const PlayerContainer = observer(function PlayerContainer({
       FlappyBirdService.stopCanvasStream();
     };
   }, []);
+
+  const playStartSound = () => {
+    startAudioRef.current?.play();
+  };
+
+  const playEndSound = () => {
+    endAudioRef.current?.play();
+  };
 
   return (
     <>
@@ -48,6 +65,13 @@ export const PlayerContainer = observer(function PlayerContainer({
       </div>
 
       <div className="absolute top-0 left-0 w-full h-full bg-black opacity-80" />
+
+      <RandomTrumpSound
+        ref={startAudioRef}
+        type="start"
+        onReady={playStartSound}
+      />
+      <RandomTrumpSound ref={endAudioRef} type="end" />
     </>
   );
 });
