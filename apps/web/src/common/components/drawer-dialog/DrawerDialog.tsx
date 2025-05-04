@@ -51,7 +51,9 @@ export const DrawerDialog = observer(function DrawerDialog({
         >
           <DialogHeader>
             <DialogTitle>{title}</DialogTitle>
-            <DialogDescription>{description}</DialogDescription>
+            {description && (
+              <DialogDescription>{description}</DialogDescription>
+            )}
           </DialogHeader>
 
           {mainContent}

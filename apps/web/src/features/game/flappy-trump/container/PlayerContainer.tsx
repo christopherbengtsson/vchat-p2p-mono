@@ -22,8 +22,8 @@ export const PlayerContainer = observer(function PlayerContainer({
 
   const onGameOver = useCallback(
     async (score: number) => {
-      await playEndSound();
-      onEndRound(score);
+      const endRound = () => onEndRound(score);
+      await playEndSound(endRound);
     },
     [onEndRound],
   );
@@ -48,7 +48,14 @@ export const PlayerContainer = observer(function PlayerContainer({
     void startAudioRef.current?.play();
   };
 
-  const playEndSound = async () => {
+  const playEndSound = async (endRound: VoidFunction) => {
+    if (!endAudioRef.current) {
+      return endRound();
+    }
+
+    endAudioRef.current.onended = () => {
+      endRound();
+    };
     await endAudioRef.current?.play();
   };
 
