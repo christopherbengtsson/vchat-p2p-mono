@@ -4,6 +4,8 @@ export interface ScaleFactor {
   widthScale: number;
   heightScale: number;
   devicePixelRatio: number;
+  deviceType?: 'MOBILE' | 'TABLET' | 'LAPTOP' | 'DESKTOP';
+  deviceScaleFactor?: number;
 }
 
 export interface DrawProps {
@@ -11,8 +13,8 @@ export interface DrawProps {
   yPos: number;
   walls: Wall[];
   score: number;
-  velocity: number;
   scaleFactor: ScaleFactor;
+  velocity: number;
   wallSpeed: number;
   frameCount: number;
 }

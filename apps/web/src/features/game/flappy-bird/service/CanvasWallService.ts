@@ -1,13 +1,21 @@
 import {
   DIFFICULTY,
-  PLAYER_HEIGHT_PERCENT,
   PLAYER_X_POS_MULTIPLIER,
   WALL_FREQUENCY,
-  WALL_GAP_PERCENT,
-  WALL_WIDTH_PERCENT,
+  WALL_GAP_MULTIPLIER,
+  BASE_WALL_WIDTH_PERCENT,
+  PLAYER_WIDTH_PERCENT,
 } from '../model/CanvasConstants';
 import { ScaleFactor } from '../model/DrawProps';
 import { Wall } from '../model/Wall';
+
+const getScaledValue = (
+  baseValue: number,
+  scaleFactor: ScaleFactor,
+): number => {
+  const deviceScaling = scaleFactor.deviceScaleFactor || 1;
+  return baseValue * deviceScaling;
+};
 
 const addWall = (
   frameCountRef: React.RefObject<number>,
@@ -28,14 +36,28 @@ const addWall = (
     const canvasWidth = canvas.width / scaleFactor.devicePixelRatio;
     const canvasHeight = canvas.height / scaleFactor.devicePixelRatio;
 
-    // Calculate wall dimensions based on percentages
-    const wallWidth = canvasWidth * WALL_WIDTH_PERCENT;
-    const wallGap = canvasHeight * WALL_GAP_PERCENT;
+    // Apply device-specific scaling to wall width
+    const wallWidthPercent = getScaledValue(
+      BASE_WALL_WIDTH_PERCENT,
+      scaleFactor,
+    );
+    const wallWidth = canvasWidth * wallWidthPercent;
 
-    // Adjust gap position considering player height
-    const playerHeight = canvasHeight * PLAYER_HEIGHT_PERCENT;
-    const minGapY = playerHeight;
-    const maxGapY = canvasHeight - wallGap - playerHeight;
+    // Apply device-specific scaling to player height
+    const playerWidthPercent = getScaledValue(
+      PLAYER_WIDTH_PERCENT,
+      scaleFactor,
+    );
+
+    const playerWidth =
+      (canvas.width / scaleFactor.devicePixelRatio) * playerWidthPercent;
+
+    const wallGap = playerWidth * WALL_GAP_MULTIPLIER;
+
+    // Ensure minimum gap position accounts for player height
+    const minGapY = playerWidth;
+    const maxGapY = canvasHeight - wallGap - playerWidth;
+
     const gapY = Math.random() * (maxGapY - minGapY) + minGapY;
 
     // Top wall
@@ -114,4 +136,5 @@ export const CanvasWallService = {
   moveWalls,
   removeWalls,
   getWallSpeed,
+  getScaledValue,
 };

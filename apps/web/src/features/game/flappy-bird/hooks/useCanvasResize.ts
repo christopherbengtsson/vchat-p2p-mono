@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import debounce from 'lodash.debounce';
-import { BREAKPOINTS } from '../model/CanvasConstants';
+import { BREAKPOINTS, DEVICE_SCALING } from '../model/CanvasConstants';
 import { ScaleFactor } from '../model/DrawProps';
 
 export const useCanvasResize = (
@@ -11,6 +11,7 @@ export const useCanvasResize = (
     widthScale: 1,
     heightScale: 1,
     devicePixelRatio: window.devicePixelRatio || 1,
+    deviceType: 'LAPTOP', // Default device type
   });
 
   useEffect(() => {
@@ -22,16 +23,38 @@ export const useCanvasResize = (
       const { clientWidth: width, clientHeight: height } = container;
       const dpr = window.devicePixelRatio || 1;
 
+      // Determine device type based on screen width
+      let deviceType: 'MOBILE' | 'TABLET' | 'LAPTOP' | 'DESKTOP' = 'LAPTOP';
+
+      if (width < BREAKPOINTS.SM) {
+        deviceType = 'MOBILE';
+      } else if (width < BREAKPOINTS.LG) {
+        deviceType = 'TABLET';
+      } else if (width < BREAKPOINTS.XXL) {
+        deviceType = 'LAPTOP';
+      } else {
+        deviceType = 'DESKTOP';
+      }
+
       canvas.width = width * dpr;
       canvas.height = height * dpr;
 
       canvas.style.width = `${width}px`;
       canvas.style.height = `${height}px`;
 
+      // Calculate base scaling factors
+      const baseWidthScale = width / BREAKPOINTS.MD;
+      const baseHeightScale = height / (BREAKPOINTS.MD * 0.75);
+
+      // Apply device-specific scaling
+      const deviceScaleFactor = DEVICE_SCALING[deviceType];
+
       setScaleFactor({
-        widthScale: width / BREAKPOINTS.MD,
-        heightScale: height / (BREAKPOINTS.MD * 0.75),
+        widthScale: baseWidthScale,
+        heightScale: baseHeightScale,
         devicePixelRatio: dpr,
+        deviceType,
+        deviceScaleFactor,
       });
 
       const ctx = canvas.getContext('2d');

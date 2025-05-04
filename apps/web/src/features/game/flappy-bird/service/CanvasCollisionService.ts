@@ -1,39 +1,59 @@
-import { PLAYER_WIDTH_PERCENT, ASSETS } from '../model/CanvasConstants'; // Import ASSETS
+import { BASE_PLAYER_SIZE_PERCENT, ASSETS } from '../model/CanvasConstants'; // Import ASSETS
 import { Wall } from '../model/Wall';
+import { ScaleFactor } from '../model/DrawProps';
+import { CanvasWallService } from './CanvasWallService';
 
 interface CollisionParams {
   playerX: number;
   playerY: number;
+  playerWidth?: number; // Optional parameter for scaled player width
+  playerHeight?: number; // Optional parameter for scaled player height
   walls: Wall[];
   canvasWidth: number;
+  scaleFactor?: ScaleFactor; // Optional scale factor
 }
 
 const isCollision = ({
   playerX,
   playerY,
+  playerWidth,
+  playerHeight,
   walls,
   canvasWidth,
+  scaleFactor,
 }: CollisionParams) => {
   // Round player position to match visual rendering
   const roundedPlayerX = Math.round(playerX);
   const roundedPlayerY = Math.round(playerY);
 
-  // Calculate player size based on canvas width
-  const playerSize = canvasWidth * PLAYER_WIDTH_PERCENT;
+  // Calculate player size based on canvas width and device scaling if available
+  let playerSize;
+  if (playerWidth) {
+    playerSize = playerWidth; // Use provided width if available
+  } else if (scaleFactor) {
+    // Apply device-specific scaling
+    const playerSizePercent = CanvasWallService.getScaledValue(
+      BASE_PLAYER_SIZE_PERCENT,
+      scaleFactor,
+    );
+    playerSize = canvasWidth * playerSizePercent;
+  } else {
+    // Fallback to base size
+    playerSize = canvasWidth * BASE_PLAYER_SIZE_PERCENT;
+  }
 
   // Define player hitbox - using exact size
   const playerHitbox = {
     x: roundedPlayerX,
     y: roundedPlayerY,
     width: playerSize,
-    height: playerSize,
+    height: playerHeight || playerSize, // Use provided height or default to square
   };
 
   // Broad-phase: Only check walls that are close to the player
   const relevantWalls = walls.filter((wall) => {
     // Round wall position to match visual rendering
     const roundedWallX = Math.round(wall.x);
-
     // Only check walls that are within a reasonable range
     // Use wall.width (max width) for broad phase check
     return (
@@ -60,7 +80,6 @@ const isCollision = ({
       capCoords = ASSETS.COORDS.PIPE_BOTTOM;
       const pipeWidthRatio = roundedWallWidth / capCoords.width;
       capHeight = Math.round(capCoords.height * pipeWidthRatio);
-
       const middleWidthRatio = pipeCoords.width / capCoords.width;
       middleWidth = Math.round(roundedWallWidth * middleWidthRatio);
       xOffset = Math.round((roundedWallWidth - middleWidth) / 2);
@@ -72,6 +91,7 @@ const isCollision = ({
         width: roundedWallWidth, // Cap uses full width
         height: capHeight,
       };
+
       const bodyZone = {
         x: roundedWallX + xOffset, // Body is narrower and offset
         y: roundedWallY,
@@ -103,7 +123,6 @@ const isCollision = ({
       capCoords = ASSETS.COORDS.PIPE_TOP;
       const pipeWidthRatio = roundedWallWidth / capCoords.width;
       capHeight = Math.round(capCoords.height * pipeWidthRatio);
-
       const middleWidthRatio = pipeCoords.width / capCoords.width;
       middleWidth = Math.round(roundedWallWidth * middleWidthRatio);
       xOffset = Math.round((roundedWallWidth - middleWidth) / 2);
@@ -115,6 +134,7 @@ const isCollision = ({
         width: roundedWallWidth, // Cap uses full width
         height: capHeight,
       };
+
       const bodyZone = {
         x: roundedWallX + xOffset, // Body is narrower and offset
         y: roundedWallY + capHeight,

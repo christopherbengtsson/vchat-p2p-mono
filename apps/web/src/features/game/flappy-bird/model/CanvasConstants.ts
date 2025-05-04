@@ -1,13 +1,18 @@
 import gameAssetsSrc from '@/assets/tiles.png';
 
 // Game dimensions and responsive scaling
-export const BASE_WIDTH = 800; // Reference width for scaling calculations
-export const BASE_HEIGHT = 600; // Reference height for scaling calculations
+
+// Device-specific scaling factors
+export const DEVICE_SCALING = {
+  MOBILE: 1.8, // Larger elements on mobile
+  TABLET: 1.4, // Slightly larger on tablets
+  LAPTOP: 1.0, // Base size for laptops
+  DESKTOP: 0.9, // Slightly smaller on large desktop screens
+};
 
 // Object dimensions (percentages of canvas)
-export const PLAYER_SIZE_PERCENT = 0.05; // 5% of canvas width
-export const PLAYER_WIDTH_PERCENT = PLAYER_SIZE_PERCENT;
-export const PLAYER_HEIGHT_PERCENT = PLAYER_SIZE_PERCENT; // Same as width for square
+export const BASE_PLAYER_SIZE_PERCENT = 0.07; // Increased from 0.05 (7% of canvas width)
+export const PLAYER_WIDTH_PERCENT = BASE_PLAYER_SIZE_PERCENT;
 export const PLAYER_X_POS_MULTIPLIER = 0.15; // 15% from the left edge
 
 // Game physics constants
@@ -15,8 +20,8 @@ export const GRAVITY = 0.05;
 export const SMOOTHING_FACTOR = 0.02;
 export const BACKGROUND_SPEED_MULTIPLIER = 0.1;
 export const WALL_FREQUENCY = 300;
-export const WALL_GAP_PERCENT = PLAYER_SIZE_PERCENT * 4; // 4x player size
-export const WALL_WIDTH_PERCENT = 0.075; // 7.5% of canvas width
+export const WALL_GAP_MULTIPLIER = 4; // Gap is 4x player height
+export const BASE_WALL_WIDTH_PERCENT = 0.075; // 7.5% of canvas width
 
 // Cloud generation and movement
 export const CLOUD_FREQUENCY = 200; // How often clouds appear
@@ -25,7 +30,7 @@ export const CLOUD_SPEED_MULTIPLIER = {
   MIN: 0.2, // Minimum speed for small/distant clouds
   MAX: 0.4, // Maximum speed for large/close clouds
 };
-export const CLOUD_SIZE_PERCENT = 0.08; // 8% of canvas width
+export const BASE_CLOUD_SIZE_PERCENT = 0.08; // 8% of canvas width
 export const CLOUD_COUNT_RANGE = { MIN: 2, MAX: 5 }; // Number of clouds visible at once
 export const CLOUD_VERTICAL_RANGE = { MIN: 0.1, MAX: 0.4 }; // Vertical position range (% of canvas height)
 export const CLOUD_OPACITY_RANGE = { MIN: 0.9, MAX: 1 }; // Varying opacity for depth effect
@@ -66,17 +71,18 @@ export const COLORS = {
 
 // Typography
 export const TYPOGRAPHY = {
-  SCORE_FONT_SIZE: 24,
+  BASE_SCORE_FONT_SIZE: 24,
   SCORE_FONT_FAMILY: '"Inter", sans-serif',
   SCORE_PADDING: 20,
 };
 
 // Device breakpoints (matching Tailwind defaults)
 export const BREAKPOINTS = {
-  SM: 640,
-  MD: 768,
-  LG: 1024,
-  XL: 1280,
+  SM: 640, // Small mobile devices
+  MD: 768, // Larger mobile/small tablets
+  LG: 1024, // Tablets/small laptops
+  XL: 1280, // Laptops/desktops
+  XXL: 1536, // Large desktops
 };
 
 // Game difficulty scaling

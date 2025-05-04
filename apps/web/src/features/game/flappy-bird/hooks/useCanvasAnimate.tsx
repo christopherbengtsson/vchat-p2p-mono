@@ -1,7 +1,10 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { Maybe } from '@mono/common-dto';
 import { Wall } from '../model/Wall';
-import { PLAYER_X_POS_MULTIPLIER } from '../model/CanvasConstants';
+import {
+  BASE_PLAYER_SIZE_PERCENT,
+  PLAYER_X_POS_MULTIPLIER,
+} from '../model/CanvasConstants';
 import { CanvasCollisionService } from '../service/CanvasCollisionService';
 import { CanvasObjectService } from '../service/CanvasObjectService';
 import { CanvasWallService } from '../service/CanvasWallService';
@@ -76,12 +79,21 @@ export const useCanvasAnimate = ({
 
     CanvasWallService.removeWalls(wallsRef);
 
+    const playerSizePercent = CanvasWallService.getScaledValue(
+      BASE_PLAYER_SIZE_PERCENT,
+      scaleFactor,
+    );
+    const playerSize = canvasWidth * playerSizePercent;
     const playerX = canvasWidth * PLAYER_X_POS_MULTIPLIER;
+
     const wallHit = CanvasCollisionService.isCollision({
       playerX,
       playerY: playerYRef.current,
+      playerWidth: playerSize, // Pass the scaled player width
+      playerHeight: playerSize, // Assuming square player
       walls: wallsRef.current,
       canvasWidth,
+      scaleFactor, // Pass the scale factor for additional scaling if needed
     });
 
     if (wallHit) {

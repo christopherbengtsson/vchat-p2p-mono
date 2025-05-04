@@ -1,10 +1,11 @@
 import {
   GRAVITY,
-  PLAYER_WIDTH_PERCENT,
+  BASE_PLAYER_SIZE_PERCENT,
   SMOOTHING_FACTOR,
 } from '../model/CanvasConstants';
 import { ScaleFactor } from '../model/DrawProps';
 import { AudioFrequencyService } from './AudioFrequencyService';
+import { CanvasWallService } from './CanvasWallService';
 
 const updateObjectPosition = (
   [pitch, clarity]: [number, number],
@@ -16,7 +17,14 @@ const updateObjectPosition = (
   // Calculate logical canvas dimensions (removing device pixel ratio) - do once
   const canvasWidth = canvas.width / scaleFactor.devicePixelRatio;
   const canvasHeight = canvas.height / scaleFactor.devicePixelRatio;
-  const playerSize = canvasWidth * PLAYER_WIDTH_PERCENT;
+
+  // Apply device-specific scaling to player size
+  const playerSizePercent = CanvasWallService.getScaledValue(
+    BASE_PLAYER_SIZE_PERCENT,
+    scaleFactor,
+  );
+  const playerSize = canvasWidth * playerSizePercent;
+
   const maxY = canvasHeight - playerSize;
   const scaledGravity = GRAVITY * scaleFactor.heightScale;
 

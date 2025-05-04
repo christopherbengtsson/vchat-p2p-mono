@@ -2,7 +2,6 @@ import type { Wall } from '../model/Wall';
 import type { DrawProps, ScaleFactor } from '../model/DrawProps';
 import {
   COLORS,
-  PLAYER_WIDTH_PERCENT,
   TYPOGRAPHY,
   DEBUG,
   PLAYER_X_POS_MULTIPLIER,
@@ -10,12 +9,14 @@ import {
   BACKGROUND_SPEED_MULTIPLIER,
   CLOUD_COUNT_RANGE,
   CLOUD_SCALE_RANGE,
-  CLOUD_SIZE_PERCENT,
   CLOUD_VERTICAL_RANGE,
   CLOUD_SPEED_MULTIPLIER,
   CLOUD_OPACITY_RANGE,
   CLOUD_FREQUENCY,
+  BASE_PLAYER_SIZE_PERCENT,
+  BASE_CLOUD_SIZE_PERCENT,
 } from '../model/CanvasConstants';
+import { CanvasWallService } from './CanvasWallService';
 
 // Cache objects
 const caches = {
@@ -40,6 +41,13 @@ let clouds: {
 }[] = [];
 
 // Utility functions
+const getScaledValue = (
+  baseValue: number,
+  scaleFactor: ScaleFactor,
+): number => {
+  return CanvasWallService.getScaledValue(baseValue, scaleFactor);
+};
+
 const disableImageSmoothing = (ctx: CanvasRenderingContext2D) => {
   ctx.imageSmoothingEnabled = false;
 };
@@ -186,7 +194,7 @@ const drawBackground = (
   }
 };
 
-// When generating initial clouds
+// When generating initial clouds with device-specific scaling
 const generateClouds = (
   width: number,
   height: number,
@@ -200,11 +208,17 @@ const generateClouds = (
     );
 
     for (let i = 0; i < cloudCount; i++) {
+      // Apply device-specific scaling to cloud size
+      const cloudSizePercent = getScaledValue(
+        BASE_CLOUD_SIZE_PERCENT,
+        scaleFactor,
+      );
+
       // Apply scaleFactor to cloud dimensions
       const scaleVariation =
         Math.random() * (CLOUD_SCALE_RANGE.MAX - CLOUD_SCALE_RANGE.MIN) +
         CLOUD_SCALE_RANGE.MIN;
-      const baseCloudWidth = width * CLOUD_SIZE_PERCENT;
+      const baseCloudWidth = width * cloudSizePercent;
       const cloudWidth =
         baseCloudWidth * scaleVariation * scaleFactor.widthScale;
 
@@ -241,7 +255,7 @@ const generateClouds = (
   }
 };
 
-// When adding new clouds
+// When adding new clouds with device-specific scaling
 const updateClouds = (
   width: number,
   height: number,
@@ -254,11 +268,17 @@ const updateClouds = (
     frameCount % CLOUD_FREQUENCY === 0 &&
     clouds.length < CLOUD_COUNT_RANGE.MAX
   ) {
+    // Apply device-specific scaling to cloud size
+    const cloudSizePercent = getScaledValue(
+      BASE_CLOUD_SIZE_PERCENT,
+      scaleFactor,
+    );
+
     // Apply scaleFactor to cloud dimensions
     const scaleVariation =
       Math.random() * (CLOUD_SCALE_RANGE.MAX - CLOUD_SCALE_RANGE.MIN) +
       CLOUD_SCALE_RANGE.MIN;
-    const baseCloudWidth = width * CLOUD_SIZE_PERCENT;
+    const baseCloudWidth = width * cloudSizePercent;
     const cloudWidth = baseCloudWidth * scaleVariation * scaleFactor.widthScale;
 
     const aspectRatio = ASSETS.COORDS.CLOUD.width / ASSETS.COORDS.CLOUD.height;
@@ -649,21 +669,23 @@ const drawUpperPipe = (
   );
 };
 
-// Score rendering
+// Score rendering with device-specific scaling
 const drawScore = (
   ctx: CanvasRenderingContext2D,
   score: number,
   scaleFactor: ScaleFactor,
 ) => {
   const { width } = ctx.canvas;
-  // Round font size and padding for potentially sharper text rendering
+
+  // No need for device-specific scaling
   const fontSize = Math.max(
     16, // Minimum font size
-    Math.round(TYPOGRAPHY.SCORE_FONT_SIZE * scaleFactor.heightScale),
+    Math.round(TYPOGRAPHY.BASE_SCORE_FONT_SIZE * scaleFactor.heightScale),
   );
   const padding = Math.round(TYPOGRAPHY.SCORE_PADDING * scaleFactor.widthScale);
+
   // Use rounded fontSize in cache key
-  const cacheKey = `${score}_${fontSize}_${Math.round(width)}`;
+  const cacheKey = `${score}_${fontSize}_${Math.round(width)}_${scaleFactor.deviceType}`;
 
   // Estimate dimensions needed for the cache canvas
   const dimensions = {
@@ -708,6 +730,7 @@ const drawPlayer = (
   y: number,
   width: number, // This is the calculated (potentially float) desired width
   velocity: number,
+  scaleFactor: ScaleFactor,
 ) => {
   const tilesImage = ASSETS.TILES;
   if (!tilesImage.complete) return;
@@ -722,7 +745,7 @@ const drawPlayer = (
   // Use rounded dimensions for cache key and canvas creation
   const roundedWidth = Math.round(width);
   const roundedHeight = Math.round(height);
-  const cacheKey = `${roundedWidth}_${roundedHeight}_${velocity > 0 ? 'up' : 'normal'}`;
+  const cacheKey = `${roundedWidth}_${roundedHeight}_${velocity > 0 ? 'up' : 'normal'}_${scaleFactor.deviceType}`;
 
   const dimensions = { width: roundedWidth, height: roundedHeight };
 
@@ -787,18 +810,6 @@ const drawCanvas = ({
   // Clear the entire canvas based on its actual pixel dimensions
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // Apply scaling based on DPR for all subsequent drawing operations
-  // This ensures drawing happens at the device's native resolution
-  // Do this *once* after clearing and before drawing game elements.
-  // Note: If you scale the context, all coordinates and dimensions drawn
-  // afterwards should be in the *logical* coordinate space.
-  // Let's reconsider if scaling the main context is the best approach here.
-  // Given the caching strategy draws pre-scaled elements for DPR in the background cache,
-  // and other elements are drawn based on logical sizes, it might be better *not*
-  // to scale the main context globally, but ensure coordinates/sizes passed
-  // to draw functions are logical, and the cache handles DPR scaling internally.
-  // Let's stick to the previous approach: draw in logical coordinates, let caches handle DPR if needed.
-
   // Draw game elements in correct order (background to foreground)
   const backgroundSpeed = wallSpeed * BACKGROUND_SPEED_MULTIPLIER;
   // Pass logical width/height to drawing functions
@@ -819,11 +830,16 @@ const drawCanvas = ({
   drawWalls(ctx, walls, scaleFactor); // drawWalls uses logical coords, cache handles internal scaling
   drawScore(ctx, score, scaleFactor); // drawScore uses logical coords
 
-  // Calculate player dimensions in logical space
-  const playerWidth = logicalWidth * PLAYER_WIDTH_PERCENT;
+  // Calculate player dimensions in logical space with device-specific scaling
+  const playerSizePercent = getScaledValue(
+    BASE_PLAYER_SIZE_PERCENT,
+    scaleFactor,
+  );
+  const playerWidth = logicalWidth * playerSizePercent;
   const playerX = logicalWidth * PLAYER_X_POS_MULTIPLIER;
+
   // yPos is already in logical space
-  drawPlayer(ctx, playerX, yPos, playerWidth, velocity); // drawPlayer uses logical coords
+  drawPlayer(ctx, playerX, yPos, playerWidth, velocity, scaleFactor); // drawPlayer uses logical coords
 };
 
 export const CanvasDrawService = {
