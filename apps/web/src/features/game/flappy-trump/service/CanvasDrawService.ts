@@ -57,7 +57,6 @@ const drawCanvas = ({
 
   CanvasScoreService.drawScore(ctx, score, scaleFactor);
 
-  // Calculate player dimensions in logical space with device-specific scaling
   const playerSizePercent = CanvasUtil.getScaledValue(
     BASE_PLAYER_SIZE_PERCENT,
     scaleFactor,
