@@ -8,6 +8,7 @@ export const COLORS = {
 export const TYPOGRAPHY = {
   MIN_FONT_SIZE: 16,
   BASE_SCORE_FONT_SIZE: 24,
+  LINE_HEIGHT_RATIO: 1.5,
   SCORE_FONT_FAMILY: '"Inter", sans-serif',
   SCORE_PADDING: 20,
 };

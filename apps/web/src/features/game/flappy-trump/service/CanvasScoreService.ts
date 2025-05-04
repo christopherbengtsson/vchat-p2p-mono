@@ -21,7 +21,7 @@ const drawScore = (
 
   const dimensions = {
     width: Math.round(width),
-    height: Math.round(fontSize * 1.5), // TODO: Whats this magic number?
+    height: Math.round(fontSize * TYPOGRAPHY.LINE_HEIGHT_RATIO),
   };
 
   const cachedScore = CanvasUtil.getOrCreateCachedCanvas(
