@@ -6,7 +6,7 @@ import {
   DEBUG,
 } from '../model/constants';
 import { ScaleFactor } from '../model/DrawProps';
-import { getScaledValue, getOrCreateCachedCanvas } from '../util/CanvasUtils';
+import { CanvasUtil } from '../util/CanvasUtil';
 import { AudioFrequencyService } from './AudioFrequencyService';
 import { CanvasCacheService } from './CanvasCacheService';
 
@@ -23,7 +23,7 @@ const updatePlayerPosition = (
   const canvasHeight = canvas.height / scaleFactor.devicePixelRatio;
 
   // Apply device-specific scaling to player size
-  const playerSizePercent = getScaledValue(
+  const playerSizePercent = CanvasUtil.getScaledValue(
     BASE_PLAYER_SIZE_PERCENT,
     scaleFactor,
   );
@@ -104,7 +104,7 @@ const drawPlayer = (
   const dimensions = { width: roundedWidth, height: roundedHeight };
 
   // Get or create cached player
-  const cachedPlayer = getOrCreateCachedCanvas(
+  const cachedPlayer = CanvasUtil.getOrCreateCachedCanvas(
     CanvasCacheService.caches.player,
     cacheKey,
     dimensions, // Use rounded dimensions for cache canvas

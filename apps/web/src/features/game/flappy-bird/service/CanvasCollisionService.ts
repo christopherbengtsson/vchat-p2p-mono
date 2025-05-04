@@ -1,7 +1,7 @@
 import { BASE_PLAYER_SIZE_PERCENT, ASSETS } from '../model/constants';
 import { Pipe } from '../model/Pipe';
 import { ScaleFactor } from '../model/DrawProps';
-import { getScaledValue } from '../util/CanvasUtils';
+import { CanvasUtil } from '../util/CanvasUtil';
 
 // TODO: Should probably detect collision more carefully since we're not using a true square
 
@@ -10,7 +10,7 @@ interface CollisionParams {
   playerY: number;
   playerWidth?: number; // Optional parameter for scaled player width
   playerHeight?: number; // Optional parameter for scaled player height
-  walls: Pipe[];
+  pipes: Pipe[];
   canvasWidth: number;
   scaleFactor?: ScaleFactor; // Optional scale factor
 }
@@ -20,7 +20,7 @@ const isCollision = ({
   playerY,
   playerWidth,
   playerHeight,
-  walls,
+  pipes,
   canvasWidth,
   scaleFactor,
 }: CollisionParams) => {
@@ -34,7 +34,7 @@ const isCollision = ({
     playerSize = playerWidth; // Use provided width if available
   } else if (scaleFactor) {
     // Apply device-specific scaling
-    const playerSizePercent = getScaledValue(
+    const playerSizePercent = CanvasUtil.getScaledValue(
       BASE_PLAYER_SIZE_PERCENT,
       scaleFactor,
     );
@@ -52,53 +52,53 @@ const isCollision = ({
     height: playerHeight || playerSize, // Use provided height or default to square
   };
 
-  // Broad-phase: Only check walls that are close to the player
-  const relevantWalls = walls.filter((wall) => {
-    // Round wall position to match visual rendering
-    const roundedWallX = Math.round(wall.x);
-    // Only check walls that are within a reasonable range
-    // Use wall.width (max width) for broad phase check
+  // Broad-phase: Only check pipes that are close to the player
+  const relevantPipes = pipes.filter((pipe) => {
+    // Round pipe position to match visual rendering
+    const roundedPipeX = Math.round(pipe.x);
+    // Only check pipes that are within a reasonable range
+    // Use pipe.width (max width) for broad phase check
     return (
-      roundedWallX + wall.width >= roundedPlayerX - playerSize &&
-      roundedWallX <= roundedPlayerX + playerSize * 2
+      roundedPipeX + pipe.width >= roundedPlayerX - playerSize &&
+      roundedPipeX <= roundedPlayerX + playerSize * 2
     );
   });
 
   // Narrow-phase: Check actual collisions
-  for (const wall of relevantWalls) {
-    // Round wall position and dimensions for consistency with rendering/cache
-    const roundedWallX = Math.round(wall.x);
-    const roundedWallY = Math.round(wall.y);
+  for (const pipe of relevantPipes) {
+    // Round pipe position and dimensions for consistency with rendering/cache
+    const roundedPipeX = Math.round(pipe.x);
+    const roundedPipeY = Math.round(pipe.y);
     // Use rounded dimensions consistent with how cache canvases are created
-    const roundedWallWidth = Math.round(wall.width);
-    const roundedWallHeight = Math.round(wall.height);
+    const roundedPipeWidth = Math.round(pipe.width);
+    const roundedPipeHeight = Math.round(pipe.height);
 
     // --- Calculate Cap and Body Dimensions (mirroring CanvasDrawService) ---
     const pipeCoords = ASSETS.COORDS.PIPE;
     let capCoords, capHeight, middleWidth, xOffset;
 
-    if (wall.isUpperPipe) {
+    if (pipe.isUpperPipe) {
       // Upper Pipe (Bottom Cap)
       capCoords = ASSETS.COORDS.PIPE_BOTTOM;
-      const pipeWidthRatio = roundedWallWidth / capCoords.width;
+      const pipeWidthRatio = roundedPipeWidth / capCoords.width;
       capHeight = Math.round(capCoords.height * pipeWidthRatio);
       const middleWidthRatio = pipeCoords.width / capCoords.width;
-      middleWidth = Math.round(roundedWallWidth * middleWidthRatio);
-      xOffset = Math.round((roundedWallWidth - middleWidth) / 2);
+      middleWidth = Math.round(roundedPipeWidth * middleWidthRatio);
+      xOffset = Math.round((roundedPipeWidth - middleWidth) / 2);
 
       // Define collision zones for upper pipe
       const capZone = {
-        x: roundedWallX,
-        y: roundedWallY + roundedWallHeight - capHeight,
-        width: roundedWallWidth, // Cap uses full width
+        x: roundedPipeX,
+        y: roundedPipeY + roundedPipeHeight - capHeight,
+        width: roundedPipeWidth, // Cap uses full width
         height: capHeight,
       };
 
       const bodyZone = {
-        x: roundedWallX + xOffset, // Body is narrower and offset
-        y: roundedWallY,
+        x: roundedPipeX + xOffset, // Body is narrower and offset
+        y: roundedPipeY,
         width: middleWidth, // Body uses narrow width
-        height: roundedWallHeight - capHeight,
+        height: roundedPipeHeight - capHeight,
       };
 
       // Check collision with Cap Zone (using full width)
@@ -123,25 +123,25 @@ const isCollision = ({
     } else {
       // Lower Pipe (Top Cap)
       capCoords = ASSETS.COORDS.PIPE_TOP;
-      const pipeWidthRatio = roundedWallWidth / capCoords.width;
+      const pipeWidthRatio = roundedPipeWidth / capCoords.width;
       capHeight = Math.round(capCoords.height * pipeWidthRatio);
       const middleWidthRatio = pipeCoords.width / capCoords.width;
-      middleWidth = Math.round(roundedWallWidth * middleWidthRatio);
-      xOffset = Math.round((roundedWallWidth - middleWidth) / 2);
+      middleWidth = Math.round(roundedPipeWidth * middleWidthRatio);
+      xOffset = Math.round((roundedPipeWidth - middleWidth) / 2);
 
       // Define collision zones for lower pipe
       const capZone = {
-        x: roundedWallX,
-        y: roundedWallY,
-        width: roundedWallWidth, // Cap uses full width
+        x: roundedPipeX,
+        y: roundedPipeY,
+        width: roundedPipeWidth, // Cap uses full width
         height: capHeight,
       };
 
       const bodyZone = {
-        x: roundedWallX + xOffset, // Body is narrower and offset
-        y: roundedWallY + capHeight,
+        x: roundedPipeX + xOffset, // Body is narrower and offset
+        y: roundedPipeY + capHeight,
         width: middleWidth, // Body uses narrow width
-        height: roundedWallHeight - capHeight,
+        height: roundedPipeHeight - capHeight,
       };
 
       // Check collision with Cap Zone (using full width)

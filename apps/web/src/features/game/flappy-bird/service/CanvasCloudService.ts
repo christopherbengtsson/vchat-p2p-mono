@@ -9,7 +9,7 @@ import {
   BASE_CLOUD_SIZE_PERCENT,
 } from '../model/constants';
 import { ScaleFactor } from '../model/DrawProps';
-import { getOrCreateCachedCanvas, getScaledValue } from '../util/CanvasUtils';
+import { CanvasUtil } from '../util/CanvasUtil';
 import { CanvasCacheService } from './CanvasCacheService';
 
 // Cloud state
@@ -38,7 +38,7 @@ const generateClouds = (
 
     for (let i = 0; i < cloudCount; i++) {
       // Apply device-specific scaling to cloud size
-      const cloudSizePercent = getScaledValue(
+      const cloudSizePercent = CanvasUtil.getScaledValue(
         BASE_CLOUD_SIZE_PERCENT,
         scaleFactor,
       );
@@ -89,7 +89,7 @@ const updateClouds = (
   width: number,
   height: number,
   frameCount: number,
-  wallSpeed: number,
+  pipeSpeed: number,
   scaleFactor: ScaleFactor,
 ) => {
   // Generate new cloud occasionally
@@ -98,7 +98,7 @@ const updateClouds = (
     clouds.length < CLOUD_COUNT_RANGE.MAX
   ) {
     // Apply device-specific scaling to cloud size
-    const cloudSizePercent = getScaledValue(
+    const cloudSizePercent = CanvasUtil.getScaledValue(
       BASE_CLOUD_SIZE_PERCENT,
       scaleFactor,
     );
@@ -141,7 +141,7 @@ const updateClouds = (
   // Move clouds with individual speeds based on their size
   clouds = clouds.filter((cloud) => {
     // Each cloud moves at its own speed, based on its size
-    const cloudSpeed = wallSpeed * cloud.speedMultiplier;
+    const cloudSpeed = pipeSpeed * cloud.speedMultiplier;
     cloud.x -= cloudSpeed * scaleFactor.widthScale;
     return cloud.x > -cloud.width; // Remove clouds that are off-screen
   });
@@ -173,7 +173,7 @@ const drawClouds = (
     };
 
     // Get or create cached cloud
-    const cachedCloud = getOrCreateCachedCanvas(
+    const cachedCloud = CanvasUtil.getOrCreateCachedCanvas(
       CanvasCacheService.caches.cloud,
       cacheKey,
       cacheDimensions,

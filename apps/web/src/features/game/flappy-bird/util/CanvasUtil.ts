@@ -3,7 +3,7 @@ import { ScaleFactor } from '../model/DrawProps';
 /**
  * Applies device-specific scaling to a base value
  */
-export const getScaledValue = (
+const getScaledValue = (
   baseValue: number,
   scaleFactor: ScaleFactor,
 ): number => {
@@ -14,14 +14,14 @@ export const getScaledValue = (
 /**
  * Disables image smoothing on a canvas context for pixel-perfect rendering
  */
-export const disableImageSmoothing = (ctx: CanvasRenderingContext2D) => {
+const disableImageSmoothing = (ctx: CanvasRenderingContext2D) => {
   ctx.imageSmoothingEnabled = false;
 };
 
 /**
  * Limits the size of a cache to prevent memory issues
  */
-export const limitCacheSize = <T>(cache: Map<string, T>, maxSize: number) => {
+const limitCacheSize = <T>(cache: Map<string, T>, maxSize: number) => {
   if (cache.size > maxSize) {
     const keysToDelete = Array.from(cache.keys()).slice(
       0,
@@ -34,9 +34,7 @@ export const limitCacheSize = <T>(cache: Map<string, T>, maxSize: number) => {
 /**
  * Generic function to get or create a cached canvas
  */
-export const getOrCreateCachedCanvas = <
-  T extends { width: number; height: number },
->(
+const getOrCreateCachedCanvas = <T extends { width: number; height: number }>(
   cache: Map<string, HTMLCanvasElement>,
   cacheKey: string,
   dimensions: T,
@@ -73,4 +71,11 @@ export const getOrCreateCachedCanvas = <
   }
 
   return cachedCanvas;
+};
+
+export const CanvasUtil = {
+  getScaledValue,
+  disableImageSmoothing,
+  limitCacheSize,
+  getOrCreateCachedCanvas,
 };

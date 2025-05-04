@@ -1,16 +1,16 @@
 import {
   DIFFICULTY,
   PLAYER_X_POS_MULTIPLIER,
-  WALL_FREQUENCY,
-  WALL_GAP_MULTIPLIER,
-  BASE_WALL_WIDTH_PERCENT,
+  PIPE_FREQUENCY,
+  PIPE_GAP_MULTIPLIER,
+  BASE_PIPE_WIDTH_PERCENT,
   PLAYER_WIDTH_PERCENT,
   ASSETS,
   DEBUG,
 } from '../model/constants';
 import { ScaleFactor } from '../model/DrawProps';
 import { Pipe } from '../model/Pipe';
-import { getScaledValue, getOrCreateCachedCanvas } from '../util/CanvasUtils';
+import { CanvasUtil } from '../util/CanvasUtil';
 import { CanvasCacheService } from './CanvasCacheService';
 
 // Game logic functions
@@ -25,7 +25,7 @@ const addPipe = (
 
   // Adjust pipe frequency based on progress
   const actualFrequency = Math.max(
-    WALL_FREQUENCY - Math.floor(scoreRef.current / 5) * 5,
+    PIPE_FREQUENCY - Math.floor(scoreRef.current / 5) * 5,
     60, // Don't go below 60 (too fast)
   );
 
@@ -34,14 +34,14 @@ const addPipe = (
     const canvasHeight = canvas.height / scaleFactor.devicePixelRatio;
 
     // Apply device-specific scaling to pipe width
-    const pipeWidthPercent = getScaledValue(
-      BASE_WALL_WIDTH_PERCENT,
+    const pipeWidthPercent = CanvasUtil.getScaledValue(
+      BASE_PIPE_WIDTH_PERCENT,
       scaleFactor,
     );
     const pipeWidth = canvasWidth * pipeWidthPercent;
 
     // Apply device-specific scaling to player height
-    const playerWidthPercent = getScaledValue(
+    const playerWidthPercent = CanvasUtil.getScaledValue(
       PLAYER_WIDTH_PERCENT,
       scaleFactor,
     );
@@ -49,7 +49,7 @@ const addPipe = (
     const playerWidth =
       (canvas.width / scaleFactor.devicePixelRatio) * playerWidthPercent;
 
-    const pipeGap = playerWidth * WALL_GAP_MULTIPLIER;
+    const pipeGap = playerWidth * PIPE_GAP_MULTIPLIER;
 
     // Ensure minimum gap position accounts for player height
     const minGapY = playerWidth;
@@ -309,7 +309,7 @@ const drawPipes = (
     };
 
     // Get or create cached pipe
-    const cachedPipe = getOrCreateCachedCanvas(
+    const cachedPipe = CanvasUtil.getOrCreateCachedCanvas(
       CanvasCacheService.caches.pipe,
       cacheKey,
       pipeDimensions, // Pass original potentially float dimensions

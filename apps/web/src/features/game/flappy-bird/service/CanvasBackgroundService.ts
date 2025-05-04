@@ -1,6 +1,6 @@
 import { ASSETS } from '../model/constants';
 import { ScaleFactor } from '../model/DrawProps';
-import { getOrCreateCachedCanvas } from '../util/CanvasUtils';
+import { CanvasUtil } from '../util/CanvasUtil';
 import { CanvasCacheService } from './CanvasCacheService';
 
 // Scrolling state
@@ -40,7 +40,7 @@ const drawBackground = (
   };
 
   // Get or create cached background
-  const cachedBackground = getOrCreateCachedCanvas(
+  const cachedBackground = CanvasUtil.getOrCreateCachedCanvas(
     CanvasCacheService.caches.background,
     cacheKey,
     cacheDimensions, // Use precise dimensions for cache canvas size

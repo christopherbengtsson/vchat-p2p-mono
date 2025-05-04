@@ -1,6 +1,6 @@
 import { COLORS, TYPOGRAPHY } from '../model/constants';
 import { ScaleFactor } from '../model/DrawProps';
-import { getOrCreateCachedCanvas } from '../util/CanvasUtils';
+import { CanvasUtil } from '../util/CanvasUtil';
 import { CanvasCacheService } from './CanvasCacheService';
 
 // Score rendering with device-specific scaling
@@ -28,7 +28,7 @@ const drawScore = (
   };
 
   // Get or create cached score
-  const cachedScore = getOrCreateCachedCanvas(
+  const cachedScore = CanvasUtil.getOrCreateCachedCanvas(
     CanvasCacheService.caches.score,
     cacheKey,
     dimensions, // Pass rounded dimensions for canvas creation

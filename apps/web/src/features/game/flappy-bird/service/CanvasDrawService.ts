@@ -1,4 +1,4 @@
-import { disableImageSmoothing, getScaledValue } from '../util/CanvasUtils';
+import { CanvasUtil } from '../util/CanvasUtil';
 import { DrawProps } from '../model/DrawProps';
 import {
   BACKGROUND_SPEED_MULTIPLIER,
@@ -16,11 +16,11 @@ import { CanvasPlayerService } from './CanvasPlayerService';
 const drawCanvas = ({
   ctx,
   yPos,
-  pipes: walls,
+  pipes,
   score,
   scaleFactor,
   velocity,
-  pipeSpeed: wallSpeed,
+  pipeSpeed,
   frameCount,
 }: DrawProps) => {
   const canvas = ctx.canvas;
@@ -29,12 +29,12 @@ const drawCanvas = ({
   const logicalHeight = canvas.height / scaleFactor.devicePixelRatio;
 
   // Setup rendering context for the main canvas
-  disableImageSmoothing(ctx);
+  CanvasUtil.disableImageSmoothing(ctx);
   // Clear the entire canvas based on its actual pixel dimensions
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   // Draw game elements in correct order (background to foreground)
-  const backgroundSpeed = wallSpeed * BACKGROUND_SPEED_MULTIPLIER;
+  const backgroundSpeed = pipeSpeed * BACKGROUND_SPEED_MULTIPLIER;
   // Pass logical width/height to drawing functions
   CanvasBackgroundService.drawBackground(
     ctx,
@@ -49,17 +49,17 @@ const drawCanvas = ({
     logicalWidth,
     logicalHeight,
     frameCount,
-    wallSpeed,
+    pipeSpeed,
     scaleFactor,
   );
   CanvasCloudService.drawClouds(ctx, scaleFactor);
 
-  CanvasPipeService.drawPipes(ctx, walls, scaleFactor);
+  CanvasPipeService.drawPipes(ctx, pipes, scaleFactor);
 
   CanvasScoreService.drawScore(ctx, score, scaleFactor);
 
   // Calculate player dimensions in logical space with device-specific scaling
-  const playerSizePercent = getScaledValue(
+  const playerSizePercent = CanvasUtil.getScaledValue(
     BASE_PLAYER_SIZE_PERCENT,
     scaleFactor,
   );

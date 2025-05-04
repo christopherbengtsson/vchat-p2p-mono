@@ -28,7 +28,7 @@ export const StartGameAlertDialog = observer(function StartGameAlertDialog({
             {gameRound === 0 ? '🎮 Ready to Play!' : '🎮 Your Turn'}
           </AlertDialogTitle>
           <AlertDialogDescription className="text-base space-y-4">
-            Fly up and down using your voice, don't hit the walls. The higher
+            Fly up and down using your voice, don't hit the pipes. The higher
             your pitch, the higher the you fly. Easy peasy lemon squeezy.
           </AlertDialogDescription>
         </AlertDialogHeader>

@@ -7,9 +7,9 @@ export const PLAYER_X_POS_MULTIPLIER = 0.15; // 15% from the left edge
 export const GRAVITY = 0.05;
 export const SMOOTHING_FACTOR = 0.02;
 export const BACKGROUND_SPEED_MULTIPLIER = 0.1;
-export const WALL_FREQUENCY = 300;
-export const WALL_GAP_MULTIPLIER = 4; // Gap is 4x player height
-export const BASE_WALL_WIDTH_PERCENT = 0.075; // 7.5% of canvas width
+export const PIPE_FREQUENCY = 300;
+export const PIPE_GAP_MULTIPLIER = 4; // Gap is 4x player height
+export const BASE_PIPE_WIDTH_PERCENT = 0.075; // 7.5% of canvas width
 
 // Game difficulty scaling
 export const DIFFICULTY = {

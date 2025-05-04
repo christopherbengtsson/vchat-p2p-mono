@@ -1,16 +1,16 @@
 import { useEffect, useRef, useCallback } from 'react';
-import { Maybe } from '@mono/common-dto';
-import { Pipe } from '../model/Pipe';
+import type { Maybe } from '@mono/common-dto';
+import type { Pipe } from '../model/Pipe';
+import type { ScaleFactor } from '../model/DrawProps';
 import {
   BASE_PLAYER_SIZE_PERCENT,
   PLAYER_X_POS_MULTIPLIER,
 } from '../model/constants';
+import { CanvasUtil } from '../util/CanvasUtil';
 import { CanvasCollisionService } from '../service/CanvasCollisionService';
 import { CanvasPlayerService } from '../service/CanvasPlayerService';
 import { CanvasPipeService } from '../service/CanvasPipeService';
 import { CanvasDrawService } from '../service/CanvasDrawService';
-import { ScaleFactor } from '../model/DrawProps';
-import { getScaledValue } from '../util/CanvasUtils';
 
 interface In {
   canvasRef: React.RefObject<HTMLCanvasElement | null>;
@@ -81,24 +81,24 @@ export const useCanvasAnimate = ({
 
     CanvasPipeService.removePipes(pipesRef);
 
-    const playerSizePercent = getScaledValue(
+    const playerSizePercent = CanvasUtil.getScaledValue(
       BASE_PLAYER_SIZE_PERCENT,
       scaleFactor,
     );
     const playerSize = canvasWidth * playerSizePercent;
     const playerX = canvasWidth * PLAYER_X_POS_MULTIPLIER;
 
-    const wallHit = CanvasCollisionService.isCollision({
+    const pipeHit = CanvasCollisionService.isCollision({
       playerX,
       playerY: playerYRef.current,
       playerWidth: playerSize, // Pass the scaled player width
       playerHeight: playerSize, // Assuming square player
-      walls: pipesRef.current,
+      pipes: pipesRef.current,
       canvasWidth,
       scaleFactor, // Pass the scale factor for additional scaling if needed
     });
 
-    if (wallHit) {
+    if (pipeHit) {
       endGame();
       return;
     }
