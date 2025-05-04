@@ -15,11 +15,11 @@ interface Props {
   setGameActive: (val: boolean) => void;
 }
 
-const toggleMicrophone = (toggle: boolean) => {
-  mediaStore.setLocalAudioEnabled(toggle);
+const toggleMicrophone = (mute: boolean) => {
+  mediaStore.setLocalAudioEnabled(mute);
   WebRTCService.get()?.sendMessage({
     type: 'AUDIO_TOGGLE',
-    toggle,
+    toggle: mute,
   });
 };
 
@@ -50,6 +50,7 @@ export const FlappyTrumpContainer = observer(function FlappyTrumpContainer({
           case GameState.ROUND_END:
           case GameState.GAME_OVER:
             setShowResultDialog(true);
+            toggleMicrophone(false);
             break;
 
           // Toggle microphone not to disturb the user currently playing
