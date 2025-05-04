@@ -1,5 +1,5 @@
 import { CanvasUtil } from '../util/CanvasUtil';
-import { DrawProps } from '../model/DrawProps';
+import type { DrawProps } from '../model/DrawProps';
 import {
   BACKGROUND_SPEED_MULTIPLIER,
   BASE_PLAYER_SIZE_PERCENT,
@@ -12,7 +12,6 @@ import { CanvasPipeService } from './CanvasPipeService';
 import { CanvasScoreService } from './CanvasScoreService';
 import { CanvasPlayerService } from './CanvasPlayerService';
 
-// Main drawing function
 const drawCanvas = ({
   ctx,
   yPos,
@@ -24,7 +23,7 @@ const drawCanvas = ({
   frameCount,
 }: DrawProps) => {
   const canvas = ctx.canvas;
-  // Calculate logical width/height based on DPR
+
   const logicalWidth = canvas.width / scaleFactor.devicePixelRatio;
   const logicalHeight = canvas.height / scaleFactor.devicePixelRatio;
 
@@ -35,7 +34,7 @@ const drawCanvas = ({
 
   // Draw game elements in correct order (background to foreground)
   const backgroundSpeed = pipeSpeed * BACKGROUND_SPEED_MULTIPLIER;
-  // Pass logical width/height to drawing functions
+
   CanvasBackgroundService.drawBackground(
     ctx,
     logicalWidth,
@@ -66,7 +65,6 @@ const drawCanvas = ({
   const playerWidth = logicalWidth * playerSizePercent;
   const playerX = logicalWidth * PLAYER_X_POS_MULTIPLIER;
 
-  // yPos is already in logical space
   CanvasPlayerService.drawPlayer(
     ctx,
     playerX,

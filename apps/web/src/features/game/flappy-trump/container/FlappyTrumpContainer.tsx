@@ -7,7 +7,7 @@ import { GameState } from '../../game-engine/model/GameState';
 import { useGameStore } from '../../game-engine/context/useGameStore';
 import { StartGameAlertDialog } from '../../game-engine/component/StartGameAlertDialog';
 import { ResultDialogContainer } from '../../game-engine/container/ResultDialogContainer';
-import { useFlappyBird } from '../hooks/useFlappyBird';
+import { useFlappyTrump } from '../hooks/useFlappyTrump';
 import { PlayerContainer } from './PlayerContainer';
 import { SpectatorContainer } from './SpectatorContainer';
 
@@ -23,7 +23,7 @@ const toggleMicrophone = (toggle: boolean) => {
   });
 };
 
-export const FlappyBirdContainer = observer(function FlappyBirdContainer({
+export const FlappyTrumpContainer = observer(function FlappyTrumpContainer({
   setGameActive,
 }: Props) {
   const gameStore = useGameStore();
@@ -33,7 +33,7 @@ export const FlappyBirdContainer = observer(function FlappyBirdContainer({
     playerTurnComplete,
     endPlayerRound,
     remoteCanvasStream,
-  } = useFlappyBird(gameStore, setGameActive);
+  } = useFlappyTrump(gameStore, setGameActive);
 
   const [showStartDialog, setShowStartDialog] = useState(false);
   const [showResultDialog, setShowResultDialog] = useState(false);
@@ -52,13 +52,12 @@ export const FlappyBirdContainer = observer(function FlappyBirdContainer({
             setShowResultDialog(true);
             break;
 
+          // Toggle microphone not to disturb the user currently playing
           case GameState.PLAYER_TURN:
-            // unmute player
             toggleMicrophone(false);
             break;
 
           case GameState.SPECTATOR_TURN:
-            // mute partner
             toggleMicrophone(true);
             break;
         }

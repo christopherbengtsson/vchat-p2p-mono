@@ -7,13 +7,15 @@ import {
   PLAYER_WIDTH_PERCENT,
   ASSETS,
   DEBUG,
+  MAX_PIPE_FREQUENCY,
 } from '../model/constants';
 import { ScaleFactor } from '../model/DrawProps';
 import { Pipe } from '../model/Pipe';
 import { CanvasUtil } from '../util/CanvasUtil';
 import { CanvasCacheService } from './CanvasCacheService';
 
-// Game logic functions
+const MAX_CACHE_SIZE = 20;
+
 const addPipe = (
   frameCountRef: React.RefObject<number>,
   pipesRef: React.RefObject<Pipe[]>,
@@ -26,21 +28,19 @@ const addPipe = (
   // Adjust pipe frequency based on progress
   const actualFrequency = Math.max(
     PIPE_FREQUENCY - Math.floor(scoreRef.current / 5) * 5,
-    60, // Don't go below 60 (too fast)
+    MAX_PIPE_FREQUENCY, // Don't go below MAX_PIPE_FREQUENCY (too fast)
   );
 
   if (frameCountRef.current % actualFrequency === 0) {
     const canvasWidth = canvas.width / scaleFactor.devicePixelRatio;
     const canvasHeight = canvas.height / scaleFactor.devicePixelRatio;
 
-    // Apply device-specific scaling to pipe width
     const pipeWidthPercent = CanvasUtil.getScaledValue(
       BASE_PIPE_WIDTH_PERCENT,
       scaleFactor,
     );
     const pipeWidth = canvasWidth * pipeWidthPercent;
 
-    // Apply device-specific scaling to player height
     const playerWidthPercent = CanvasUtil.getScaledValue(
       PLAYER_WIDTH_PERCENT,
       scaleFactor,
@@ -79,14 +79,12 @@ const addPipe = (
   }
 };
 
-// Memoize speed calculation to avoid recalculating it for every pipe
 const movePipes = (
   pipesRef: React.RefObject<Pipe[]>,
   pipesPassedRef: React.RefObject<number>,
   scaleFactor: ScaleFactor,
   canvasWidth: number,
 ) => {
-  // Calculate speed based on score (increasing difficulty) - do only once
   const speed =
     Math.min(
       DIFFICULTY.INITIAL_SPEED +
@@ -94,10 +92,8 @@ const movePipes = (
       DIFFICULTY.MAX_SPEED,
     ) * scaleFactor.widthScale;
 
-  // Calculate player position - do only once
   const playerX = canvasWidth * PLAYER_X_POS_MULTIPLIER;
 
-  // Process all pipes at once with one loop
   for (let i = 0; i < pipesRef.current.length; i++) {
     const pipe = pipesRef.current[i];
     pipe.x -= speed;
@@ -128,35 +124,31 @@ const getPipeSpeed = (
     DIFFICULTY.MAX_SPEED,
   ) * scaleFactor.widthScale;
 
-// Rendering functions
-// Draws onto the cache context (ctx)
 const drawLowerPipe = (
   ctx: CanvasRenderingContext2D,
-  pipe: { width: number; height: number }, // Expects rounded dimensions from cache canvas
+  pipe: { width: number; height: number },
   tilesImage: HTMLImageElement,
 ) => {
   const pipeTopCoords = ASSETS.COORDS.PIPE_TOP;
   const pipeCoords = ASSETS.COORDS.PIPE;
 
-  // pipe.width and pipe.height are already rounded integers (canvas dimensions)
   const pipeWidth = pipe.width;
   const pipeHeight = pipe.height;
 
-  // Calculate scaling factors based on the rounded pipeWidth
   const pipeWidthRatio = pipeWidth / pipeTopCoords.width;
   const pipeTopHeight = Math.round(pipeTopCoords.height * pipeWidthRatio);
 
-  // Draw pipe top cap (ensure source coords are integers)
+  // Draw pipe top cap
   ctx.drawImage(
     tilesImage,
-    pipeTopCoords.x, // Source X
-    pipeTopCoords.y, // Source Y
-    pipeTopCoords.width, // Source Width
-    pipeTopCoords.height, // Source Height
-    0, // Destination X on cache canvas
-    0, // Destination Y on cache canvas
-    pipeWidth, // Destination Width (rounded)
-    pipeTopHeight, // Destination Height (rounded)
+    pipeTopCoords.x,
+    pipeTopCoords.y,
+    pipeTopCoords.width,
+    pipeTopCoords.height,
+    0,
+    0,
+    pipeWidth,
+    pipeTopHeight,
   );
 
   // Draw pipe body (repeating middle section)
@@ -197,33 +189,30 @@ const drawLowerPipe = (
 
       ctx.drawImage(
         tilesImage,
-        pipeCoords.x, // Source X
-        pipeCoords.y, // Source Y
-        pipeCoords.width, // Source Width
-        sourceHeight, // Calculated Source Height (integer)
-        xOffset, // Destination X (rounded)
-        y, // Destination Y (rounded)
-        middleWidth, // Destination Width (rounded)
-        drawHeight, // Destination Height (rounded)
+        pipeCoords.x,
+        pipeCoords.y,
+        pipeCoords.width,
+        sourceHeight,
+        xOffset,
+        y,
+        middleWidth,
+        drawHeight,
       );
     }
   }
 };
 
-// Draws onto the cache context (ctx)
 const drawUpperPipe = (
   ctx: CanvasRenderingContext2D,
-  pipe: { width: number; height: number }, // Expects rounded dimensions from cache canvas
+  pipe: { width: number; height: number },
   tilesImage: HTMLImageElement,
 ) => {
   const pipeBottomCoords = ASSETS.COORDS.PIPE_BOTTOM;
   const pipeCoords = ASSETS.COORDS.PIPE;
 
-  // pipe.width and pipe.height are already rounded integers (canvas dimensions)
   const pipeWidth = pipe.width;
   const pipeHeight = pipe.height;
 
-  // Calculate scaling factors based on the rounded pipeWidth
   const pipeWidthRatio = pipeWidth / pipeBottomCoords.width;
   const pipeBottomHeight = Math.round(pipeBottomCoords.height * pipeWidthRatio);
 
@@ -264,33 +253,32 @@ const drawUpperPipe = (
 
       ctx.drawImage(
         tilesImage,
-        pipeCoords.x, // Source X
-        pipeCoords.y, // Source Y
-        pipeCoords.width, // Source Width
-        sourceHeight, // Calculated Source Height (integer)
-        xOffset, // Destination X (rounded)
-        y, // Destination Y (rounded)
-        middleWidth, // Destination Width (rounded)
-        drawHeight, // Destination Height (rounded)
+        pipeCoords.x,
+        pipeCoords.y,
+        pipeCoords.width,
+        sourceHeight,
+        xOffset,
+        y,
+        middleWidth,
+        drawHeight,
       );
     }
   }
 
-  // Draw pipe bottom cap at the bottom of the upper pipe (ensure source coords are integers)
+  // Draw pipe bottom cap at the bottom of the upper pipe
   ctx.drawImage(
     tilesImage,
-    pipeBottomCoords.x, // Source X
-    pipeBottomCoords.y, // Source Y
-    pipeBottomCoords.width, // Source Width
-    pipeBottomCoords.height, // Source Height
-    0, // Destination X on cache canvas
-    Math.round(pipeHeight - pipeBottomHeight), // Destination Y (rounded)
-    pipeWidth, // Destination Width (rounded)
-    pipeBottomHeight, // Destination Height (rounded)
+    pipeBottomCoords.x,
+    pipeBottomCoords.y,
+    pipeBottomCoords.width,
+    pipeBottomCoords.height,
+    0,
+    Math.round(pipeHeight - pipeBottomHeight),
+    pipeWidth,
+    pipeBottomHeight,
   );
 };
 
-// Pipe rendering
 const drawPipes = (
   ctx: CanvasRenderingContext2D,
   pipes: Pipe[],
@@ -301,24 +289,20 @@ const drawPipes = (
   if (!tilesImage.complete) return;
 
   pipes.forEach((pipe) => {
-    // Use rounded dimensions for cache key consistency and canvas creation
     const cacheKey = `${pipe.isUpperPipe ? 'upper' : 'lower'}_${Math.round(pipe.width)}_${Math.round(pipe.height)}`;
     const pipeDimensions = {
       width: pipe.width,
       height: pipe.height,
     };
 
-    // Get or create cached pipe
     const cachedPipe = CanvasUtil.getOrCreateCachedCanvas(
       CanvasCacheService.caches.pipe,
       cacheKey,
-      pipeDimensions, // Pass original potentially float dimensions
+      pipeDimensions,
       (canvas) => {
-        // canvas here has rounded dimensions from getOrCreateCachedCanvas
         const cacheCtx = canvas.getContext('2d');
         if (!cacheCtx) return;
 
-        // Pass the canvas dimensions (which are rounded) to the drawing functions
         const roundedPipeDims = { width: canvas.width, height: canvas.height };
 
         if (pipe.isUpperPipe) {
@@ -327,15 +311,13 @@ const drawPipes = (
           drawLowerPipe(cacheCtx, roundedPipeDims, tilesImage);
         }
       },
-      20, // Max cache size
+      MAX_CACHE_SIZE,
     );
 
-    // Draw the cached pipe using rounded positions
     const pipeXRounded = Math.round(pipe.x);
     const pipeYRounded = Math.round(pipe.y);
     ctx.drawImage(cachedPipe, pipeXRounded, pipeYRounded);
 
-    // Draw debug hitbox if enabled
     if (DEBUG.SHOW_HITBOX) {
       const borderWidth = Math.max(1, Math.floor(2 * scaleFactor.widthScale));
       ctx.strokeStyle = DEBUG.HITBOX_COLOR;

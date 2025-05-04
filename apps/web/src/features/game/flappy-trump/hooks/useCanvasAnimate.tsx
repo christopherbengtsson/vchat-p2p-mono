@@ -54,7 +54,6 @@ export const useCanvasAnimate = ({
 
     const pitchData = getPitch();
     if (pitchData) {
-      // Use the consolidated CanvasPlayerService
       CanvasPlayerService.updatePlayerPosition(
         pitchData,
         canvas,
@@ -91,11 +90,11 @@ export const useCanvasAnimate = ({
     const pipeHit = CanvasCollisionService.isCollision({
       playerX,
       playerY: playerYRef.current,
-      playerWidth: playerSize, // Pass the scaled player width
-      playerHeight: playerSize, // Assuming square player
+      playerWidth: playerSize,
+      playerHeight: playerSize,
       pipes: pipesRef.current,
       canvasWidth,
-      scaleFactor, // Pass the scale factor for additional scaling if needed
+      scaleFactor,
     });
 
     if (pipeHit) {

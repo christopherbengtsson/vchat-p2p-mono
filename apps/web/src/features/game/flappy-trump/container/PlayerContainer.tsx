@@ -3,7 +3,7 @@ import { observer } from 'mobx-react';
 import { Canvas } from '../component/Canvas';
 import { useCanvasAnimate } from '../hooks/useCanvasAnimate';
 import { useCanvasResize } from '../hooks/useCanvasResize';
-import { FlappyBirdService } from '../service/FlappyBirdService';
+import { FlappyTrumpService } from '../service/FlappyTrumpService';
 import { RandomTrumpSound } from '../component/RandomTrumpSound';
 
 interface Props {
@@ -18,7 +18,7 @@ export const PlayerContainer = observer(function PlayerContainer({
   const startAudioRef = useRef<HTMLAudioElement>(null);
   const endAudioRef = useRef<HTMLAudioElement>(null);
 
-  const getPitch = useCallback(() => FlappyBirdService.getPitch(), []);
+  const getPitch = useCallback(() => FlappyTrumpService.getPitch(), []);
 
   const onGameOver = useCallback(
     async (score: number) => {
@@ -37,10 +37,10 @@ export const PlayerContainer = observer(function PlayerContainer({
   });
 
   useEffect(() => {
-    FlappyBirdService.startCanvasStream(canvasRef.current);
+    FlappyTrumpService.startCanvasStream(canvasRef.current);
 
     return () => {
-      FlappyBirdService.stopCanvasStream();
+      FlappyTrumpService.stopCanvasStream();
     };
   }, []);
 

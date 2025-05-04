@@ -8,11 +8,11 @@ import { CanvasUtil } from '../util/CanvasUtil';
 interface CollisionParams {
   playerX: number;
   playerY: number;
-  playerWidth?: number; // Optional parameter for scaled player width
-  playerHeight?: number; // Optional parameter for scaled player height
+  playerWidth: number;
+  playerHeight: number;
   pipes: Pipe[];
   canvasWidth: number;
-  scaleFactor?: ScaleFactor; // Optional scale factor
+  scaleFactor: ScaleFactor;
 }
 
 const isCollision = ({
@@ -24,37 +24,31 @@ const isCollision = ({
   canvasWidth,
   scaleFactor,
 }: CollisionParams) => {
-  // Round player position to match visual rendering
   const roundedPlayerX = Math.round(playerX);
   const roundedPlayerY = Math.round(playerY);
 
-  // Calculate player size based on canvas width and device scaling if available
   let playerSize;
   if (playerWidth) {
-    playerSize = playerWidth; // Use provided width if available
+    playerSize = playerWidth;
   } else if (scaleFactor) {
-    // Apply device-specific scaling
     const playerSizePercent = CanvasUtil.getScaledValue(
       BASE_PLAYER_SIZE_PERCENT,
       scaleFactor,
     );
     playerSize = canvasWidth * playerSizePercent;
   } else {
-    // Fallback to base size
     playerSize = canvasWidth * BASE_PLAYER_SIZE_PERCENT;
   }
 
-  // Define player hitbox - using exact size
   const playerHitbox = {
     x: roundedPlayerX,
     y: roundedPlayerY,
     width: playerSize,
-    height: playerHeight || playerSize, // Use provided height or default to square
+    height: playerHeight || playerSize,
   };
 
   // Broad-phase: Only check pipes that are close to the player
   const relevantPipes = pipes.filter((pipe) => {
-    // Round pipe position to match visual rendering
     const roundedPipeX = Math.round(pipe.x);
     // Only check pipes that are within a reasonable range
     // Use pipe.width (max width) for broad phase check
@@ -66,14 +60,13 @@ const isCollision = ({
 
   // Narrow-phase: Check actual collisions
   for (const pipe of relevantPipes) {
-    // Round pipe position and dimensions for consistency with rendering/cache
     const roundedPipeX = Math.round(pipe.x);
     const roundedPipeY = Math.round(pipe.y);
-    // Use rounded dimensions consistent with how cache canvases are created
+
     const roundedPipeWidth = Math.round(pipe.width);
     const roundedPipeHeight = Math.round(pipe.height);
 
-    // --- Calculate Cap and Body Dimensions (mirroring CanvasDrawService) ---
+    // --- Calculate Cap and Body Dimensions ---
     const pipeCoords = ASSETS.COORDS.PIPE;
     let capCoords, capHeight, middleWidth, xOffset;
 
@@ -86,11 +79,10 @@ const isCollision = ({
       middleWidth = Math.round(roundedPipeWidth * middleWidthRatio);
       xOffset = Math.round((roundedPipeWidth - middleWidth) / 2);
 
-      // Define collision zones for upper pipe
       const capZone = {
         x: roundedPipeX,
         y: roundedPipeY + roundedPipeHeight - capHeight,
-        width: roundedPipeWidth, // Cap uses full width
+        width: roundedPipeWidth,
         height: capHeight,
       };
 
@@ -129,7 +121,6 @@ const isCollision = ({
       middleWidth = Math.round(roundedPipeWidth * middleWidthRatio);
       xOffset = Math.round((roundedPipeWidth - middleWidth) / 2);
 
-      // Define collision zones for lower pipe
       const capZone = {
         x: roundedPipeX,
         y: roundedPipeY,

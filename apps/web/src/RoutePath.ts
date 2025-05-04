@@ -1,6 +1,6 @@
 export enum DevRoutePath {
   DEV = '/dev',
-  FLAPPY_BIRD = '/dev/flappy-bird',
+  FLAPPY_TRUMP = '/dev/flappy-trump',
   RESULTS_DIALOG = '/dev/results-dialogs',
 }
 

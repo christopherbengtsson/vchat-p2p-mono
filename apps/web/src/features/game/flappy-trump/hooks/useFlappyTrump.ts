@@ -2,10 +2,10 @@ import { useCallback, useEffect, useState } from 'react';
 import type { Maybe } from '@mono/common-dto';
 import { useGameEngine } from '../../game-engine/hooks/useGameEngine';
 import { GameStore } from '../../game-engine/context/GameStore';
-import { FlappyBirdService } from '../service/FlappyBirdService';
+import { FlappyTrumpService } from '../service/FlappyTrumpService';
 import { AssetService } from '../service/AssetService';
 
-export const useFlappyBird = (
+export const useFlappyTrump = (
   gameStore: GameStore,
   setGameActive: (val: boolean) => void,
 ) => {
@@ -13,18 +13,18 @@ export const useFlappyBird = (
     useState<Maybe<MediaStream>>();
 
   useEffect(() => {
-    FlappyBirdService.setRemoteCanvasStream(setRemoteCanvasStream);
+    FlappyTrumpService.setRemoteCanvasStream(setRemoteCanvasStream);
     return () => {
-      FlappyBirdService.removeRemoteCanvasStream();
+      FlappyTrumpService.removeRemoteCanvasStream();
     };
   }, [setRemoteCanvasStream]);
 
   const initGamePerquisites = useCallback(async () => {
-    await FlappyBirdService.initGamePerquisites();
+    await FlappyTrumpService.initGamePerquisites();
     await AssetService.preload();
 
     return () => {
-      FlappyBirdService.gameDispose();
+      FlappyTrumpService.gameDispose();
     };
   }, []);
 
@@ -34,8 +34,8 @@ export const useFlappyBird = (
     {
       prepareGame: initGamePerquisites,
       disposables: {
-        roundDispose: FlappyBirdService.roundDispose,
-        gameDispose: FlappyBirdService.gameDispose,
+        roundDispose: FlappyTrumpService.roundDispose,
+        gameDispose: FlappyTrumpService.gameDispose,
       },
     },
   );

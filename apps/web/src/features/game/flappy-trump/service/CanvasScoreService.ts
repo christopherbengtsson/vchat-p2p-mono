@@ -3,7 +3,8 @@ import { ScaleFactor } from '../model/DrawProps';
 import { CanvasUtil } from '../util/CanvasUtil';
 import { CanvasCacheService } from './CanvasCacheService';
 
-// Score rendering with device-specific scaling
+const MAX_CACHE_SIZE = 30; // TODO: Move to cache service?
+
 const drawScore = (
   ctx: CanvasRenderingContext2D,
   score: number,
@@ -13,25 +14,22 @@ const drawScore = (
 
   // No need for device-specific scaling
   const fontSize = Math.max(
-    16, // Minimum font size
+    TYPOGRAPHY.MIN_FONT_SIZE,
     Math.round(TYPOGRAPHY.BASE_SCORE_FONT_SIZE * scaleFactor.heightScale),
   );
   const padding = Math.round(TYPOGRAPHY.SCORE_PADDING * scaleFactor.widthScale);
 
-  // Use rounded fontSize in cache key
   const cacheKey = `${score}_${fontSize}_${Math.round(width)}_${scaleFactor.deviceType}`;
 
-  // Estimate dimensions needed for the cache canvas
   const dimensions = {
-    width: Math.round(width), // Use rounded width
-    height: Math.round(fontSize * 1.5), // Use rounded font size for height estimate
+    width: Math.round(width),
+    height: Math.round(fontSize * 1.5), // TODO: Whats this magic number?
   };
 
-  // Get or create cached score
   const cachedScore = CanvasUtil.getOrCreateCachedCanvas(
     CanvasCacheService.caches.score,
     cacheKey,
-    dimensions, // Pass rounded dimensions for canvas creation
+    dimensions,
     (canvas) => {
       const cacheCtx = canvas.getContext('2d');
       if (!cacheCtx) return;
@@ -39,18 +37,16 @@ const drawScore = (
       cacheCtx.font = `bold ${fontSize}px ${TYPOGRAPHY.SCORE_FONT_FAMILY}`;
       cacheCtx.fillStyle = COLORS.SCORE;
       cacheCtx.textAlign = 'left';
-      cacheCtx.textBaseline = 'top'; // Draw text from the top-left
+      cacheCtx.textBaseline = 'top';
 
-      // Add shadow for better visibility
       cacheCtx.shadowColor = COLORS.SCORE_SHADOW;
-      cacheCtx.shadowBlur = 4; // Keep shadow settings as they were
+      cacheCtx.shadowBlur = 4;
       cacheCtx.shadowOffsetX = 1;
       cacheCtx.shadowOffsetY = 1;
 
-      // Draw text at rounded padding coordinate
-      cacheCtx.fillText(`Score: ${score}`, padding, 0); // Draw at (padding, 0) within the cache
+      cacheCtx.fillText(`Score: ${score}`, padding, 0);
     },
-    30, // Max cache size
+    MAX_CACHE_SIZE,
   );
 
   // Draw the cached score at the top-left of the main canvas

@@ -4,10 +4,10 @@ import { observer } from 'mobx-react';
 import { Maybe } from '@mono/common-dto';
 import { VChatSocket } from '@mono/fe-dto';
 import { noop } from '../../../common/utils/noop';
-import { PlayerContainer } from '../../game/flappy-bird/container/PlayerContainer';
-import { FlappyBirdService } from '../../game/flappy-bird/service/FlappyBirdService';
+import { PlayerContainer } from '../../game/flappy-trump/container/PlayerContainer';
+import { FlappyTrumpService } from '../../game/flappy-trump/service/FlappyTrumpService';
 
-export const FlappyBirdDev = observer(function FlappyBirdDev() {
+export const FlappyTrumpDev = observer(function FlappyTrumpDev() {
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
@@ -34,7 +34,7 @@ export const FlappyBirdDev = observer(function FlappyBirdDev() {
       },
     });
 
-    FlappyBirdService.initGamePerquisites().then(() => {
+    FlappyTrumpService.initGamePerquisites().then(() => {
       setIsReady(true);
     });
   }, []);

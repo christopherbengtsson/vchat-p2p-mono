@@ -18,9 +18,9 @@ const DevMenu = lazy(() =>
     default: DevMenu,
   })),
 );
-const FlappyBirdDev = lazy(() =>
-  import('./features/dev/game/FlappyBirdDev').then(({ FlappyBirdDev }) => ({
-    default: FlappyBirdDev,
+const FlappyTrumpDev = lazy(() =>
+  import('./features/dev/game/FlappyTrumpDev').then(({ FlappyTrumpDev }) => ({
+    default: FlappyTrumpDev,
   })),
 );
 const ResultsDialogDev = lazy(() =>
@@ -38,8 +38,8 @@ const devRoutes: RouteObject[] = import.meta.env.DEV
         element: <DevMenu />,
         children: [
           {
-            path: DevRoutePath.FLAPPY_BIRD,
-            element: <FlappyBirdDev />,
+            path: DevRoutePath.FLAPPY_TRUMP,
+            element: <FlappyTrumpDev />,
           },
           {
             path: DevRoutePath.RESULTS_DIALOG,

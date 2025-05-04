@@ -1,6 +1,6 @@
 import { observer } from 'mobx-react';
 import { GameStoreProvider } from '../../game-engine/context/GameStoreProvider';
-import { FlappyBirdContainer } from '../../flappy-bird/container/FlappyBirdContainer';
+import { FlappyTrumpContainer } from '../../flappy-trump/container/FlappyTrumpContainer';
 
 interface Props {
   initiator: boolean;
@@ -15,7 +15,7 @@ export const GameEngineContainer = observer(function GameEngineContainer({
 }: Props) {
   return (
     <GameStoreProvider playerId={playerId} isMyTurn={initiator}>
-      <FlappyBirdContainer setGameActive={setGameActive} />
+      <FlappyTrumpContainer setGameActive={setGameActive} />
     </GameStoreProvider>
   );
 });

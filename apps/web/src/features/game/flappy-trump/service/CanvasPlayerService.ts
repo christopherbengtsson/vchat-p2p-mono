@@ -4,13 +4,15 @@ import {
   SMOOTHING_FACTOR,
   ASSETS,
   DEBUG,
+  VELOCITY_DAMP,
 } from '../model/constants';
-import { ScaleFactor } from '../model/DrawProps';
+import type { ScaleFactor } from '../model/DrawProps';
 import { CanvasUtil } from '../util/CanvasUtil';
 import { AudioFrequencyService } from './AudioFrequencyService';
 import { CanvasCacheService } from './CanvasCacheService';
 
-// Player physics and position updates
+const MAX_CACHE_SIZE = 10; // TODO: Move to cache service?
+
 const updatePlayerPosition = (
   [pitch, clarity]: [number, number],
   canvas: HTMLCanvasElement,
@@ -18,11 +20,9 @@ const updatePlayerPosition = (
   velocityRef: React.RefObject<number>,
   scaleFactor: ScaleFactor,
 ) => {
-  // Calculate logical canvas dimensions (removing device pixel ratio) - do once
   const canvasWidth = canvas.width / scaleFactor.devicePixelRatio;
   const canvasHeight = canvas.height / scaleFactor.devicePixelRatio;
 
-  // Apply device-specific scaling to player size
   const playerSizePercent = CanvasUtil.getScaledValue(
     BASE_PLAYER_SIZE_PERCENT,
     scaleFactor,
@@ -52,7 +52,7 @@ const updatePlayerPosition = (
       playerYRef.current + (targetY - playerYRef.current) * SMOOTHING_FACTOR;
 
     // Update velocity based on movement direction
-    velocityRef.current = (playerYRef.current - previousY) / 5; // Divide by 5 to dampen effect
+    velocityRef.current = (playerYRef.current - previousY) / VELOCITY_DAMP; // Divide to dampen effect
   }
 
   if (!voiceInputDetected) {
@@ -77,12 +77,11 @@ const updatePlayerPosition = (
   return voiceInputDetected;
 };
 
-// Player rendering
 const drawPlayer = (
   ctx: CanvasRenderingContext2D,
   x: number,
   y: number,
-  width: number, // This is the calculated (potentially float) desired width
+  width: number,
   velocity: number,
   scaleFactor: ScaleFactor,
 ) => {
@@ -92,53 +91,45 @@ const drawPlayer = (
   const playerCoords =
     velocity > 0 ? ASSETS.COORDS.TRUMP_EYEBROWS_UP : ASSETS.COORDS.TRUMP;
 
-  // Calculate height while maintaining aspect ratio based on original width
   const aspectRatio = playerCoords.width / playerCoords.height;
   const height = width / aspectRatio;
 
-  // Use rounded dimensions for cache key and canvas creation
   const roundedWidth = Math.round(width);
   const roundedHeight = Math.round(height);
   const cacheKey = `${roundedWidth}_${roundedHeight}_${velocity > 0 ? 'up' : 'normal'}_${scaleFactor.deviceType}`;
 
   const dimensions = { width: roundedWidth, height: roundedHeight };
 
-  // Get or create cached player
   const cachedPlayer = CanvasUtil.getOrCreateCachedCanvas(
     CanvasCacheService.caches.player,
     cacheKey,
-    dimensions, // Use rounded dimensions for cache canvas
+    dimensions,
     (canvas) => {
-      // canvas here has rounded dimensions
       const cacheCtx = canvas.getContext('2d');
       if (!cacheCtx) return;
 
-      // Draw onto the cache using the canvas's (rounded) dimensions
       cacheCtx.drawImage(
         tilesImage,
-        playerCoords.x, // Source X
-        playerCoords.y, // Source Y
-        playerCoords.width, // Source Width
-        playerCoords.height, // Source Height
-        0, // Destination X on cache
-        0, // Destination Y on cache
-        canvas.width, // Destination Width (rounded)
-        canvas.height, // Destination Height (rounded)
+        playerCoords.x,
+        playerCoords.y,
+        playerCoords.width,
+        playerCoords.height,
+        0,
+        0,
+        canvas.width,
+        canvas.height,
       );
     },
-    10, // Max cache size
+    MAX_CACHE_SIZE,
   );
 
-  // Draw the cached player using rounded positions on the main canvas
   const roundedX = Math.round(x);
   const roundedY = Math.round(y);
   ctx.drawImage(cachedPlayer, roundedX, roundedY);
 
-  // Draw debug hitbox if enabled
   if (DEBUG.SHOW_HITBOX) {
     ctx.strokeStyle = DEBUG.HITBOX_COLOR;
-    ctx.lineWidth = 2; // Keep line width consistent
-    // Draw hitbox using the rounded position and the actual cached image size
+    ctx.lineWidth = 2;
     ctx.strokeRect(roundedX, roundedY, cachedPlayer.width, cachedPlayer.height);
   }
 };

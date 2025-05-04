@@ -12,6 +12,8 @@ import { ScaleFactor } from '../model/DrawProps';
 import { CanvasUtil } from '../util/CanvasUtil';
 import { CanvasCacheService } from './CanvasCacheService';
 
+const MAX_CLOUD_SIZE = 20;
+
 // Cloud state
 let clouds: {
   x: number;
@@ -23,7 +25,6 @@ let clouds: {
   scale: number;
 }[] = [];
 
-// When generating initial clouds with device-specific scaling
 const generateClouds = (
   width: number,
   height: number,
@@ -37,13 +38,11 @@ const generateClouds = (
     );
 
     for (let i = 0; i < cloudCount; i++) {
-      // Apply device-specific scaling to cloud size
       const cloudSizePercent = CanvasUtil.getScaledValue(
         BASE_CLOUD_SIZE_PERCENT,
         scaleFactor,
       );
 
-      // Apply scaleFactor to cloud dimensions
       const scaleVariation =
         Math.random() * (CLOUD_SCALE_RANGE.MAX - CLOUD_SCALE_RANGE.MIN) +
         CLOUD_SCALE_RANGE.MIN;
@@ -56,7 +55,7 @@ const generateClouds = (
       const cloudHeight = cloudWidth / aspectRatio;
 
       // Calculate speed based on size - larger clouds move faster (appear closer)
-      // Map the scale variation (0.7-1.3) to speed range (0.2-0.4)
+      // Map the scale variation to speed range
       const normalizedScale =
         (scaleVariation - CLOUD_SCALE_RANGE.MIN) /
         (CLOUD_SCALE_RANGE.MAX - CLOUD_SCALE_RANGE.MIN);
@@ -84,7 +83,6 @@ const generateClouds = (
   }
 };
 
-// When adding new clouds with device-specific scaling
 const updateClouds = (
   width: number,
   height: number,
@@ -97,13 +95,11 @@ const updateClouds = (
     frameCount % CLOUD_FREQUENCY === 0 &&
     clouds.length < CLOUD_COUNT_RANGE.MAX
   ) {
-    // Apply device-specific scaling to cloud size
     const cloudSizePercent = CanvasUtil.getScaledValue(
       BASE_CLOUD_SIZE_PERCENT,
       scaleFactor,
     );
 
-    // Apply scaleFactor to cloud dimensions
     const scaleVariation =
       Math.random() * (CLOUD_SCALE_RANGE.MAX - CLOUD_SCALE_RANGE.MIN) +
       CLOUD_SCALE_RANGE.MIN;
@@ -147,7 +143,6 @@ const updateClouds = (
   });
 };
 
-// When drawing clouds
 const drawClouds = (
   ctx: CanvasRenderingContext2D,
   scaleFactor: ScaleFactor,
@@ -157,22 +152,18 @@ const drawClouds = (
   if (!tilesImage.complete) return;
 
   clouds.forEach((cloud) => {
-    // Round dimensions for cache key and drawing
     const roundedWidth = Math.round(cloud.width);
     const roundedHeight = Math.round(cloud.height);
     const roundedScale = cloud.scale.toFixed(1);
     const roundedOpacity = cloud.opacity.toFixed(1);
 
-    // Include devicePixelRatio in cache key for proper high-DPI rendering
     const cacheKey = `cloud_${roundedWidth}_${roundedHeight}_${roundedScale}_${roundedOpacity}_${scaleFactor.devicePixelRatio}`;
 
-    // Account for devicePixelRatio in cache dimensions
     const cacheDimensions = {
       width: roundedWidth * scaleFactor.devicePixelRatio,
       height: roundedHeight * scaleFactor.devicePixelRatio,
     };
 
-    // Get or create cached cloud
     const cachedCloud = CanvasUtil.getOrCreateCachedCanvas(
       CanvasCacheService.caches.cloud,
       cacheKey,
@@ -181,16 +172,13 @@ const drawClouds = (
         const cacheCtx = canvas.getContext('2d');
         if (!cacheCtx) return;
 
-        // Scale context for high-DPI rendering
         cacheCtx.scale(
           scaleFactor.devicePixelRatio,
           scaleFactor.devicePixelRatio,
         );
 
-        // Set global alpha for cloud opacity
         cacheCtx.globalAlpha = cloud.opacity;
 
-        // Draw cloud sprite
         cacheCtx.drawImage(
           tilesImage,
           ASSETS.COORDS.CLOUD.x,
@@ -199,17 +187,15 @@ const drawClouds = (
           ASSETS.COORDS.CLOUD.height,
           0,
           0,
-          roundedWidth / scaleFactor.devicePixelRatio, // Adjust for scaled context
-          roundedHeight / scaleFactor.devicePixelRatio, // Adjust for scaled context
+          roundedWidth / scaleFactor.devicePixelRatio,
+          roundedHeight / scaleFactor.devicePixelRatio,
         );
 
-        // Reset global alpha
         cacheCtx.globalAlpha = 1;
       },
-      20, // Max cache size
+      MAX_CLOUD_SIZE,
     );
 
-    // Draw the cached cloud at rounded position
     const roundedX = Math.round(cloud.x);
     const roundedY = Math.round(cloud.y);
     ctx.drawImage(
@@ -226,7 +212,6 @@ const drawClouds = (
   });
 };
 
-// Reset clouds when game restarts
 const resetClouds = () => {
   clouds = [];
 };

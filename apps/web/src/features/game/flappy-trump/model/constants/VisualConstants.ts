@@ -6,6 +6,7 @@ export const COLORS = {
 
 // Typography
 export const TYPOGRAPHY = {
+  MIN_FONT_SIZE: 16,
   BASE_SCORE_FONT_SIZE: 24,
   SCORE_FONT_FAMILY: '"Inter", sans-serif',
   SCORE_PADDING: 20,
