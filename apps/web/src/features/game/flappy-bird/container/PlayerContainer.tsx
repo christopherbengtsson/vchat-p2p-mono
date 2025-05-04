@@ -21,8 +21,8 @@ export const PlayerContainer = observer(function PlayerContainer({
   const getPitch = useCallback(() => FlappyBirdService.getPitch(), []);
 
   const onGameOver = useCallback(
-    (score: number) => {
-      playEndSound();
+    async (score: number) => {
+      await playEndSound();
       onEndRound(score);
     },
     [onEndRound],
@@ -44,12 +44,12 @@ export const PlayerContainer = observer(function PlayerContainer({
     };
   }, []);
 
-  const playStartSound = () => {
-    startAudioRef.current?.play();
+  const playStartSound = async () => {
+    void startAudioRef.current?.play();
   };
 
-  const playEndSound = () => {
-    endAudioRef.current?.play();
+  const playEndSound = async () => {
+    await endAudioRef.current?.play();
   };
 
   return (

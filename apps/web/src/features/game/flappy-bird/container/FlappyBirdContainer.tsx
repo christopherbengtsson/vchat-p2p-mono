@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import { autorun } from 'mobx';
 import { observer } from 'mobx-react';
+import { WebRTCService } from '@mono/fe-webrtc';
+import { mediaStore } from '@/stores/MediaStore';
 import { GameState } from '../../game-engine/model/GameState';
 import { useGameStore } from '../../game-engine/context/useGameStore';
 import { StartGameAlertDialog } from '../../game-engine/component/StartGameAlertDialog';
@@ -12,6 +14,14 @@ import { SpectatorContainer } from './SpectatorContainer';
 interface Props {
   setGameActive: (val: boolean) => void;
 }
+
+const toggleMicrophone = (toggle: boolean) => {
+  mediaStore.setLocalAudioEnabled(toggle);
+  WebRTCService.get()?.sendMessage({
+    type: 'AUDIO_TOGGLE',
+    toggle,
+  });
+};
 
 export const FlappyBirdContainer = observer(function FlappyBirdContainer({
   setGameActive,
@@ -31,14 +41,26 @@ export const FlappyBirdContainer = observer(function FlappyBirdContainer({
   useEffect(
     () =>
       autorun(() => {
-        if (gameStore.state === GameState.PREPARE_ROUND) {
-          setShowResultDialog(false);
-          setShowStartDialog(true);
-        } else if (
-          gameStore.state === GameState.ROUND_END ||
-          gameStore.state === GameState.GAME_OVER
-        ) {
-          setShowResultDialog(true);
+        switch (gameStore.state) {
+          case GameState.PREPARE_ROUND:
+            setShowResultDialog(false);
+            setShowStartDialog(true);
+            break;
+
+          case GameState.ROUND_END:
+          case GameState.GAME_OVER:
+            setShowResultDialog(true);
+            break;
+
+          case GameState.PLAYER_TURN:
+            // unmute player
+            toggleMicrophone(false);
+            break;
+
+          case GameState.SPECTATOR_TURN:
+            // mute partner
+            toggleMicrophone(true);
+            break;
         }
       }),
 
