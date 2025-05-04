@@ -1,4 +1,4 @@
-import { Wall } from './Wall';
+import { Pipe } from './Pipe';
 
 export interface ScaleFactor {
   widthScale: number;
@@ -11,10 +11,10 @@ export interface ScaleFactor {
 export interface DrawProps {
   ctx: CanvasRenderingContext2D;
   yPos: number;
-  walls: Wall[];
+  pipes: Pipe[];
   score: number;
   scaleFactor: ScaleFactor;
   velocity: number;
-  wallSpeed: number;
+  pipeSpeed: number;
   frameCount: number;
 }

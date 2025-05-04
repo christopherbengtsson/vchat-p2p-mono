@@ -1,5 +1,5 @@
 import { CustomError } from '@mono/common-dto';
-import { ASSETS } from '../model/CanvasConstants';
+import { ASSETS } from '../model/constants';
 
 const preload = (timeout = 5000) =>
   new Promise((resolve, reject) => {

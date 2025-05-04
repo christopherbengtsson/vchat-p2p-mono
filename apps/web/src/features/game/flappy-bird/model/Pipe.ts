@@ -1,8 +1,8 @@
-export interface Wall {
+export interface Pipe {
   x: number;
   y: number;
   width: number;
   height: number;
   passed?: boolean;
-  isUpperWall?: boolean;
+  isUpperPipe?: boolean;
 }

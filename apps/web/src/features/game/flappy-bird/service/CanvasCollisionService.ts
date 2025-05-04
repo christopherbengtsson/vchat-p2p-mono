@@ -1,14 +1,16 @@
-import { BASE_PLAYER_SIZE_PERCENT, ASSETS } from '../model/CanvasConstants'; // Import ASSETS
-import { Wall } from '../model/Wall';
+import { BASE_PLAYER_SIZE_PERCENT, ASSETS } from '../model/constants';
+import { Pipe } from '../model/Pipe';
 import { ScaleFactor } from '../model/DrawProps';
-import { CanvasWallService } from './CanvasWallService';
+import { getScaledValue } from '../util/CanvasUtils';
+
+// TODO: Should probably detect collision more carefully since we're not using a true square
 
 interface CollisionParams {
   playerX: number;
   playerY: number;
   playerWidth?: number; // Optional parameter for scaled player width
   playerHeight?: number; // Optional parameter for scaled player height
-  walls: Wall[];
+  walls: Pipe[];
   canvasWidth: number;
   scaleFactor?: ScaleFactor; // Optional scale factor
 }
@@ -32,7 +34,7 @@ const isCollision = ({
     playerSize = playerWidth; // Use provided width if available
   } else if (scaleFactor) {
     // Apply device-specific scaling
-    const playerSizePercent = CanvasWallService.getScaledValue(
+    const playerSizePercent = getScaledValue(
       BASE_PLAYER_SIZE_PERCENT,
       scaleFactor,
     );
@@ -75,7 +77,7 @@ const isCollision = ({
     const pipeCoords = ASSETS.COORDS.PIPE;
     let capCoords, capHeight, middleWidth, xOffset;
 
-    if (wall.isUpperWall) {
+    if (wall.isUpperPipe) {
       // Upper Pipe (Bottom Cap)
       capCoords = ASSETS.COORDS.PIPE_BOTTOM;
       const pipeWidthRatio = roundedWallWidth / capCoords.width;

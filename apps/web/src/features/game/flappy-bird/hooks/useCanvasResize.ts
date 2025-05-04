@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import debounce from 'lodash.debounce';
-import { BREAKPOINTS, DEVICE_SCALING } from '../model/CanvasConstants';
+import { BREAKPOINTS, DEVICE_SCALING } from '../model/constants';
 import { ScaleFactor } from '../model/DrawProps';
 
 export const useCanvasResize = (

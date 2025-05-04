@@ -1,15 +1,16 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { Maybe } from '@mono/common-dto';
-import { Wall } from '../model/Wall';
+import { Pipe } from '../model/Pipe';
 import {
   BASE_PLAYER_SIZE_PERCENT,
   PLAYER_X_POS_MULTIPLIER,
-} from '../model/CanvasConstants';
+} from '../model/constants';
 import { CanvasCollisionService } from '../service/CanvasCollisionService';
-import { CanvasObjectService } from '../service/CanvasObjectService';
-import { CanvasWallService } from '../service/CanvasWallService';
+import { CanvasPlayerService } from '../service/CanvasPlayerService';
+import { CanvasPipeService } from '../service/CanvasPipeService';
 import { CanvasDrawService } from '../service/CanvasDrawService';
 import { ScaleFactor } from '../model/DrawProps';
+import { getScaledValue } from '../util/CanvasUtils';
 
 interface In {
   canvasRef: React.RefObject<HTMLCanvasElement | null>;
@@ -27,8 +28,8 @@ export const useCanvasAnimate = ({
   const requestRef = useRef<number>(null);
   const frameCountRef = useRef<number>(0);
 
-  const wallsRef = useRef<Wall[]>([]);
-  const wallsPassedRef = useRef<number>(0);
+  const pipesRef = useRef<Pipe[]>([]);
+  const pipesPassedRef = useRef<number>(0);
 
   const playerYRef = useRef<number>(0);
   const velocityRef = useRef<number>(0);
@@ -40,7 +41,7 @@ export const useCanvasAnimate = ({
 
     cancelAnimationFrame(requestRef.current);
     CanvasDrawService.clearCache();
-    onGameOver(wallsPassedRef.current);
+    onGameOver(pipesPassedRef.current);
   }, [onGameOver]);
 
   const animate = useCallback(() => {
@@ -53,7 +54,8 @@ export const useCanvasAnimate = ({
 
     const pitchData = getPitch();
     if (pitchData) {
-      CanvasObjectService.updateObjectPosition(
+      // Use the consolidated CanvasPlayerService
+      CanvasPlayerService.updatePlayerPosition(
         pitchData,
         canvas,
         playerYRef,
@@ -62,24 +64,24 @@ export const useCanvasAnimate = ({
       );
     }
 
-    CanvasWallService.addWall(
+    CanvasPipeService.addPipe(
       frameCountRef,
-      wallsRef,
+      pipesRef,
       canvas,
       scaleFactor,
-      wallsPassedRef,
+      pipesPassedRef,
     );
 
-    CanvasWallService.moveWalls(
-      wallsRef,
-      wallsPassedRef,
+    CanvasPipeService.movePipes(
+      pipesRef,
+      pipesPassedRef,
       scaleFactor,
       canvasWidth,
     );
 
-    CanvasWallService.removeWalls(wallsRef);
+    CanvasPipeService.removePipes(pipesRef);
 
-    const playerSizePercent = CanvasWallService.getScaledValue(
+    const playerSizePercent = getScaledValue(
       BASE_PLAYER_SIZE_PERCENT,
       scaleFactor,
     );
@@ -91,7 +93,7 @@ export const useCanvasAnimate = ({
       playerY: playerYRef.current,
       playerWidth: playerSize, // Pass the scaled player width
       playerHeight: playerSize, // Assuming square player
-      walls: wallsRef.current,
+      walls: pipesRef.current,
       canvasWidth,
       scaleFactor, // Pass the scale factor for additional scaling if needed
     });
@@ -104,11 +106,11 @@ export const useCanvasAnimate = ({
     CanvasDrawService.drawCanvas({
       ctx,
       yPos: playerYRef.current,
-      walls: wallsRef.current,
-      score: wallsPassedRef.current,
+      pipes: pipesRef.current,
+      score: pipesPassedRef.current,
       scaleFactor,
       velocity: velocityRef.current,
-      wallSpeed: CanvasWallService.getWallSpeed(wallsPassedRef, scaleFactor),
+      pipeSpeed: CanvasPipeService.getPipeSpeed(pipesPassedRef, scaleFactor),
       frameCount: frameCountRef.current,
     });
 
@@ -128,8 +130,8 @@ export const useCanvasAnimate = ({
   useEffect(() => {
     // Reset game state when scale factor changes
     frameCountRef.current = 0;
-    wallsRef.current = [];
-    wallsPassedRef.current = 0;
+    pipesRef.current = [];
+    pipesPassedRef.current = 0;
 
     requestRef.current = requestAnimationFrame(animate);
 
