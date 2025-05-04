@@ -14,4 +14,5 @@ export interface DrawProps {
   velocity: number;
   scaleFactor: ScaleFactor;
   wallSpeed: number;
+  frameCount: number;
 }

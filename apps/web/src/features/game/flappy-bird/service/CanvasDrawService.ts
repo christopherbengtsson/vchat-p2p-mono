@@ -8,11 +8,19 @@ import {
   PLAYER_X_POS_MULTIPLIER,
   ASSETS,
   BACKGROUND_SPEED_MULTIPLIER,
+  CLOUD_COUNT_RANGE,
+  CLOUD_SCALE_RANGE,
+  CLOUD_SIZE_PERCENT,
+  CLOUD_VERTICAL_RANGE,
+  CLOUD_SPEED_MULTIPLIER,
+  CLOUD_OPACITY_RANGE,
+  CLOUD_FREQUENCY,
 } from '../model/CanvasConstants';
 
 // Cache objects
 const caches = {
   background: new Map<string, HTMLCanvasElement>(),
+  cloud: new Map<string, HTMLCanvasElement>(),
   wall: new Map<string, HTMLCanvasElement>(),
   player: new Map<string, HTMLCanvasElement>(),
   score: new Map<string, HTMLCanvasElement>(),
@@ -20,6 +28,16 @@ const caches = {
 
 // Scrolling state
 let backgroundPosition = 0;
+// Cloud state
+let clouds: {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  speedMultiplier: number;
+  opacity: number;
+  scale: number;
+}[] = [];
 
 // Utility functions
 const disableImageSmoothing = (ctx: CanvasRenderingContext2D) => {
@@ -38,6 +56,7 @@ const limitCacheSize = <T>(cache: Map<string, T>, maxSize: number) => {
 
 const clearCache = () => {
   Object.values(caches).forEach((cache) => cache.clear());
+  clouds = [];
 };
 
 // Generic function to get or create a cached canvas
@@ -128,7 +147,6 @@ const drawBackground = (
         scaleFactor.devicePixelRatio,
         scaleFactor.devicePixelRatio,
       );
-      disableImageSmoothing(cacheCtx); // Ensure smoothing is off here too
 
       // Draw onto the cache using rounded dimensions for sharpness
       cacheCtx.drawImage(
@@ -168,6 +186,197 @@ const drawBackground = (
   }
 };
 
+// When generating initial clouds
+const generateClouds = (
+  width: number,
+  height: number,
+  scaleFactor: ScaleFactor,
+) => {
+  // Initialize clouds if empty
+  if (clouds.length === 0) {
+    const cloudCount = Math.floor(
+      Math.random() * (CLOUD_COUNT_RANGE.MAX - CLOUD_COUNT_RANGE.MIN + 1) +
+        CLOUD_COUNT_RANGE.MIN,
+    );
+
+    for (let i = 0; i < cloudCount; i++) {
+      // Apply scaleFactor to cloud dimensions
+      const scaleVariation =
+        Math.random() * (CLOUD_SCALE_RANGE.MAX - CLOUD_SCALE_RANGE.MIN) +
+        CLOUD_SCALE_RANGE.MIN;
+      const baseCloudWidth = width * CLOUD_SIZE_PERCENT;
+      const cloudWidth =
+        baseCloudWidth * scaleVariation * scaleFactor.widthScale;
+
+      const aspectRatio =
+        ASSETS.COORDS.CLOUD.width / ASSETS.COORDS.CLOUD.height;
+      const cloudHeight = cloudWidth / aspectRatio;
+
+      // Calculate speed based on size - larger clouds move faster (appear closer)
+      // Map the scale variation (0.7-1.3) to speed range (0.2-0.4)
+      const normalizedScale =
+        (scaleVariation - CLOUD_SCALE_RANGE.MIN) /
+        (CLOUD_SCALE_RANGE.MAX - CLOUD_SCALE_RANGE.MIN);
+      const speedMultiplier =
+        CLOUD_SPEED_MULTIPLIER.MIN +
+        normalizedScale *
+          (CLOUD_SPEED_MULTIPLIER.MAX - CLOUD_SPEED_MULTIPLIER.MIN);
+
+      clouds.push({
+        x: Math.random() * width,
+        y:
+          height *
+          (Math.random() *
+            (CLOUD_VERTICAL_RANGE.MAX - CLOUD_VERTICAL_RANGE.MIN) +
+            CLOUD_VERTICAL_RANGE.MIN),
+        width: cloudWidth,
+        height: cloudHeight,
+        speedMultiplier,
+        opacity:
+          Math.random() * (CLOUD_OPACITY_RANGE.MAX - CLOUD_OPACITY_RANGE.MIN) +
+          CLOUD_OPACITY_RANGE.MIN,
+        scale: scaleVariation,
+      });
+    }
+  }
+};
+
+// When adding new clouds
+const updateClouds = (
+  width: number,
+  height: number,
+  frameCount: number,
+  wallSpeed: number,
+  scaleFactor: ScaleFactor,
+) => {
+  // Generate new cloud occasionally
+  if (
+    frameCount % CLOUD_FREQUENCY === 0 &&
+    clouds.length < CLOUD_COUNT_RANGE.MAX
+  ) {
+    // Apply scaleFactor to cloud dimensions
+    const scaleVariation =
+      Math.random() * (CLOUD_SCALE_RANGE.MAX - CLOUD_SCALE_RANGE.MIN) +
+      CLOUD_SCALE_RANGE.MIN;
+    const baseCloudWidth = width * CLOUD_SIZE_PERCENT;
+    const cloudWidth = baseCloudWidth * scaleVariation * scaleFactor.widthScale;
+
+    const aspectRatio = ASSETS.COORDS.CLOUD.width / ASSETS.COORDS.CLOUD.height;
+    const cloudHeight = cloudWidth / aspectRatio;
+
+    // Calculate speed based on size - larger clouds move faster (appear closer)
+    const normalizedScale =
+      (scaleVariation - CLOUD_SCALE_RANGE.MIN) /
+      (CLOUD_SCALE_RANGE.MAX - CLOUD_SCALE_RANGE.MIN);
+    const speedMultiplier =
+      CLOUD_SPEED_MULTIPLIER.MIN +
+      normalizedScale *
+        (CLOUD_SPEED_MULTIPLIER.MAX - CLOUD_SPEED_MULTIPLIER.MIN);
+
+    clouds.push({
+      x: width,
+      y:
+        height *
+        (Math.random() * (CLOUD_VERTICAL_RANGE.MAX - CLOUD_VERTICAL_RANGE.MIN) +
+          CLOUD_VERTICAL_RANGE.MIN),
+      width: cloudWidth,
+      height: cloudHeight,
+      speedMultiplier,
+      opacity:
+        Math.random() * (CLOUD_OPACITY_RANGE.MAX - CLOUD_OPACITY_RANGE.MIN) +
+        CLOUD_OPACITY_RANGE.MIN,
+      scale: scaleVariation,
+    });
+  }
+
+  // Move clouds with individual speeds based on their size
+  clouds = clouds.filter((cloud) => {
+    // Each cloud moves at its own speed, based on its size
+    const cloudSpeed = wallSpeed * cloud.speedMultiplier;
+    cloud.x -= cloudSpeed * scaleFactor.widthScale;
+    return cloud.x > -cloud.width; // Remove clouds that are off-screen
+  });
+};
+
+// When drawing clouds
+const drawClouds = (
+  ctx: CanvasRenderingContext2D,
+  scaleFactor: ScaleFactor,
+) => {
+  const tilesImage = ASSETS.TILES;
+
+  if (!tilesImage.complete) return;
+
+  clouds.forEach((cloud) => {
+    // Round dimensions for cache key and drawing
+    const roundedWidth = Math.round(cloud.width);
+    const roundedHeight = Math.round(cloud.height);
+    const roundedScale = cloud.scale.toFixed(1);
+    const roundedOpacity = cloud.opacity.toFixed(1);
+
+    // Include devicePixelRatio in cache key for proper high-DPI rendering
+    const cacheKey = `cloud_${roundedWidth}_${roundedHeight}_${roundedScale}_${roundedOpacity}_${scaleFactor.devicePixelRatio}`;
+
+    // Account for devicePixelRatio in cache dimensions
+    const cacheDimensions = {
+      width: roundedWidth * scaleFactor.devicePixelRatio,
+      height: roundedHeight * scaleFactor.devicePixelRatio,
+    };
+
+    // Get or create cached cloud
+    const cachedCloud = getOrCreateCachedCanvas(
+      caches.cloud,
+      cacheKey,
+      cacheDimensions,
+      (canvas) => {
+        const cacheCtx = canvas.getContext('2d');
+        if (!cacheCtx) return;
+
+        // Scale context for high-DPI rendering
+        cacheCtx.scale(
+          scaleFactor.devicePixelRatio,
+          scaleFactor.devicePixelRatio,
+        );
+
+        // Set global alpha for cloud opacity
+        cacheCtx.globalAlpha = cloud.opacity;
+
+        // Draw cloud sprite
+        cacheCtx.drawImage(
+          tilesImage,
+          ASSETS.COORDS.CLOUD.x,
+          ASSETS.COORDS.CLOUD.y,
+          ASSETS.COORDS.CLOUD.width,
+          ASSETS.COORDS.CLOUD.height,
+          0,
+          0,
+          roundedWidth / scaleFactor.devicePixelRatio, // Adjust for scaled context
+          roundedHeight / scaleFactor.devicePixelRatio, // Adjust for scaled context
+        );
+
+        // Reset global alpha
+        cacheCtx.globalAlpha = 1;
+      },
+      20, // Max cache size
+    );
+
+    // Draw the cached cloud at rounded position
+    const roundedX = Math.round(cloud.x);
+    const roundedY = Math.round(cloud.y);
+    ctx.drawImage(
+      cachedCloud,
+      0,
+      0,
+      cachedCloud.width,
+      cachedCloud.height,
+      roundedX,
+      roundedY,
+      roundedWidth,
+      roundedHeight,
+    );
+  });
+};
+
 // Wall rendering
 const drawWalls = (
   ctx: CanvasRenderingContext2D,
@@ -195,7 +404,6 @@ const drawWalls = (
         // canvas here has rounded dimensions from getOrCreateCachedCanvas
         const cacheCtx = canvas.getContext('2d');
         if (!cacheCtx) return;
-        disableImageSmoothing(cacheCtx); // Ensure smoothing is off
 
         // Pass the canvas dimensions (which are rounded) to the drawing functions
         const roundedWallDims = { width: canvas.width, height: canvas.height };
@@ -471,7 +679,6 @@ const drawScore = (
     (canvas) => {
       const cacheCtx = canvas.getContext('2d');
       if (!cacheCtx) return;
-      disableImageSmoothing(cacheCtx); // Not strictly needed for text, but good practice
 
       cacheCtx.font = `bold ${fontSize}px ${TYPOGRAPHY.SCORE_FONT_FAMILY}`;
       cacheCtx.fillStyle = COLORS.SCORE;
@@ -528,7 +735,6 @@ const drawPlayer = (
       // canvas here has rounded dimensions
       const cacheCtx = canvas.getContext('2d');
       if (!cacheCtx) return;
-      disableImageSmoothing(cacheCtx); // Ensure smoothing is off
 
       // Draw onto the cache using the canvas's (rounded) dimensions
       cacheCtx.drawImage(
@@ -569,6 +775,7 @@ const drawCanvas = ({
   scaleFactor,
   velocity,
   wallSpeed,
+  frameCount,
 }: DrawProps) => {
   const canvas = ctx.canvas;
   // Calculate logical width/height based on DPR
@@ -602,6 +809,13 @@ const drawCanvas = ({
     scaleFactor,
     backgroundSpeed,
   );
+
+  generateClouds(logicalWidth, logicalHeight, scaleFactor);
+  updateClouds(logicalWidth, logicalHeight, frameCount, wallSpeed, scaleFactor);
+
+  // Draw clouds between background and walls
+  drawClouds(ctx, scaleFactor);
+
   drawWalls(ctx, walls, scaleFactor); // drawWalls uses logical coords, cache handles internal scaling
   drawScore(ctx, score, scaleFactor); // drawScore uses logical coords
 

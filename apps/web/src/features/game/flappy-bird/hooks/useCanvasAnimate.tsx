@@ -97,6 +97,7 @@ export const useCanvasAnimate = ({
       scaleFactor,
       velocity: velocityRef.current,
       wallSpeed: CanvasWallService.getWallSpeed(wallsPassedRef, scaleFactor),
+      frameCount: frameCountRef.current,
     });
 
     requestRef.current = requestAnimationFrame(animate);
