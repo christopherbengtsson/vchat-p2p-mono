@@ -9,9 +9,7 @@ import {
 import type { ScaleFactor } from '../model/DrawProps';
 import { CanvasUtil } from '../util/CanvasUtil';
 import { AudioFrequencyService } from './AudioFrequencyService';
-import { CanvasCacheService } from './CanvasCacheService';
-
-const MAX_CACHE_SIZE = 10; // TODO: Move to cache service?
+import { CanvasCacheService, MAX_CACHE_SIZE } from './CanvasCacheService';
 
 const updatePlayerPosition = (
   [pitch, clarity]: [number, number],
@@ -120,7 +118,7 @@ const drawPlayer = (
         canvas.height,
       );
     },
-    MAX_CACHE_SIZE,
+    MAX_CACHE_SIZE.PLAYER,
   );
 
   const roundedX = Math.round(x);

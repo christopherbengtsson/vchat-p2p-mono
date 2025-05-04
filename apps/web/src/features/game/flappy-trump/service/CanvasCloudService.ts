@@ -10,9 +10,7 @@ import {
 } from '../model/constants';
 import { ScaleFactor } from '../model/DrawProps';
 import { CanvasUtil } from '../util/CanvasUtil';
-import { CanvasCacheService } from './CanvasCacheService';
-
-const MAX_CLOUD_SIZE = 20;
+import { CanvasCacheService, MAX_CACHE_SIZE } from './CanvasCacheService';
 
 // Cloud state
 let clouds: {
@@ -193,7 +191,7 @@ const drawClouds = (
 
         cacheCtx.globalAlpha = 1;
       },
-      MAX_CLOUD_SIZE,
+      MAX_CACHE_SIZE.CLOUD,
     );
 
     const roundedX = Math.round(cloud.x);

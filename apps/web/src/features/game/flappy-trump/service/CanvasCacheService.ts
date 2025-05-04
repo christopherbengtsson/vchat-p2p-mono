@@ -10,6 +10,13 @@ const clearCache = () => {
   Object.values(caches).forEach((cache) => cache.clear());
 };
 
+export const MAX_CACHE_SIZE = {
+  CLOUD: 20,
+  PLAYER: 10,
+  PIPE: 20,
+  SCORE: 30,
+} as const;
+
 export const CanvasCacheService = {
   caches,
   clearCache,

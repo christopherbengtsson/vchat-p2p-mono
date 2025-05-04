@@ -12,9 +12,7 @@ import {
 import { ScaleFactor } from '../model/DrawProps';
 import { Pipe } from '../model/Pipe';
 import { CanvasUtil } from '../util/CanvasUtil';
-import { CanvasCacheService } from './CanvasCacheService';
-
-const MAX_CACHE_SIZE = 20;
+import { CanvasCacheService, MAX_CACHE_SIZE } from './CanvasCacheService';
 
 const addPipe = (
   frameCountRef: React.RefObject<number>,
@@ -311,7 +309,7 @@ const drawPipes = (
           drawLowerPipe(cacheCtx, roundedPipeDims, tilesImage);
         }
       },
-      MAX_CACHE_SIZE,
+      MAX_CACHE_SIZE.PIPE,
     );
 
     const pipeXRounded = Math.round(pipe.x);

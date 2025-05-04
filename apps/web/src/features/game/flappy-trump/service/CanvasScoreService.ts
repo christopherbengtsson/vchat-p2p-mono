@@ -1,9 +1,7 @@
 import { COLORS, TYPOGRAPHY } from '../model/constants';
 import { ScaleFactor } from '../model/DrawProps';
 import { CanvasUtil } from '../util/CanvasUtil';
-import { CanvasCacheService } from './CanvasCacheService';
-
-const MAX_CACHE_SIZE = 30; // TODO: Move to cache service?
+import { CanvasCacheService, MAX_CACHE_SIZE } from './CanvasCacheService';
 
 const drawScore = (
   ctx: CanvasRenderingContext2D,
@@ -46,7 +44,7 @@ const drawScore = (
 
       cacheCtx.fillText(`Score: ${score}`, padding, 0);
     },
-    MAX_CACHE_SIZE,
+    MAX_CACHE_SIZE.SCORE,
   );
 
   // Draw the cached score at the top-left of the main canvas
