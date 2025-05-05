@@ -1,5 +1,4 @@
-import { HEART_ANIMATION } from '../model/constants';
-import { ASSETS } from '../model/constants/AssetConstants';
+import { ASSETS, HEART_ANIMATION } from '../model/constants';
 import type { ScaleFactor } from '../model/DrawProps';
 import { CanvasUtil } from '../util/CanvasUtil';
 import { CanvasCacheService, MAX_CACHE_SIZE } from './CanvasCacheService';
