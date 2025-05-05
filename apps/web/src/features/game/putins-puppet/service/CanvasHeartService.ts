@@ -189,7 +189,7 @@ const drawHearts = (
 
     // Get or create cached heart sprite
     const cachedHeart = CanvasUtil.getOrCreateCachedCanvas(
-      CanvasCacheService.caches.heart || new Map(),
+      CanvasCacheService.caches.heart,
       cacheKey,
       dimensions,
       (canvas) => {
