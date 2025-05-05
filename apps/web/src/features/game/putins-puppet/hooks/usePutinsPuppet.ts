@@ -3,11 +3,11 @@ import { toast } from 'sonner';
 import type { CustomError, Maybe } from '@mono/common-dto';
 import { useGameEngine } from '../../game-engine/hooks/useGameEngine';
 import { GameStore } from '../../game-engine/context/GameStore';
-import { FlappyTrumpService } from '../service/FlappyTrumpService';
+import { PutinsPuppetService } from '../service/PutinsPuppetService';
 import { AssetService } from '../service/AssetService';
 import { CanvasDrawService } from '../service/CanvasDrawService';
 
-export const useFlappyTrump = (
+export const usePutinsPuppet = (
   gameStore: GameStore,
   setGameActive: (val: boolean) => void,
 ) => {
@@ -16,9 +16,9 @@ export const useFlappyTrump = (
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    FlappyTrumpService.setRemoteCanvasStream(setRemoteCanvasStream);
+    PutinsPuppetService.setRemoteCanvasStream(setRemoteCanvasStream);
     return () => {
-      FlappyTrumpService.removeRemoteCanvasStream();
+      PutinsPuppetService.removeRemoteCanvasStream();
     };
   }, [setRemoteCanvasStream]);
 
@@ -34,7 +34,7 @@ export const useFlappyTrump = (
 
   const initGamePerquisites = useCallback(async () => {
     try {
-      await FlappyTrumpService.initGamePerquisites();
+      await PutinsPuppetService.initGamePerquisites();
 
       let isMounted = true;
       const preloadPromise = AssetService.preload();
@@ -53,13 +53,13 @@ export const useFlappyTrump = (
 
       return () => {
         isMounted = false;
-        FlappyTrumpService.gameDispose();
+        PutinsPuppetService.gameDispose();
         CanvasDrawService.clearCache();
       };
     } catch (error) {
       handleInitError(error as CustomError);
       return () => {
-        FlappyTrumpService.gameDispose();
+        PutinsPuppetService.gameDispose();
         CanvasDrawService.clearCache();
       };
     }
@@ -72,11 +72,11 @@ export const useFlappyTrump = (
       prepareGame: initGamePerquisites,
       disposables: {
         roundDispose: () => {
-          FlappyTrumpService.roundDispose();
+          PutinsPuppetService.roundDispose();
           CanvasDrawService.clearCache();
         },
         gameDispose: () => {
-          FlappyTrumpService.gameDispose();
+          PutinsPuppetService.gameDispose();
           CanvasDrawService.clearCache();
         },
       },

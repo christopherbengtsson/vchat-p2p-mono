@@ -3,7 +3,7 @@ import { observer } from 'mobx-react';
 import { Canvas } from '../component/Canvas';
 import { useCanvasAnimate } from '../hooks/useCanvasAnimate';
 import { useCanvasResize } from '../hooks/useCanvasResize';
-import { FlappyTrumpService } from '../service/FlappyTrumpService';
+import { PutinsPuppetService } from '../service/PutinsPuppetService';
 import { RandomTrumpSound } from '../component/RandomTrumpSound';
 
 interface Props {
@@ -18,7 +18,7 @@ export const PlayerContainer = observer(function PlayerContainer({
   const startAudioRef = useRef<HTMLAudioElement>(null);
   const endAudioRef = useRef<HTMLAudioElement>(null);
 
-  const getPitch = useCallback(() => FlappyTrumpService.getPitch(), []);
+  const getPitch = useCallback(() => PutinsPuppetService.getPitch(), []);
 
   const playStartSound = async () => {
     startAudioRef.current?.play();
@@ -41,10 +41,10 @@ export const PlayerContainer = observer(function PlayerContainer({
   });
 
   useEffect(() => {
-    FlappyTrumpService.startCanvasStream(canvasRef.current);
+    PutinsPuppetService.startCanvasStream(canvasRef.current);
 
     return () => {
-      FlappyTrumpService.stopCanvasStream();
+      PutinsPuppetService.stopCanvasStream();
     };
   }, []);
 

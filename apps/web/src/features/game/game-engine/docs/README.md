@@ -259,8 +259,8 @@ sequenceDiagram
 
 4. **Implementing a New Game**:
 
-   - Create a game-specific service (like FlappyTrumpService)
-   - Create a game-specific hook (like useFlappyTrump) that configures useGameEngine
+   - Create a game-specific service (like PutinsPuppetService)
+   - Create a game-specific hook (like usePutinsPuppet) that configures useGameEngine
    - Implement game-specific UI components
    - The core game engine handles state management and communication
 

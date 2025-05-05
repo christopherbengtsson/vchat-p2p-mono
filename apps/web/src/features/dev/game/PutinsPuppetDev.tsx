@@ -4,11 +4,11 @@ import { observer } from 'mobx-react';
 import { Maybe } from '@mono/common-dto';
 import { VChatSocket } from '@mono/fe-dto';
 import { noop } from '../../../common/utils/noop';
-import { PlayerContainer } from '../../game/flappy-trump/container/PlayerContainer';
-import { FlappyTrumpService } from '../../game/flappy-trump/service/FlappyTrumpService';
-import { AssetService } from '../../game/flappy-trump/service/AssetService';
+import { PlayerContainer } from '../../game/putins-puppet/container/PlayerContainer';
+import { PutinsPuppetService } from '../../game/putins-puppet/service/PutinsPuppetService';
+import { AssetService } from '../../game/putins-puppet/service/AssetService';
 
-export const FlappyTrumpDev = observer(function FlappyTrumpDev() {
+export const PutinsPuppetDev = observer(function PutinsPuppetDev() {
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
@@ -37,7 +37,7 @@ export const FlappyTrumpDev = observer(function FlappyTrumpDev() {
 
     const init = async () => {
       await AssetService.preload();
-      FlappyTrumpService.initGamePerquisites().then(() => {
+      PutinsPuppetService.initGamePerquisites().then(() => {
         setIsReady(true);
       });
     };

@@ -102,7 +102,7 @@ const gameDispose = () => {
   removeRemoteCanvasStream();
 };
 
-export const FlappyTrumpService = {
+export const PutinsPuppetService = {
   initGamePerquisites,
   getPitch,
 

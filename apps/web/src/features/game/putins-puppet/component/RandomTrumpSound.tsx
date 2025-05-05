@@ -1,7 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Audio } from '@/common/components/audio/Audio';
 
-const TRUMP_START_SOUNDS = ['trump_love_teslur', 'trump_grab_pussy'];
+const TRUMP_START_SOUNDS = [
+  'trump_love_teslur',
+  'trump_grab_pussy',
+  'trump_love_uneducated',
+];
 const TRUMP_ENDING_SOUNDS = [
   'trump_bye',
   'trump_we_are_dying',

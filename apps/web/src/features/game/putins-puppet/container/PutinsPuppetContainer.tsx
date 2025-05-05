@@ -7,7 +7,7 @@ import { GameState } from '../../game-engine/model/GameState';
 import { useGameStore } from '../../game-engine/context/useGameStore';
 import { StartGameAlertDialog } from '../../game-engine/component/StartGameAlertDialog';
 import { ResultDialogContainer } from '../../game-engine/container/ResultDialogContainer';
-import { useFlappyTrump } from '../hooks/useFlappyTrump';
+import { usePutinsPuppet } from '../hooks/usePutinsPuppet';
 import { PlayerContainer } from './PlayerContainer';
 import { SpectatorContainer } from './SpectatorContainer';
 
@@ -23,7 +23,7 @@ const toggleMicrophone = (micEnabled: boolean) => {
   });
 };
 
-export const FlappyTrumpContainer = observer(function FlappyTrumpContainer({
+export const PutinsPuppetContainer = observer(function PutinsPuppetContainer({
   setGameActive,
 }: Props) {
   const gameStore = useGameStore();
@@ -34,7 +34,7 @@ export const FlappyTrumpContainer = observer(function FlappyTrumpContainer({
     endPlayerRound,
     remoteCanvasStream,
     isLoading,
-  } = useFlappyTrump(gameStore, setGameActive);
+  } = usePutinsPuppet(gameStore, setGameActive);
 
   const [showStartDialog, setShowStartDialog] = useState(false);
   const [showResultDialog, setShowResultDialog] = useState(false);
