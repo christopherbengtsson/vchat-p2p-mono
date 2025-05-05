@@ -6,6 +6,7 @@ import { VChatSocket } from '@mono/fe-dto';
 import { noop } from '../../../common/utils/noop';
 import { PlayerContainer } from '../../game/flappy-trump/container/PlayerContainer';
 import { FlappyTrumpService } from '../../game/flappy-trump/service/FlappyTrumpService';
+import { AssetService } from '../../game/flappy-trump/service/AssetService';
 
 export const FlappyTrumpDev = observer(function FlappyTrumpDev() {
   const [isReady, setIsReady] = useState(false);
@@ -34,9 +35,14 @@ export const FlappyTrumpDev = observer(function FlappyTrumpDev() {
       },
     });
 
-    FlappyTrumpService.initGamePerquisites().then(() => {
-      setIsReady(true);
-    });
+    const init = async () => {
+      await AssetService.preload();
+      FlappyTrumpService.initGamePerquisites().then(() => {
+        setIsReady(true);
+      });
+    };
+
+    init();
   }, []);
 
   if (!WebRTCService.get() || !isReady) return null;

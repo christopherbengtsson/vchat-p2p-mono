@@ -33,6 +33,7 @@ export const FlappyTrumpContainer = observer(function FlappyTrumpContainer({
     playerTurnComplete,
     endPlayerRound,
     remoteCanvasStream,
+    isLoading,
   } = useFlappyTrump(gameStore, setGameActive);
 
   const [showStartDialog, setShowStartDialog] = useState(false);
@@ -100,6 +101,7 @@ export const FlappyTrumpContainer = observer(function FlappyTrumpContainer({
         open={showStartDialog}
         onClick={handleStartRound}
         gameRound={gameStore.currentRound}
+        isLoading={isLoading}
       />
 
       <ResultDialogContainer

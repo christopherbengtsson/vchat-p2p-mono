@@ -4,6 +4,7 @@ import {
   BACKGROUND_SPEED_MULTIPLIER,
   BASE_PLAYER_SIZE_PERCENT,
   PLAYER_X_POS_MULTIPLIER,
+  ASSETS,
 } from '../model/constants';
 import { CanvasCacheService } from './CanvasCacheService';
 import { CanvasBackgroundService } from './CanvasBackgroundService';
@@ -12,6 +13,11 @@ import { CanvasPipeService } from './CanvasPipeService';
 import { CanvasScoreService } from './CanvasScoreService';
 import { CanvasPlayerService } from './CanvasPlayerService';
 
+const areAssetsReady = () => ASSETS.TILES.complete;
+
+/**
+ * Main canvas drawing function that orchestrates all rendering operations
+ */
 const drawCanvas = ({
   ctx,
   xPos,
@@ -25,6 +31,9 @@ const drawCanvas = ({
   isDead = false,
   deathFrames = 0,
 }: DrawProps) => {
+  // Skip rendering if assets aren't loaded
+  if (!areAssetsReady()) return;
+
   const canvas = ctx.canvas;
 
   const logicalWidth = canvas.width / scaleFactor.devicePixelRatio;
@@ -38,6 +47,7 @@ const drawCanvas = ({
   // Draw game elements in correct order (background to foreground)
   const backgroundSpeed = isDead ? 0 : pipeSpeed * BACKGROUND_SPEED_MULTIPLIER;
 
+  // Draw background
   CanvasBackgroundService.drawBackground(
     ctx,
     logicalWidth,
@@ -46,6 +56,7 @@ const drawCanvas = ({
     backgroundSpeed,
   );
 
+  // Generate and update clouds
   CanvasCloudService.generateClouds(logicalWidth, logicalHeight, scaleFactor);
 
   if (!isDead) {
@@ -58,21 +69,27 @@ const drawCanvas = ({
     );
   }
 
+  // Draw clouds
   CanvasCloudService.drawClouds(ctx, scaleFactor);
 
+  // Draw pipes
   CanvasPipeService.drawPipes(ctx, pipes, scaleFactor);
 
+  // Draw score
   CanvasScoreService.drawScore(ctx, score, scaleFactor);
 
+  // Calculate player dimensions
   const playerSizePercent = CanvasUtil.getScaledValue(
     BASE_PLAYER_SIZE_PERCENT,
     scaleFactor,
   );
   const playerWidth = logicalWidth * playerSizePercent;
 
+  // Calculate player position
   const playerX =
     xPos !== undefined ? xPos : logicalWidth * PLAYER_X_POS_MULTIPLIER;
 
+  // Draw player
   CanvasPlayerService.drawPlayer(
     ctx,
     playerX,
@@ -88,9 +105,11 @@ const drawCanvas = ({
 const clearCache = () => {
   CanvasCacheService.clearCache();
   CanvasCloudService.resetClouds();
+  CanvasBackgroundService.resetBackground();
 };
 
 export const CanvasDrawService = {
   drawCanvas,
   clearCache,
+  areAssetsReady,
 };

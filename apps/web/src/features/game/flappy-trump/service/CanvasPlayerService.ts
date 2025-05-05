@@ -12,6 +12,9 @@ import { CanvasUtil } from '../util/CanvasUtil';
 import { AudioFrequencyService } from './AudioFrequencyService';
 import { CanvasCacheService, MAX_CACHE_SIZE } from './CanvasCacheService';
 
+/**
+ * Updates player position based on voice input or gravity
+ */
 const updatePlayerPosition = (
   [pitch, clarity]: [number, number],
   canvas: HTMLCanvasElement,
@@ -33,6 +36,7 @@ const updatePlayerPosition = (
 
   let voiceInputDetected = false;
 
+  // Check if voice input is above thresholds
   if (
     pitch > AudioFrequencyService.PITCH_THRESHOLD &&
     clarity > AudioFrequencyService.CLARITY_THRESHOLD
@@ -60,14 +64,12 @@ const updatePlayerPosition = (
     playerYRef.current += velocityRef.current;
   }
 
-  // Apply boundaries in the same function
-  // Prevent the player from going above the canvas
+  // Apply boundaries
   if (playerYRef.current < 0) {
     playerYRef.current = 0;
     velocityRef.current = 0;
   }
 
-  // Prevent the player from falling below the canvas
   if (playerYRef.current > maxY) {
     playerYRef.current = maxY;
     velocityRef.current = 0;
@@ -76,6 +78,9 @@ const updatePlayerPosition = (
   return voiceInputDetected;
 };
 
+/**
+ * Updates player position during death animation
+ */
 const updateDeathAnimation = (
   playerXRef: React.RefObject<number>,
   playerYRef: React.RefObject<number>,
@@ -87,14 +92,15 @@ const updateDeathAnimation = (
   velocityRef.current += scaledGravity;
 
   playerYRef.current += velocityRef.current;
-
   playerXRef.current +=
     DEATH_PHYSICS.HORIZONTAL_VELOCITY * scaleFactor.widthScale;
 
-  // No need to check for upper boundary during death animation
-  // Player should fall off the screen
+  // No boundary checking during death animation (player should fall off the screen)
 };
 
+/**
+ * Draws the player character with appropriate animation state
+ */
 const drawPlayer = (
   ctx: CanvasRenderingContext2D,
   x: number,
@@ -108,6 +114,7 @@ const drawPlayer = (
   const tilesImage = ASSETS.TILES;
   if (!tilesImage.complete) return;
 
+  // Select the appropriate sprite based on state
   let playerCoords = ASSETS.COORDS.TRUMP;
 
   if (isDead) {
@@ -122,10 +129,12 @@ const drawPlayer = (
   const roundedWidth = Math.round(width);
   const roundedHeight = Math.round(height);
 
+  // Create cache key based on player state
   const cacheKey = `${roundedWidth}_${roundedHeight}_${velocity > 0 ? 'up' : 'normal'}_${isDead ? 'dead' : 'alive'}_${scaleFactor.deviceType}`;
 
   const dimensions = { width: roundedWidth, height: roundedHeight };
 
+  // Get or create cached player sprite
   const cachedPlayer = CanvasUtil.getOrCreateCachedCanvas(
     CanvasCacheService.caches.player,
     cacheKey,
@@ -152,6 +161,7 @@ const drawPlayer = (
   const roundedX = Math.round(x);
   const roundedY = Math.round(y);
 
+  // Draw with rotation if player is dead
   if (isDead) {
     ctx.save();
 
@@ -174,6 +184,7 @@ const drawPlayer = (
     ctx.drawImage(cachedPlayer, roundedX, roundedY);
   }
 
+  // Draw hitbox for debugging
   if (DEBUG.SHOW_HITBOX) {
     ctx.strokeStyle = DEBUG.HITBOX_COLOR;
     ctx.lineWidth = 2;

@@ -32,6 +32,17 @@ const limitCacheSize = <T>(cache: Map<string, T>, maxSize: number) => {
 };
 
 /**
+ * Creates a rounded dimensions object to ensure pixel-perfect rendering
+ */
+const getRoundedDimensions = (dimensions: {
+  width: number;
+  height: number;
+}) => ({
+  width: Math.round(dimensions.width),
+  height: Math.round(dimensions.height),
+});
+
+/**
  * Generic function to get or create a cached canvas
  */
 const getOrCreateCachedCanvas = <T extends { width: number; height: number }>(
@@ -44,25 +55,21 @@ const getOrCreateCachedCanvas = <T extends { width: number; height: number }>(
   let cachedCanvas = cache.get(cacheKey);
 
   // Use rounded dimensions for the canvas itself to align with pixel grid
-  const roundedWidth = Math.round(dimensions.width);
-  const roundedHeight = Math.round(dimensions.height);
+  const roundedDimensions = getRoundedDimensions(dimensions);
 
   if (
     !cachedCanvas ||
-    cachedCanvas.width !== roundedWidth ||
-    cachedCanvas.height !== roundedHeight
+    cachedCanvas.width !== roundedDimensions.width ||
+    cachedCanvas.height !== roundedDimensions.height
   ) {
     cachedCanvas = document.createElement('canvas');
     // Set canvas dimensions to rounded integers
-    cachedCanvas.width = roundedWidth;
-    cachedCanvas.height = roundedHeight;
+    cachedCanvas.width = roundedDimensions.width;
+    cachedCanvas.height = roundedDimensions.height;
 
     const ctx = cachedCanvas.getContext('2d');
     if (ctx) {
       disableImageSmoothing(ctx);
-      // Pass the original (potentially float) dimensions to createFn
-      // if it needs them for ratio calculations, but it will draw onto
-      // the rounded-dimension canvas.
       createFn(cachedCanvas);
     }
 
@@ -78,4 +85,5 @@ export const CanvasUtil = {
   disableImageSmoothing,
   limitCacheSize,
   getOrCreateCachedCanvas,
+  getRoundedDimensions,
 };

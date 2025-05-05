@@ -7,6 +7,7 @@ import {
   PLAYER_X_POS_MULTIPLIER,
 } from '../model/constants';
 import { CanvasUtil } from '../util/CanvasUtil';
+import { AssetService } from '../service/AssetService';
 import { CanvasCollisionService } from '../service/CanvasCollisionService';
 import { CanvasPlayerService } from '../service/CanvasPlayerService';
 import { CanvasPipeService } from '../service/CanvasPipeService';
@@ -15,18 +16,18 @@ import { useDeathAnimation } from './useDeathAnimation';
 
 interface In {
   canvasRef: React.RefObject<HTMLCanvasElement | null>;
-  onGameOver: (score: number) => void;
-  playEndSound: VoidFunction;
-  getPitch: () => Maybe<[number, number]>;
+  endAudioRef: React.RefObject<HTMLAudioElement | null>;
   scaleFactor: ScaleFactor;
+  onGameOver: (score: number) => void;
+  getPitch: () => Maybe<[number, number]>;
 }
 
 export const useCanvasAnimate = ({
   canvasRef,
-  onGameOver,
-  playEndSound,
-  getPitch,
+  endAudioRef,
   scaleFactor,
+  onGameOver,
+  getPitch,
 }: In) => {
   const requestRef = useRef<number>(null);
   const frameCountRef = useRef<number>(0);
@@ -48,9 +49,9 @@ export const useCanvasAnimate = ({
     velocityRef,
     playerXRef,
     playerYRef,
+    endAudioRef,
     canvasRef,
     scaleFactor,
-    playEndSound,
   });
 
   const endGame = useCallback(() => {
@@ -68,6 +69,11 @@ export const useCanvasAnimate = ({
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
+
+    if (!AssetService.areAssetsReady()) {
+      requestRef.current = requestAnimationFrame(animate);
+      return;
+    }
 
     const canvasWidth = canvas.width / scaleFactor.devicePixelRatio;
 
@@ -103,6 +109,7 @@ export const useCanvasAnimate = ({
 
       CanvasPipeService.removePipes(pipesRef);
 
+      // Check for collisions
       const playerSizePercent = CanvasUtil.getScaledValue(
         BASE_PLAYER_SIZE_PERCENT,
         scaleFactor,
@@ -125,13 +132,17 @@ export const useCanvasAnimate = ({
       }
     } else {
       const animationFinished = animateDeath();
+      const soundFinished = !endAudioRef.current
+        ? true
+        : endAudioRef.current.ended;
 
-      if (animationFinished) {
+      if (animationFinished && soundFinished) {
         endGame();
         return;
       }
     }
 
+    // Draw the current frame
     CanvasDrawService.drawCanvas({
       ctx,
       xPos: playerXRef.current,
@@ -146,6 +157,7 @@ export const useCanvasAnimate = ({
       deathFrames: deathAnimationFramesRef.current,
     });
 
+    // Schedule next frame
     requestRef.current = requestAnimationFrame(animate);
   }, [
     canvasRef,
@@ -155,6 +167,7 @@ export const useCanvasAnimate = ({
     getPitch,
     initDeathAnimation,
     animateDeath,
+    endAudioRef,
     endGame,
   ]);
 

@@ -3,6 +3,9 @@ import { ScaleFactor } from '../model/DrawProps';
 import { CanvasUtil } from '../util/CanvasUtil';
 import { CanvasCacheService, MAX_CACHE_SIZE } from './CanvasCacheService';
 
+/**
+ * Draws the score display
+ */
 const drawScore = (
   ctx: CanvasRenderingContext2D,
   score: number,
@@ -10,13 +13,14 @@ const drawScore = (
 ) => {
   const { width } = ctx.canvas;
 
-  // No need for device-specific scaling
+  // Calculate font size based on scale factor
   const fontSize = Math.max(
     TYPOGRAPHY.MIN_FONT_SIZE,
     Math.round(TYPOGRAPHY.BASE_SCORE_FONT_SIZE * scaleFactor.heightScale),
   );
   const padding = Math.round(TYPOGRAPHY.SCORE_PADDING * scaleFactor.widthScale);
 
+  // Create cache key based on score and dimensions
   const cacheKey = `${score}_${fontSize}_${Math.round(width)}_${scaleFactor.deviceType}`;
 
   const dimensions = {
@@ -24,6 +28,7 @@ const drawScore = (
     height: Math.round(fontSize * TYPOGRAPHY.LINE_HEIGHT_RATIO),
   };
 
+  // Get or create cached score display
   const cachedScore = CanvasUtil.getOrCreateCachedCanvas(
     CanvasCacheService.caches.score,
     cacheKey,

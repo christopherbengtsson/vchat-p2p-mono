@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
-import type { Maybe } from '@mono/common-dto';
+import { toast } from 'sonner';
+import type { CustomError, Maybe } from '@mono/common-dto';
 import { useGameEngine } from '../../game-engine/hooks/useGameEngine';
 import { GameStore } from '../../game-engine/context/GameStore';
 import { FlappyTrumpService } from '../service/FlappyTrumpService';
 import { AssetService } from '../service/AssetService';
+import { CanvasDrawService } from '../service/CanvasDrawService';
 
 export const useFlappyTrump = (
   gameStore: GameStore,
@@ -11,6 +13,7 @@ export const useFlappyTrump = (
 ) => {
   const [remoteCanvasStream, setRemoteCanvasStream] =
     useState<Maybe<MediaStream>>();
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     FlappyTrumpService.setRemoteCanvasStream(setRemoteCanvasStream);
@@ -19,14 +22,48 @@ export const useFlappyTrump = (
     };
   }, [setRemoteCanvasStream]);
 
-  const initGamePerquisites = useCallback(async () => {
-    await FlappyTrumpService.initGamePerquisites();
-    await AssetService.preload();
+  const handleInitError = useCallback(
+    (error: CustomError) => {
+      console.error('Failed to initialize game:', error);
+      toast.error('Failed to initialize game');
+      setIsLoading(false);
+      setGameActive(false);
+    },
+    [setGameActive],
+  );
 
-    return () => {
-      FlappyTrumpService.gameDispose();
-    };
-  }, []);
+  const initGamePerquisites = useCallback(async () => {
+    try {
+      await FlappyTrumpService.initGamePerquisites();
+
+      let isMounted = true;
+      const preloadPromise = AssetService.preload();
+
+      preloadPromise
+        .then(() => {
+          if (isMounted) {
+            setIsLoading(false);
+          }
+        })
+        .catch((error) => {
+          if (isMounted) {
+            handleInitError(error);
+          }
+        });
+
+      return () => {
+        isMounted = false;
+        FlappyTrumpService.gameDispose();
+        CanvasDrawService.clearCache();
+      };
+    } catch (error) {
+      handleInitError(error as CustomError);
+      return () => {
+        FlappyTrumpService.gameDispose();
+        CanvasDrawService.clearCache();
+      };
+    }
+  }, [handleInitError]);
 
   const { startNewRound, playerTurnComplete, endPlayerRound } = useGameEngine(
     gameStore,
@@ -34,8 +71,14 @@ export const useFlappyTrump = (
     {
       prepareGame: initGamePerquisites,
       disposables: {
-        roundDispose: FlappyTrumpService.roundDispose,
-        gameDispose: FlappyTrumpService.gameDispose,
+        roundDispose: () => {
+          FlappyTrumpService.roundDispose();
+          CanvasDrawService.clearCache();
+        },
+        gameDispose: () => {
+          FlappyTrumpService.gameDispose();
+          CanvasDrawService.clearCache();
+        },
       },
     },
   );
@@ -45,5 +88,6 @@ export const useFlappyTrump = (
     playerTurnComplete,
     endPlayerRound,
     remoteCanvasStream,
+    isLoading,
   };
 };

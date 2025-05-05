@@ -21,11 +21,7 @@ export const PlayerContainer = observer(function PlayerContainer({
   const getPitch = useCallback(() => FlappyTrumpService.getPitch(), []);
 
   const playStartSound = async () => {
-    void startAudioRef.current?.play();
-  };
-
-  const playEndSound = () => {
-    endAudioRef.current?.play();
+    startAudioRef.current?.play();
   };
 
   const onGameOver = useCallback(
@@ -41,7 +37,7 @@ export const PlayerContainer = observer(function PlayerContainer({
     onGameOver,
     getPitch,
     scaleFactor,
-    playEndSound,
+    endAudioRef,
   });
 
   useEffect(() => {

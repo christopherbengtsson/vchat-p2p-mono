@@ -23,6 +23,9 @@ let clouds: {
   scale: number;
 }[] = [];
 
+/**
+ * Creates a new cloud with randomized properties
+ */
 const createCloud = (
   width: number,
   height: number,
@@ -74,6 +77,9 @@ const createCloud = (
   };
 };
 
+/**
+ * Generates initial clouds if none exist
+ */
 const generateClouds = (
   width: number,
   height: number,
@@ -94,6 +100,9 @@ const generateClouds = (
   }
 };
 
+/**
+ * Updates cloud positions and generates new clouds as needed
+ */
 const updateClouds = (
   width: number,
   height: number,
@@ -119,6 +128,9 @@ const updateClouds = (
   });
 };
 
+/**
+ * Draws all clouds with proper opacity
+ */
 const drawClouds = (
   ctx: CanvasRenderingContext2D,
   scaleFactor: ScaleFactor,

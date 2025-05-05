@@ -8,16 +8,19 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/common/components/ui/alert-dialog';
+import { LoadingSpinner } from '../../../../common/components/loading-spinner/LoadingSpinner';
 
 interface Props {
   open: boolean;
   onClick: VoidFunction;
   gameRound: number;
+  isLoading?: boolean;
 }
 
 export const StartGameAlertDialog = observer(function StartGameAlertDialog({
   open,
   onClick,
+  isLoading,
   gameRound,
 }: Props) {
   return (
@@ -34,8 +37,13 @@ export const StartGameAlertDialog = observer(function StartGameAlertDialog({
         </AlertDialogHeader>
 
         <AlertDialogFooter>
-          <AlertDialogAction className="w-full mt-4" onClick={onClick}>
-            Let's Fly!
+          <AlertDialogAction
+            className="w-full mt-4"
+            onClick={onClick}
+            disabled={isLoading}
+          >
+            {isLoading && <LoadingSpinner />}
+            {isLoading ? 'Preparing game...' : "Let's go!"}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

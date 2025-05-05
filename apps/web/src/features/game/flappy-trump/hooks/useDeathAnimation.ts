@@ -8,9 +8,9 @@ interface In {
   playerXRef: React.RefObject<number>;
   playerYRef: React.RefObject<number>;
   canvasRef: React.RefObject<HTMLCanvasElement | null>;
+  endAudioRef: React.RefObject<HTMLAudioElement | null>;
   velocityRef: React.RefObject<number>;
   scaleFactor: ScaleFactor;
-  playEndSound: VoidFunction;
 }
 
 export const useDeathAnimation = ({
@@ -19,7 +19,7 @@ export const useDeathAnimation = ({
   playerYRef,
   canvasRef,
   scaleFactor,
-  playEndSound,
+  endAudioRef,
 }: In) => {
   const isDeadRef = useRef<boolean>(false);
   const deathAnimationFramesRef = useRef<number>(0);
@@ -34,8 +34,8 @@ export const useDeathAnimation = ({
     velocityRef.current =
       DEATH_PHYSICS.BOUNCE_VELOCITY * scaleFactor.heightScale;
 
-    playEndSound();
-  }, [playEndSound, scaleFactor.heightScale, velocityRef]);
+    endAudioRef.current?.play();
+  }, [scaleFactor.heightScale, endAudioRef, velocityRef]);
 
   const animateDeath = useCallback(() => {
     const canvas = canvasRef.current;

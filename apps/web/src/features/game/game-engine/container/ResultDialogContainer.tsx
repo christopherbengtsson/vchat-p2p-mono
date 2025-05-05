@@ -47,6 +47,7 @@ export const ResultDialogContainer = observer(function ResultDialogContainer({
           )}
         </div>
       }
+      description=""
       mainContent={
         <ResultDialogContent
           round={round}

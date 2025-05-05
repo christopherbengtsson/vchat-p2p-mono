@@ -14,6 +14,9 @@ import { Pipe } from '../model/Pipe';
 import { CanvasUtil } from '../util/CanvasUtil';
 import { CanvasCacheService, MAX_CACHE_SIZE } from './CanvasCacheService';
 
+/**
+ * Adds a new pipe pair to the game
+ */
 const addPipe = (
   frameCountRef: React.RefObject<number>,
   pipesRef: React.RefObject<Pipe[]>,
@@ -77,19 +80,16 @@ const addPipe = (
   }
 };
 
+/**
+ * Moves all pipes and updates score when pipes are passed
+ */
 const movePipes = (
   pipesRef: React.RefObject<Pipe[]>,
   pipesPassedRef: React.RefObject<number>,
   scaleFactor: ScaleFactor,
   canvasWidth: number,
 ) => {
-  const speed =
-    Math.min(
-      DIFFICULTY.INITIAL_SPEED +
-        pipesPassedRef.current * DIFFICULTY.SPEED_INCREMENT,
-      DIFFICULTY.MAX_SPEED,
-    ) * scaleFactor.widthScale;
-
+  const speed = getPipeSpeed(pipesPassedRef, scaleFactor);
   const playerX = canvasWidth * PLAYER_X_POS_MULTIPLIER;
 
   for (let i = 0; i < pipesRef.current.length; i++) {
@@ -108,10 +108,16 @@ const movePipes = (
   }
 };
 
+/**
+ * Removes pipes that are off-screen
+ */
 const removePipes = (pipesRef: React.RefObject<Pipe[]>) => {
   pipesRef.current = pipesRef.current.filter((pipe) => pipe.x + pipe.width > 0);
 };
 
+/**
+ * Calculates pipe speed based on score and scale factor
+ */
 const getPipeSpeed = (
   pipesPassedRef: React.RefObject<number>,
   scaleFactor: ScaleFactor,
@@ -122,6 +128,9 @@ const getPipeSpeed = (
     DIFFICULTY.MAX_SPEED,
   ) * scaleFactor.widthScale;
 
+/**
+ * Draws a section of a pipe
+ */
 const drawPipeSection = (
   ctx: CanvasRenderingContext2D,
   tilesImage: HTMLImageElement,
@@ -149,6 +158,9 @@ const drawPipeSection = (
   );
 };
 
+/**
+ * Draws the body of a pipe with repeating texture
+ */
 const drawPipeBody = (
   ctx: CanvasRenderingContext2D,
   tilesImage: HTMLImageElement,
@@ -220,6 +232,9 @@ const drawPipeBody = (
   }
 };
 
+/**
+ * Draws a lower pipe (bottom pipe)
+ */
 const drawLowerPipe = (
   ctx: CanvasRenderingContext2D,
   pipe: { width: number; height: number },
@@ -258,6 +273,9 @@ const drawLowerPipe = (
   );
 };
 
+/**
+ * Draws an upper pipe (top pipe)
+ */
 const drawUpperPipe = (
   ctx: CanvasRenderingContext2D,
   pipe: { width: number; height: number },
@@ -296,6 +314,9 @@ const drawUpperPipe = (
   );
 };
 
+/**
+ * Draws all pipes with hitboxes if debug mode is enabled
+ */
 const drawPipes = (
   ctx: CanvasRenderingContext2D,
   pipes: Pipe[],
@@ -312,6 +333,7 @@ const drawPipes = (
       height: pipe.height,
     };
 
+    // Get or create cached pipe
     const cachedPipe = CanvasUtil.getOrCreateCachedCanvas(
       CanvasCacheService.caches.pipe,
       cacheKey,
@@ -335,15 +357,13 @@ const drawPipes = (
     const pipeYRounded = Math.round(pipe.y);
     ctx.drawImage(cachedPipe, pipeXRounded, pipeYRounded);
 
+    // Draw hitbox for debugging
     if (DEBUG.SHOW_HITBOX) {
       const borderWidth = Math.max(1, Math.floor(2 * scaleFactor.widthScale));
       ctx.strokeStyle = DEBUG.HITBOX_COLOR;
       ctx.lineWidth = borderWidth;
 
-      // --- START HITBOX ADJUSTMENT ---
       // Calculate dimensions needed for the two-part hitbox
-      // Reuse logic similar to drawLowerPipe/drawUpperPipe
-
       const pipeCoords = ASSETS.COORDS.PIPE;
       const capCoords = pipe.isUpperPipe
         ? ASSETS.COORDS.PIPE_BOTTOM
@@ -395,9 +415,32 @@ const drawPipes = (
           );
         }
       }
-      // --- END HITBOX ADJUSTMENT ---
     }
   });
+};
+
+/**
+ * Gets pipe dimensions for collision detection
+ */
+const getPipeDimensions = (pipe: Pipe) => {
+  const pipeCoords = ASSETS.COORDS.PIPE;
+  const capCoords = pipe.isUpperPipe
+    ? ASSETS.COORDS.PIPE_BOTTOM
+    : ASSETS.COORDS.PIPE_TOP;
+
+  const pipeWidthRatio = pipe.width / capCoords.width;
+  const capHeight = Math.round(capCoords.height * pipeWidthRatio);
+  const middleWidthRatio = pipeCoords.width / capCoords.width;
+  const bodyWidth = Math.round(pipe.width * middleWidthRatio);
+  const bodyXOffset = Math.round((pipe.width - bodyWidth) / 2);
+
+  return {
+    capWidth: pipe.width,
+    capHeight,
+    bodyWidth,
+    bodyXOffset,
+    bodyHeight: pipe.height - capHeight,
+  };
 };
 
 export const CanvasPipeService = {
@@ -408,4 +451,5 @@ export const CanvasPipeService = {
   drawPipes,
   drawUpperPipe,
   drawLowerPipe,
+  getPipeDimensions,
 };
