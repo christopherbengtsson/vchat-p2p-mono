@@ -12,6 +12,7 @@ import { CanvasCloudService } from './CanvasCloudService';
 import { CanvasPipeService } from './CanvasPipeService';
 import { CanvasScoreService } from './CanvasScoreService';
 import { CanvasPlayerService } from './CanvasPlayerService';
+import { CanvasHeartService } from './CanvasHeartService';
 
 const areAssetsReady = () => ASSETS.TILES.complete;
 
@@ -100,12 +101,30 @@ const drawCanvas = ({
     isDead,
     deathFrames,
   );
+
+  // Draw hearts animation
+  if (!isDead) {
+    // Calculate player height based on aspect ratio
+    const playerCoords = ASSETS.COORDS.TRUMP;
+    const aspectRatio = playerCoords.width / playerCoords.height;
+    const playerHeight = playerWidth / aspectRatio;
+
+    CanvasHeartService.drawHearts(
+      ctx,
+      playerX,
+      yPos,
+      playerWidth,
+      playerHeight,
+      scaleFactor,
+    );
+  }
 };
 
 const clearCache = () => {
   CanvasCacheService.clearCache();
   CanvasCloudService.resetClouds();
   CanvasBackgroundService.resetBackground();
+  CanvasHeartService.resetHeartAnimation();
 };
 
 export const CanvasDrawService = {

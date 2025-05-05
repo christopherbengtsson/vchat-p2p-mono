@@ -5,6 +5,7 @@ export const MAX_CACHE_SIZE = {
   PIPE: 20,
   SCORE: 30,
   BACKGROUND: 5,
+  HEART: 10,
 } as const;
 
 // Centralized cache storage
@@ -14,6 +15,7 @@ const caches = {
   pipe: new Map<string, HTMLCanvasElement>(),
   player: new Map<string, HTMLCanvasElement>(),
   score: new Map<string, HTMLCanvasElement>(),
+  heart: new Map<string, HTMLCanvasElement>(),
 };
 
 /**

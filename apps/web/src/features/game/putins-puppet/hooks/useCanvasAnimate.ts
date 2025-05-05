@@ -12,6 +12,7 @@ import { CanvasCollisionService } from '../service/CanvasCollisionService';
 import { CanvasPlayerService } from '../service/CanvasPlayerService';
 import { CanvasPipeService } from '../service/CanvasPipeService';
 import { CanvasDrawService } from '../service/CanvasDrawService';
+import { CanvasHeartService } from '../service/CanvasHeartService';
 import { useDeathAnimation } from './useDeathAnimation';
 
 interface In {
@@ -31,6 +32,8 @@ export const useCanvasAnimate = ({
 }: In) => {
   const requestRef = useRef<number>(null);
   const frameCountRef = useRef<number>(0);
+
+  const heartAnimationStartedRef = useRef<boolean>(false);
 
   const pipesRef = useRef<Pipe[]>([]);
   const pipesPassedRef = useRef<number>(0);
@@ -80,7 +83,15 @@ export const useCanvasAnimate = ({
     // Update player X position for reference (used in death animation)
     playerXRef.current = canvasWidth * PLAYER_X_POS_MULTIPLIER;
 
+    // Start heart animation if it hasn't started yet and game is not over
+    if (!heartAnimationStartedRef.current && !isDeadRef.current) {
+      CanvasHeartService.startHeartAnimation();
+      heartAnimationStartedRef.current = true;
+    }
+
     if (!isDeadRef.current) {
+      CanvasHeartService.updateHeartAnimation();
+
       const pitchData = getPitch();
       if (pitchData) {
         CanvasPlayerService.updatePlayerPosition(
@@ -192,6 +203,7 @@ export const useCanvasAnimate = ({
     pipesPassedRef.current = 0;
     isDeadRef.current = false;
     deathAnimationFramesRef.current = 0;
+    heartAnimationStartedRef.current = false;
 
     requestRef.current = requestAnimationFrame(animate);
 
