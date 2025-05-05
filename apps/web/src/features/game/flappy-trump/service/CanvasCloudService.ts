@@ -36,17 +36,26 @@ const generateClouds = (
     );
 
     for (let i = 0; i < cloudCount; i++) {
-      const cloudSizePercent = CanvasUtil.getScaledValue(
-        BASE_CLOUD_SIZE_PERCENT,
-        scaleFactor,
-      );
+      // Apply device-specific scaling for clouds
+      // This ensures clouds are properly sized on all devices
+      let deviceMultiplier = 1;
+      if (scaleFactor.deviceType === 'MOBILE') {
+        deviceMultiplier = 2; // Make clouds 50% larger on mobile
+      } else if (scaleFactor.deviceType === 'TABLET') {
+        deviceMultiplier = 1.2; // Make clouds 20% larger on tablets
+      }
+
+      const cloudSizePercent = BASE_CLOUD_SIZE_PERCENT * deviceMultiplier;
 
       const scaleVariation =
         Math.random() * (CLOUD_SCALE_RANGE.MAX - CLOUD_SCALE_RANGE.MIN) +
         CLOUD_SCALE_RANGE.MIN;
+
+      // Apply the base cloud size percentage to the width
       const baseCloudWidth = width * cloudSizePercent;
-      const cloudWidth =
-        baseCloudWidth * scaleVariation * scaleFactor.widthScale;
+
+      // Apply the scale variation but NOT the scaleFactor.widthScale again
+      const cloudWidth = baseCloudWidth * scaleVariation;
 
       const aspectRatio =
         ASSETS.COORDS.CLOUD.width / ASSETS.COORDS.CLOUD.height;
@@ -93,16 +102,23 @@ const updateClouds = (
     frameCount % CLOUD_FREQUENCY === 0 &&
     clouds.length < CLOUD_COUNT_RANGE.MAX
   ) {
-    const cloudSizePercent = CanvasUtil.getScaledValue(
-      BASE_CLOUD_SIZE_PERCENT,
-      scaleFactor,
-    );
+    // Apply device-specific scaling for clouds
+    let deviceMultiplier = 1;
+    if (scaleFactor.deviceType === 'MOBILE') {
+      deviceMultiplier = 2;
+    } else if (scaleFactor.deviceType === 'TABLET') {
+      deviceMultiplier = 1.2;
+    }
+
+    const cloudSizePercent = BASE_CLOUD_SIZE_PERCENT * deviceMultiplier;
 
     const scaleVariation =
       Math.random() * (CLOUD_SCALE_RANGE.MAX - CLOUD_SCALE_RANGE.MIN) +
       CLOUD_SCALE_RANGE.MIN;
+
     const baseCloudWidth = width * cloudSizePercent;
-    const cloudWidth = baseCloudWidth * scaleVariation * scaleFactor.widthScale;
+
+    const cloudWidth = baseCloudWidth * scaleVariation;
 
     const aspectRatio = ASSETS.COORDS.CLOUD.width / ASSETS.COORDS.CLOUD.height;
     const cloudHeight = cloudWidth / aspectRatio;

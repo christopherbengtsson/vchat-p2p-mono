@@ -3,16 +3,20 @@ import debounce from 'lodash.debounce';
 import { BREAKPOINTS, DEVICE_SCALING } from '../model/constants';
 import { ScaleFactor } from '../model/DrawProps';
 
+const initialScaleFactor: ScaleFactor = {
+  widthScale: 1,
+  heightScale: 1,
+  deviceScaleFactor: DEVICE_SCALING.LAPTOP,
+  devicePixelRatio: window.devicePixelRatio || 1,
+  deviceType: 'LAPTOP',
+};
+
 export const useCanvasResize = (
   canvasRef: React.RefObject<HTMLCanvasElement | null>,
   containerRef: React.RefObject<HTMLDivElement | null>,
 ) => {
-  const [scaleFactor, setScaleFactor] = useState<ScaleFactor>({
-    widthScale: 1,
-    heightScale: 1,
-    devicePixelRatio: window.devicePixelRatio || 1,
-    deviceType: 'LAPTOP',
-  });
+  const [scaleFactor, setScaleFactor] =
+    useState<ScaleFactor>(initialScaleFactor);
 
   useEffect(() => {
     const canvas = canvasRef.current;

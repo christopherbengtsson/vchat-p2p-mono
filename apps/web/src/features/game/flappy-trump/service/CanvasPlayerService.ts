@@ -5,6 +5,7 @@ import {
   ASSETS,
   DEBUG,
   VELOCITY_DAMP,
+  DEATH_PHYSICS,
 } from '../model/constants';
 import type { ScaleFactor } from '../model/DrawProps';
 import { CanvasUtil } from '../util/CanvasUtil';
@@ -75,6 +76,25 @@ const updatePlayerPosition = (
   return voiceInputDetected;
 };
 
+const updateDeathAnimation = (
+  playerXRef: React.RefObject<number>,
+  playerYRef: React.RefObject<number>,
+  velocityRef: React.RefObject<number>,
+  scaleFactor: ScaleFactor,
+) => {
+  const scaledGravity =
+    GRAVITY * DEATH_PHYSICS.GRAVITY_MULTIPLIER * scaleFactor.heightScale;
+  velocityRef.current += scaledGravity;
+
+  playerYRef.current += velocityRef.current;
+
+  playerXRef.current +=
+    DEATH_PHYSICS.HORIZONTAL_VELOCITY * scaleFactor.widthScale;
+
+  // No need to check for upper boundary during death animation
+  // Player should fall off the screen
+};
+
 const drawPlayer = (
   ctx: CanvasRenderingContext2D,
   x: number,
@@ -82,19 +102,27 @@ const drawPlayer = (
   width: number,
   velocity: number,
   scaleFactor: ScaleFactor,
+  isDead = false,
+  deathFrames = 0,
 ) => {
   const tilesImage = ASSETS.TILES;
   if (!tilesImage.complete) return;
 
-  const playerCoords =
-    velocity > 0 ? ASSETS.COORDS.TRUMP_EYEBROWS_UP : ASSETS.COORDS.TRUMP;
+  let playerCoords = ASSETS.COORDS.TRUMP;
+
+  if (isDead) {
+    playerCoords = ASSETS.COORDS.TRUMP_EYEBROWS_UP;
+  } else if (velocity > 0) {
+    playerCoords = ASSETS.COORDS.TRUMP_EYEBROWS_UP;
+  }
 
   const aspectRatio = playerCoords.width / playerCoords.height;
   const height = width / aspectRatio;
 
   const roundedWidth = Math.round(width);
   const roundedHeight = Math.round(height);
-  const cacheKey = `${roundedWidth}_${roundedHeight}_${velocity > 0 ? 'up' : 'normal'}_${scaleFactor.deviceType}`;
+
+  const cacheKey = `${roundedWidth}_${roundedHeight}_${velocity > 0 ? 'up' : 'normal'}_${isDead ? 'dead' : 'alive'}_${scaleFactor.deviceType}`;
 
   const dimensions = { width: roundedWidth, height: roundedHeight };
 
@@ -123,7 +151,28 @@ const drawPlayer = (
 
   const roundedX = Math.round(x);
   const roundedY = Math.round(y);
-  ctx.drawImage(cachedPlayer, roundedX, roundedY);
+
+  if (isDead) {
+    ctx.save();
+
+    const centerX = roundedX + cachedPlayer.width / 2;
+    const centerY = roundedY + cachedPlayer.height / 2;
+
+    const rotation =
+      (deathFrames * DEATH_PHYSICS.ROTATION_SPEED) % (Math.PI * 2);
+
+    ctx.translate(centerX, centerY);
+    ctx.rotate(rotation);
+    ctx.drawImage(
+      cachedPlayer,
+      -cachedPlayer.width / 2,
+      -cachedPlayer.height / 2,
+    );
+
+    ctx.restore();
+  } else {
+    ctx.drawImage(cachedPlayer, roundedX, roundedY);
+  }
 
   if (DEBUG.SHOW_HITBOX) {
     ctx.strokeStyle = DEBUG.HITBOX_COLOR;
@@ -134,5 +183,6 @@ const drawPlayer = (
 
 export const CanvasPlayerService = {
   updatePlayerPosition,
+  updateDeathAnimation,
   drawPlayer,
 };

@@ -20,10 +20,17 @@ export const PlayerContainer = observer(function PlayerContainer({
 
   const getPitch = useCallback(() => FlappyTrumpService.getPitch(), []);
 
+  const playStartSound = async () => {
+    void startAudioRef.current?.play();
+  };
+
+  const playEndSound = () => {
+    endAudioRef.current?.play();
+  };
+
   const onGameOver = useCallback(
-    async (score: number) => {
-      const endRound = () => onEndRound(score);
-      await playEndSound(endRound);
+    (score: number) => {
+      onEndRound(score);
     },
     [onEndRound],
   );
@@ -34,6 +41,7 @@ export const PlayerContainer = observer(function PlayerContainer({
     onGameOver,
     getPitch,
     scaleFactor,
+    playEndSound,
   });
 
   useEffect(() => {
@@ -43,21 +51,6 @@ export const PlayerContainer = observer(function PlayerContainer({
       FlappyTrumpService.stopCanvasStream();
     };
   }, []);
-
-  const playStartSound = async () => {
-    void startAudioRef.current?.play();
-  };
-
-  const playEndSound = async (endRound: VoidFunction) => {
-    if (!endAudioRef.current) {
-      return endRound();
-    }
-
-    endAudioRef.current.onended = () => {
-      endRound();
-    };
-    await endAudioRef.current?.play();
-  };
 
   return (
     <>

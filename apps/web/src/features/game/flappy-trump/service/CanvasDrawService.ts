@@ -14,6 +14,7 @@ import { CanvasPlayerService } from './CanvasPlayerService';
 
 const drawCanvas = ({
   ctx,
+  xPos,
   yPos,
   pipes,
   score,
@@ -21,6 +22,8 @@ const drawCanvas = ({
   velocity,
   pipeSpeed,
   frameCount,
+  isDead = false,
+  deathFrames = 0,
 }: DrawProps) => {
   const canvas = ctx.canvas;
 
@@ -33,7 +36,7 @@ const drawCanvas = ({
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   // Draw game elements in correct order (background to foreground)
-  const backgroundSpeed = pipeSpeed * BACKGROUND_SPEED_MULTIPLIER;
+  const backgroundSpeed = isDead ? 0 : pipeSpeed * BACKGROUND_SPEED_MULTIPLIER;
 
   CanvasBackgroundService.drawBackground(
     ctx,
@@ -44,13 +47,17 @@ const drawCanvas = ({
   );
 
   CanvasCloudService.generateClouds(logicalWidth, logicalHeight, scaleFactor);
-  CanvasCloudService.updateClouds(
-    logicalWidth,
-    logicalHeight,
-    frameCount,
-    pipeSpeed,
-    scaleFactor,
-  );
+
+  if (!isDead) {
+    CanvasCloudService.updateClouds(
+      logicalWidth,
+      logicalHeight,
+      frameCount,
+      pipeSpeed,
+      scaleFactor,
+    );
+  }
+
   CanvasCloudService.drawClouds(ctx, scaleFactor);
 
   CanvasPipeService.drawPipes(ctx, pipes, scaleFactor);
@@ -62,7 +69,9 @@ const drawCanvas = ({
     scaleFactor,
   );
   const playerWidth = logicalWidth * playerSizePercent;
-  const playerX = logicalWidth * PLAYER_X_POS_MULTIPLIER;
+
+  const playerX =
+    xPos !== undefined ? xPos : logicalWidth * PLAYER_X_POS_MULTIPLIER;
 
   CanvasPlayerService.drawPlayer(
     ctx,
@@ -71,6 +80,8 @@ const drawCanvas = ({
     playerWidth,
     velocity,
     scaleFactor,
+    isDead,
+    deathFrames,
   );
 };
 

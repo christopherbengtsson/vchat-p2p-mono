@@ -20,6 +20,13 @@ export const DIFFICULTY = {
   MAX_SPEED: 5,
 };
 
+export const DEATH_PHYSICS = {
+  BOUNCE_VELOCITY: -5,
+  HORIZONTAL_VELOCITY: -40,
+  ROTATION_SPEED: 0.1,
+  GRAVITY_MULTIPLIER: 1.5,
+};
+
 // Debug settings
 export const DEBUG = {
   SHOW_HITBOX: import.meta.env.DEV,

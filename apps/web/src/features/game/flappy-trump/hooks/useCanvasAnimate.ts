@@ -11,10 +11,12 @@ import { CanvasCollisionService } from '../service/CanvasCollisionService';
 import { CanvasPlayerService } from '../service/CanvasPlayerService';
 import { CanvasPipeService } from '../service/CanvasPipeService';
 import { CanvasDrawService } from '../service/CanvasDrawService';
+import { useDeathAnimation } from './useDeathAnimation';
 
 interface In {
   canvasRef: React.RefObject<HTMLCanvasElement | null>;
   onGameOver: (score: number) => void;
+  playEndSound: VoidFunction;
   getPitch: () => Maybe<[number, number]>;
   scaleFactor: ScaleFactor;
 }
@@ -22,6 +24,7 @@ interface In {
 export const useCanvasAnimate = ({
   canvasRef,
   onGameOver,
+  playEndSound,
   getPitch,
   scaleFactor,
 }: In) => {
@@ -33,6 +36,22 @@ export const useCanvasAnimate = ({
 
   const playerYRef = useRef<number>(0);
   const velocityRef = useRef<number>(0);
+
+  const playerXRef = useRef<number>(0);
+
+  const {
+    initDeathAnimation,
+    animateDeath,
+    deathAnimationFramesRef,
+    isDeadRef,
+  } = useDeathAnimation({
+    velocityRef,
+    playerXRef,
+    playerYRef,
+    canvasRef,
+    scaleFactor,
+    playEndSound,
+  });
 
   const endGame = useCallback(() => {
     if (!requestRef.current) {
@@ -52,58 +71,70 @@ export const useCanvasAnimate = ({
 
     const canvasWidth = canvas.width / scaleFactor.devicePixelRatio;
 
-    const pitchData = getPitch();
-    if (pitchData) {
-      CanvasPlayerService.updatePlayerPosition(
-        pitchData,
+    // Update player X position for reference (used in death animation)
+    playerXRef.current = canvasWidth * PLAYER_X_POS_MULTIPLIER;
+
+    if (!isDeadRef.current) {
+      const pitchData = getPitch();
+      if (pitchData) {
+        CanvasPlayerService.updatePlayerPosition(
+          pitchData,
+          canvas,
+          playerYRef,
+          velocityRef,
+          scaleFactor,
+        );
+      }
+
+      CanvasPipeService.addPipe(
+        frameCountRef,
+        pipesRef,
         canvas,
-        playerYRef,
-        velocityRef,
+        scaleFactor,
+        pipesPassedRef,
+      );
+
+      CanvasPipeService.movePipes(
+        pipesRef,
+        pipesPassedRef,
+        scaleFactor,
+        canvasWidth,
+      );
+
+      CanvasPipeService.removePipes(pipesRef);
+
+      const playerSizePercent = CanvasUtil.getScaledValue(
+        BASE_PLAYER_SIZE_PERCENT,
         scaleFactor,
       );
-    }
+      const playerSize = canvasWidth * playerSizePercent;
+      const playerX = playerXRef.current;
 
-    CanvasPipeService.addPipe(
-      frameCountRef,
-      pipesRef,
-      canvas,
-      scaleFactor,
-      pipesPassedRef,
-    );
+      const pipeHit = CanvasCollisionService.isCollision({
+        playerX,
+        playerY: playerYRef.current,
+        playerWidth: playerSize,
+        playerHeight: playerSize,
+        pipes: pipesRef.current,
+        canvasWidth,
+        scaleFactor,
+      });
 
-    CanvasPipeService.movePipes(
-      pipesRef,
-      pipesPassedRef,
-      scaleFactor,
-      canvasWidth,
-    );
+      if (pipeHit) {
+        initDeathAnimation();
+      }
+    } else {
+      const animationFinished = animateDeath();
 
-    CanvasPipeService.removePipes(pipesRef);
-
-    const playerSizePercent = CanvasUtil.getScaledValue(
-      BASE_PLAYER_SIZE_PERCENT,
-      scaleFactor,
-    );
-    const playerSize = canvasWidth * playerSizePercent;
-    const playerX = canvasWidth * PLAYER_X_POS_MULTIPLIER;
-
-    const pipeHit = CanvasCollisionService.isCollision({
-      playerX,
-      playerY: playerYRef.current,
-      playerWidth: playerSize,
-      playerHeight: playerSize,
-      pipes: pipesRef.current,
-      canvasWidth,
-      scaleFactor,
-    });
-
-    if (pipeHit) {
-      endGame();
-      return;
+      if (animationFinished) {
+        endGame();
+        return;
+      }
     }
 
     CanvasDrawService.drawCanvas({
       ctx,
+      xPos: playerXRef.current,
       yPos: playerYRef.current,
       pipes: pipesRef.current,
       score: pipesPassedRef.current,
@@ -111,10 +142,21 @@ export const useCanvasAnimate = ({
       velocity: velocityRef.current,
       pipeSpeed: CanvasPipeService.getPipeSpeed(pipesPassedRef, scaleFactor),
       frameCount: frameCountRef.current,
+      isDead: isDeadRef.current,
+      deathFrames: deathAnimationFramesRef.current,
     });
 
     requestRef.current = requestAnimationFrame(animate);
-  }, [canvasRef, scaleFactor, getPitch, endGame]);
+  }, [
+    canvasRef,
+    scaleFactor,
+    isDeadRef,
+    deathAnimationFramesRef,
+    getPitch,
+    initDeathAnimation,
+    animateDeath,
+    endGame,
+  ]);
 
   // Initialize player position in the middle of the canvas
   useEffect(() => {
@@ -122,6 +164,10 @@ export const useCanvasAnimate = ({
       const canvasHeight =
         canvasRef.current.height / scaleFactor.devicePixelRatio;
       playerYRef.current = canvasHeight / 2;
+
+      const canvasWidth =
+        canvasRef.current.width / scaleFactor.devicePixelRatio;
+      playerXRef.current = canvasWidth * PLAYER_X_POS_MULTIPLIER;
     }
   }, [playerYRef, canvasRef, scaleFactor]);
 
@@ -131,6 +177,8 @@ export const useCanvasAnimate = ({
     frameCountRef.current = 0;
     pipesRef.current = [];
     pipesPassedRef.current = 0;
+    isDeadRef.current = false;
+    deathAnimationFramesRef.current = 0;
 
     requestRef.current = requestAnimationFrame(animate);
 
@@ -139,5 +187,5 @@ export const useCanvasAnimate = ({
         cancelAnimationFrame(requestRef.current);
       }
     };
-  }, [animate, scaleFactor]);
+  }, [animate, deathAnimationFramesRef, isDeadRef, scaleFactor]);
 };
