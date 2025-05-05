@@ -122,6 +122,104 @@ const getPipeSpeed = (
     DIFFICULTY.MAX_SPEED,
   ) * scaleFactor.widthScale;
 
+const drawPipeSection = (
+  ctx: CanvasRenderingContext2D,
+  tilesImage: HTMLImageElement,
+  sourceCoords: { x: number; y: number; width: number; height: number },
+  destX: number,
+  destY: number,
+  destWidth: number,
+  destHeight: number,
+  sourceHeight?: number,
+) => {
+  // If sourceHeight is provided, use it, otherwise use the full sourceCoords.height
+  const actualSourceHeight =
+    sourceHeight !== undefined ? sourceHeight : sourceCoords.height;
+
+  ctx.drawImage(
+    tilesImage,
+    sourceCoords.x,
+    sourceCoords.y,
+    sourceCoords.width,
+    actualSourceHeight,
+    destX,
+    destY,
+    destWidth,
+    destHeight,
+  );
+};
+
+const drawPipeBody = (
+  ctx: CanvasRenderingContext2D,
+  tilesImage: HTMLImageElement,
+  pipeCoords: { x: number; y: number; width: number; height: number },
+  capCoords: { x: number; y: number; width: number; height: number },
+  pipeWidth: number,
+  pipeHeight: number,
+  capHeight: number,
+  isUpperPipe: boolean,
+) => {
+  // Calculate middle section width (slightly narrower) based on rounded pipeWidth
+  const middleWidthRatio = pipeCoords.width / capCoords.width; // Use cap for ratio consistency
+  const middleWidth = Math.round(pipeWidth * middleWidthRatio);
+  const xOffset = Math.round((pipeWidth - middleWidth) / 2); // Center the narrower pipe body
+
+  const pipeWidthRatio = pipeWidth / capCoords.width;
+
+  // Calculate body height (total height minus cap height)
+  const pipeBodyHeight = pipeHeight - capHeight;
+
+  if (pipeBodyHeight <= 0) return; // No body to draw
+
+  // Use original pipeWidthRatio for calculating scaled height from source aspect ratio
+  const scaledPipeHeight = pipeCoords.height * pipeWidthRatio;
+  const roundedScaledPipeHeight = Math.max(1, Math.round(scaledPipeHeight)); // Ensure at least 1 pixel
+
+  const repetitions = Math.ceil(pipeBodyHeight / roundedScaledPipeHeight);
+
+  for (let i = 0; i < repetitions; i++) {
+    // For upper pipe, start from the top and work down
+    // For lower pipe, start from after the cap and work down
+    const y = isUpperPipe
+      ? Math.round(i * roundedScaledPipeHeight)
+      : Math.round(capHeight + i * roundedScaledPipeHeight);
+
+    // Calculate the height for this segment, ensuring it doesn't exceed the remaining body height
+    const remainingHeight = isUpperPipe
+      ? pipeBodyHeight - y
+      : pipeBodyHeight - (y - capHeight);
+
+    const drawHeight = Math.max(
+      1,
+      Math.round(Math.min(roundedScaledPipeHeight, remainingHeight)),
+    );
+
+    if (drawHeight <= 0) continue;
+
+    // Calculate source height based on the *unrounded* scaled height to maintain aspect ratio from source
+    // Clamp sourceHeight to avoid reading outside the sprite bounds
+    const sourceHeightRatio = drawHeight / scaledPipeHeight;
+    const sourceHeight = Math.max(
+      1,
+      Math.min(
+        pipeCoords.height,
+        Math.round(sourceHeightRatio * pipeCoords.height),
+      ),
+    );
+
+    drawPipeSection(
+      ctx,
+      tilesImage,
+      pipeCoords,
+      xOffset,
+      y,
+      middleWidth,
+      drawHeight,
+      sourceHeight,
+    );
+  }
+};
+
 const drawLowerPipe = (
   ctx: CanvasRenderingContext2D,
   pipe: { width: number; height: number },
@@ -137,12 +235,10 @@ const drawLowerPipe = (
   const pipeTopHeight = Math.round(pipeTopCoords.height * pipeWidthRatio);
 
   // Draw pipe top cap
-  ctx.drawImage(
+  drawPipeSection(
+    ctx,
     tilesImage,
-    pipeTopCoords.x,
-    pipeTopCoords.y,
-    pipeTopCoords.width,
-    pipeTopCoords.height,
+    pipeTopCoords,
     0,
     0,
     pipeWidth,
@@ -150,54 +246,16 @@ const drawLowerPipe = (
   );
 
   // Draw pipe body (repeating middle section)
-  const pipeBodyHeight = pipeHeight - pipeTopHeight;
-  if (pipeBodyHeight > 0) {
-    // Calculate middle section width (slightly narrower) based on rounded pipeWidth
-    const middleWidthRatio = pipeCoords.width / pipeTopCoords.width; // Use top cap for ratio consistency
-    const middleWidth = Math.round(pipeWidth * middleWidthRatio);
-    const xOffset = Math.round((pipeWidth - middleWidth) / 2); // Center the narrower pipe body
-
-    // Use original pipeWidthRatio for calculating scaled height from source aspect ratio
-    const scaledPipeHeight = pipeCoords.height * pipeWidthRatio;
-    const roundedScaledPipeHeight = Math.max(1, Math.round(scaledPipeHeight)); // Ensure at least 1 pixel
-
-    const repetitions = Math.ceil(pipeBodyHeight / roundedScaledPipeHeight);
-
-    for (let i = 0; i < repetitions; i++) {
-      const y = Math.round(pipeTopHeight + i * roundedScaledPipeHeight);
-      // Calculate the height for this segment, ensuring it doesn't exceed the remaining body height
-      const remainingHeight = pipeBodyHeight - (y - pipeTopHeight);
-      const drawHeight = Math.max(
-        1,
-        Math.round(Math.min(roundedScaledPipeHeight, remainingHeight)),
-      );
-
-      if (drawHeight <= 0) continue;
-
-      // Calculate source height based on the *unrounded* scaled height to maintain aspect ratio from source
-      // Clamp sourceHeight to avoid reading outside the sprite bounds
-      const sourceHeightRatio = drawHeight / scaledPipeHeight;
-      const sourceHeight = Math.max(
-        1,
-        Math.min(
-          pipeCoords.height,
-          Math.round(sourceHeightRatio * pipeCoords.height),
-        ),
-      );
-
-      ctx.drawImage(
-        tilesImage,
-        pipeCoords.x,
-        pipeCoords.y,
-        pipeCoords.width,
-        sourceHeight,
-        xOffset,
-        y,
-        middleWidth,
-        drawHeight,
-      );
-    }
-  }
+  drawPipeBody(
+    ctx,
+    tilesImage,
+    pipeCoords,
+    pipeTopCoords,
+    pipeWidth,
+    pipeHeight,
+    pipeTopHeight,
+    false, // isUpperPipe = false
+  );
 };
 
 const drawUpperPipe = (
@@ -214,62 +272,23 @@ const drawUpperPipe = (
   const pipeWidthRatio = pipeWidth / pipeBottomCoords.width;
   const pipeBottomHeight = Math.round(pipeBottomCoords.height * pipeWidthRatio);
 
-  // Calculate middle section width (slightly narrower) based on rounded pipeWidth
-  const middleWidthRatio = pipeCoords.width / pipeBottomCoords.width; // Use bottom cap for ratio consistency
-  const middleWidth = Math.round(pipeWidth * middleWidthRatio);
-  const xOffset = Math.round((pipeWidth - middleWidth) / 2);
-
   // Draw pipe body (repeating middle section)
-  const pipeBodyHeight = pipeHeight - pipeBottomHeight;
-  if (pipeBodyHeight > 0) {
-    // Use original pipeWidthRatio for calculating scaled height from source aspect ratio
-    const scaledPipeHeight = pipeCoords.height * pipeWidthRatio;
-    const roundedScaledPipeHeight = Math.max(1, Math.round(scaledPipeHeight)); // Ensure at least 1 pixel
-
-    const repetitions = Math.ceil(pipeBodyHeight / roundedScaledPipeHeight);
-
-    for (let i = 0; i < repetitions; i++) {
-      const y = Math.round(i * roundedScaledPipeHeight);
-      // Calculate the height for this segment, ensuring it doesn't exceed the remaining body height
-      const remainingHeight = pipeBodyHeight - y;
-      const drawHeight = Math.max(
-        1,
-        Math.round(Math.min(roundedScaledPipeHeight, remainingHeight)),
-      );
-
-      if (drawHeight <= 0) continue;
-      // Calculate source height based on the *unrounded* scaled height to maintain aspect ratio from source
-      // Clamp sourceHeight to avoid reading outside the sprite bounds
-      const sourceHeightRatio = drawHeight / scaledPipeHeight;
-      const sourceHeight = Math.max(
-        1,
-        Math.min(
-          pipeCoords.height,
-          Math.round(sourceHeightRatio * pipeCoords.height),
-        ),
-      );
-
-      ctx.drawImage(
-        tilesImage,
-        pipeCoords.x,
-        pipeCoords.y,
-        pipeCoords.width,
-        sourceHeight,
-        xOffset,
-        y,
-        middleWidth,
-        drawHeight,
-      );
-    }
-  }
+  drawPipeBody(
+    ctx,
+    tilesImage,
+    pipeCoords,
+    pipeBottomCoords,
+    pipeWidth,
+    pipeHeight,
+    pipeBottomHeight,
+    true, // isUpperPipe = true
+  );
 
   // Draw pipe bottom cap at the bottom of the upper pipe
-  ctx.drawImage(
+  drawPipeSection(
+    ctx,
     tilesImage,
-    pipeBottomCoords.x,
-    pipeBottomCoords.y,
-    pipeBottomCoords.width,
-    pipeBottomCoords.height,
+    pipeBottomCoords,
     0,
     Math.round(pipeHeight - pipeBottomHeight),
     pipeWidth,

@@ -23,6 +23,57 @@ let clouds: {
   scale: number;
 }[] = [];
 
+const createCloud = (
+  width: number,
+  height: number,
+  xPosition: number,
+  scaleFactor: ScaleFactor,
+) => {
+  let deviceMultiplier = 1;
+  if (scaleFactor.deviceType === 'MOBILE') {
+    deviceMultiplier = 2;
+  } else if (scaleFactor.deviceType === 'TABLET') {
+    deviceMultiplier = 1.2;
+  }
+
+  const cloudSizePercent = BASE_CLOUD_SIZE_PERCENT * deviceMultiplier;
+
+  const scaleVariation =
+    Math.random() * (CLOUD_SCALE_RANGE.MAX - CLOUD_SCALE_RANGE.MIN) +
+    CLOUD_SCALE_RANGE.MIN;
+
+  const baseCloudWidth = width * cloudSizePercent;
+
+  const cloudWidth = baseCloudWidth * scaleVariation;
+
+  const aspectRatio = ASSETS.COORDS.CLOUD.width / ASSETS.COORDS.CLOUD.height;
+  const cloudHeight = cloudWidth / aspectRatio;
+
+  // Calculate speed based on size - larger clouds move faster (appear closer)
+  // Map the scale variation to speed range
+  const normalizedScale =
+    (scaleVariation - CLOUD_SCALE_RANGE.MIN) /
+    (CLOUD_SCALE_RANGE.MAX - CLOUD_SCALE_RANGE.MIN);
+  const speedMultiplier =
+    CLOUD_SPEED_MULTIPLIER.MIN +
+    normalizedScale * (CLOUD_SPEED_MULTIPLIER.MAX - CLOUD_SPEED_MULTIPLIER.MIN);
+
+  return {
+    x: xPosition,
+    y:
+      height *
+      (Math.random() * (CLOUD_VERTICAL_RANGE.MAX - CLOUD_VERTICAL_RANGE.MIN) +
+        CLOUD_VERTICAL_RANGE.MIN),
+    width: cloudWidth,
+    height: cloudHeight,
+    speedMultiplier,
+    opacity:
+      Math.random() * (CLOUD_OPACITY_RANGE.MAX - CLOUD_OPACITY_RANGE.MIN) +
+      CLOUD_OPACITY_RANGE.MIN,
+    scale: scaleVariation,
+  };
+};
+
 const generateClouds = (
   width: number,
   height: number,
@@ -36,56 +87,9 @@ const generateClouds = (
     );
 
     for (let i = 0; i < cloudCount; i++) {
-      // Apply device-specific scaling for clouds
-      // This ensures clouds are properly sized on all devices
-      let deviceMultiplier = 1;
-      if (scaleFactor.deviceType === 'MOBILE') {
-        deviceMultiplier = 2; // Make clouds 50% larger on mobile
-      } else if (scaleFactor.deviceType === 'TABLET') {
-        deviceMultiplier = 1.2; // Make clouds 20% larger on tablets
-      }
-
-      const cloudSizePercent = BASE_CLOUD_SIZE_PERCENT * deviceMultiplier;
-
-      const scaleVariation =
-        Math.random() * (CLOUD_SCALE_RANGE.MAX - CLOUD_SCALE_RANGE.MIN) +
-        CLOUD_SCALE_RANGE.MIN;
-
-      // Apply the base cloud size percentage to the width
-      const baseCloudWidth = width * cloudSizePercent;
-
-      // Apply the scale variation but NOT the scaleFactor.widthScale again
-      const cloudWidth = baseCloudWidth * scaleVariation;
-
-      const aspectRatio =
-        ASSETS.COORDS.CLOUD.width / ASSETS.COORDS.CLOUD.height;
-      const cloudHeight = cloudWidth / aspectRatio;
-
-      // Calculate speed based on size - larger clouds move faster (appear closer)
-      // Map the scale variation to speed range
-      const normalizedScale =
-        (scaleVariation - CLOUD_SCALE_RANGE.MIN) /
-        (CLOUD_SCALE_RANGE.MAX - CLOUD_SCALE_RANGE.MIN);
-      const speedMultiplier =
-        CLOUD_SPEED_MULTIPLIER.MIN +
-        normalizedScale *
-          (CLOUD_SPEED_MULTIPLIER.MAX - CLOUD_SPEED_MULTIPLIER.MIN);
-
-      clouds.push({
-        x: Math.random() * width,
-        y:
-          height *
-          (Math.random() *
-            (CLOUD_VERTICAL_RANGE.MAX - CLOUD_VERTICAL_RANGE.MIN) +
-            CLOUD_VERTICAL_RANGE.MIN),
-        width: cloudWidth,
-        height: cloudHeight,
-        speedMultiplier,
-        opacity:
-          Math.random() * (CLOUD_OPACITY_RANGE.MAX - CLOUD_OPACITY_RANGE.MIN) +
-          CLOUD_OPACITY_RANGE.MIN,
-        scale: scaleVariation,
-      });
+      // For initial clouds, distribute them across the screen
+      const randomX = Math.random() * width;
+      clouds.push(createCloud(width, height, randomX, scaleFactor));
     }
   }
 };
@@ -102,50 +106,8 @@ const updateClouds = (
     frameCount % CLOUD_FREQUENCY === 0 &&
     clouds.length < CLOUD_COUNT_RANGE.MAX
   ) {
-    // Apply device-specific scaling for clouds
-    let deviceMultiplier = 1;
-    if (scaleFactor.deviceType === 'MOBILE') {
-      deviceMultiplier = 2;
-    } else if (scaleFactor.deviceType === 'TABLET') {
-      deviceMultiplier = 1.2;
-    }
-
-    const cloudSizePercent = BASE_CLOUD_SIZE_PERCENT * deviceMultiplier;
-
-    const scaleVariation =
-      Math.random() * (CLOUD_SCALE_RANGE.MAX - CLOUD_SCALE_RANGE.MIN) +
-      CLOUD_SCALE_RANGE.MIN;
-
-    const baseCloudWidth = width * cloudSizePercent;
-
-    const cloudWidth = baseCloudWidth * scaleVariation;
-
-    const aspectRatio = ASSETS.COORDS.CLOUD.width / ASSETS.COORDS.CLOUD.height;
-    const cloudHeight = cloudWidth / aspectRatio;
-
-    // Calculate speed based on size - larger clouds move faster (appear closer)
-    const normalizedScale =
-      (scaleVariation - CLOUD_SCALE_RANGE.MIN) /
-      (CLOUD_SCALE_RANGE.MAX - CLOUD_SCALE_RANGE.MIN);
-    const speedMultiplier =
-      CLOUD_SPEED_MULTIPLIER.MIN +
-      normalizedScale *
-        (CLOUD_SPEED_MULTIPLIER.MAX - CLOUD_SPEED_MULTIPLIER.MIN);
-
-    clouds.push({
-      x: width,
-      y:
-        height *
-        (Math.random() * (CLOUD_VERTICAL_RANGE.MAX - CLOUD_VERTICAL_RANGE.MIN) +
-          CLOUD_VERTICAL_RANGE.MIN),
-      width: cloudWidth,
-      height: cloudHeight,
-      speedMultiplier,
-      opacity:
-        Math.random() * (CLOUD_OPACITY_RANGE.MAX - CLOUD_OPACITY_RANGE.MIN) +
-        CLOUD_OPACITY_RANGE.MIN,
-      scale: scaleVariation,
-    });
+    // New clouds always start from the right edge
+    clouds.push(createCloud(width, height, width, scaleFactor));
   }
 
   // Move clouds with individual speeds based on their size
