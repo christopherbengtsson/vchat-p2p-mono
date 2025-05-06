@@ -5,6 +5,7 @@ import { useCanvasAnimate } from '../hooks/useCanvasAnimate';
 import { useCanvasResize } from '../hooks/useCanvasResize';
 import { PutinsPuppetService } from '../service/PutinsPuppetService';
 import { RandomTrumpSound } from '../component/RandomTrumpSound';
+import { GameTitle } from '../component/GameTitle';
 
 interface Props {
   onEndRound: (score: number) => void;
@@ -56,6 +57,7 @@ export const PlayerContainer = observer(function PlayerContainer({
         aria-label="Game area"
       >
         <div className="relative z-10">
+          <GameTitle />
           <Canvas canvasRef={canvasRef} />
         </div>
       </div>
