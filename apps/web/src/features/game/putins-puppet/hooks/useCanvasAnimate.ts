@@ -40,10 +40,10 @@ export const useCanvasAnimate = ({
   const pipesRef = useRef<Pipe[]>([]);
   const pipesPassedRef = useRef<number>(0);
 
-  const playerYRef = useRef<number>(0);
-  const velocityRef = useRef<number>(0);
-
   const playerXRef = useRef<number>(0);
+  const playerYRef = useRef<number>(0);
+
+  const velocityRef = useRef<number>(0);
 
   const {
     initDeathAnimation,

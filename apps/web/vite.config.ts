@@ -28,6 +28,55 @@ export default defineConfig(({ mode }) => ({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  build: {
+    // Generate source maps for better debugging
+    sourcemap: mode === 'development',
+    // Optimize CSS
+    cssCodeSplit: true,
+    // Reduce chunk size warnings threshold
+    rollupOptions: {
+      output: {
+        // TODO: Implement preloading?
+        manualChunks: {
+          // React core
+          'react-core': ['react', 'react-dom', 'react-router'],
+
+          // UI components
+          'ui-components': [
+            '@radix-ui/react-alert-dialog',
+            '@radix-ui/react-avatar',
+            '@radix-ui/react-checkbox',
+            '@radix-ui/react-dialog',
+            '@radix-ui/react-dropdown-menu',
+            '@radix-ui/react-label',
+            '@radix-ui/react-slot',
+            'lucide-react',
+            'react-icons',
+            'sonner',
+            'vaul',
+          ],
+
+          // Form handling
+          'form-utils': ['react-hook-form', '@hookform/resolvers', 'zod'],
+
+          // Data management
+          'data-management': ['@tanstack/react-query', 'mobx', 'mobx-react'],
+
+          // WebRTC and networking
+          networking: ['socket.io-client', '@supabase/supabase-js'],
+
+          // Styling utilities
+          styling: ['class-variance-authority', 'clsx', 'tailwind-merge'],
+
+          // Monitoring
+          monitoring: ['@grafana/faro-react', '@grafana/faro-web-tracing'],
+        },
+      },
+    },
+  },
+
+  /** Development */
+
   server: {
     port: 3000,
     host: true,
