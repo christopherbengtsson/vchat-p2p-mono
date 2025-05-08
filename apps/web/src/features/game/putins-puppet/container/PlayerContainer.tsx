@@ -6,13 +6,18 @@ import { useCanvasResize } from '../hooks/useCanvasResize';
 import { PutinsPuppetService } from '../service/PutinsPuppetService';
 import { RandomTrumpSound } from '../component/RandomTrumpSound';
 import { GameTitle } from '../component/GameTitle';
+import { GameScore } from '../component/GameScore';
 
 interface Props {
-  onEndRound: (score: number) => void;
+  score: number;
+  onScoreUpdate: (score: number) => void;
+  onEndRound: () => void;
 }
 
 export const PlayerContainer = observer(function PlayerContainer({
+  score,
   onEndRound,
+  onScoreUpdate,
 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -25,11 +30,15 @@ export const PlayerContainer = observer(function PlayerContainer({
     startAudioRef.current?.play();
   };
 
-  const onGameOver = useCallback(
+  const onGameOver = useCallback(() => {
+    onEndRound();
+  }, [onEndRound]);
+
+  const handleScoreUpdate = useCallback(
     (score: number) => {
-      onEndRound(score);
+      onScoreUpdate(score);
     },
-    [onEndRound],
+    [onScoreUpdate],
   );
 
   const scaleFactor = useCanvasResize(canvasRef, containerRef);
@@ -39,6 +48,7 @@ export const PlayerContainer = observer(function PlayerContainer({
     getPitch,
     scaleFactor,
     endAudioRef,
+    handleScoreUpdate,
   });
 
   useEffect(() => {
@@ -57,6 +67,7 @@ export const PlayerContainer = observer(function PlayerContainer({
         aria-label="Game area"
       >
         <div className="relative z-10">
+          <GameScore score={score} />
           <GameTitle />
           <Canvas canvasRef={canvasRef} />
         </div>

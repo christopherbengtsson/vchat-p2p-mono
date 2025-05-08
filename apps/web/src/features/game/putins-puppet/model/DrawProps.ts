@@ -13,7 +13,6 @@ export interface DrawProps {
   xPos: number;
   yPos: number;
   pipes: Pipe[];
-  score: number;
   scaleFactor: ScaleFactor;
   velocity: number;
   pipeSpeed: number;

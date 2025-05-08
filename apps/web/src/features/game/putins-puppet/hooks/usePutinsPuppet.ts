@@ -65,26 +65,28 @@ export const usePutinsPuppet = (
     }
   }, [handleInitError]);
 
-  const { startNewRound, playerTurnComplete, endPlayerRound } = useGameEngine(
-    gameStore,
-    setGameActive,
-    {
-      prepareGame: initGamePerquisites,
-      disposables: {
-        roundDispose: () => {
-          PutinsPuppetService.roundDispose();
-          CanvasDrawService.clearCache();
-        },
-        gameDispose: () => {
-          PutinsPuppetService.gameDispose();
-          CanvasDrawService.clearCache();
-        },
+  const {
+    startNewRound,
+    updateCurrentScore,
+    playerTurnComplete,
+    endPlayerRound,
+  } = useGameEngine(gameStore, setGameActive, {
+    prepareGame: initGamePerquisites,
+    disposables: {
+      roundDispose: () => {
+        PutinsPuppetService.roundDispose();
+        CanvasDrawService.clearCache();
+      },
+      gameDispose: () => {
+        PutinsPuppetService.gameDispose();
+        CanvasDrawService.clearCache();
       },
     },
-  );
+  });
 
   return {
     startNewRound,
+    updateCurrentScore,
     playerTurnComplete,
     endPlayerRound,
     remoteCanvasStream,

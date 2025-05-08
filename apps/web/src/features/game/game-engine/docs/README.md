@@ -48,8 +48,8 @@ classDiagram
         -maxRounds: number
         -isMyTurn: boolean
         -roundResults: RoundResult[]
-        -playerId: string
-        -gameType: GameType
+        -currentScore: number
+        +setCurrentScore(score)
         +get roundInProgress(): boolean
         +get isGameOver(): boolean
         +get myTotalScore(): number
@@ -75,7 +75,8 @@ classDiagram
         -onPlayerTurnComplete(playerId, score, round)
         -onSwitchTurns(isMyTurn)
         +startNewRound()
-        +playerTurnComplete(score)
+        +updateCurrentScore(score)
+        +playerTurnComplete(score?)
         +endPlayerRound()
     }
 

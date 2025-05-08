@@ -10,7 +10,6 @@ import { CanvasCacheService } from './CanvasCacheService';
 import { CanvasBackgroundService } from './CanvasBackgroundService';
 import { CanvasCloudService } from './CanvasCloudService';
 import { CanvasPipeService } from './CanvasPipeService';
-import { CanvasScoreService } from './CanvasScoreService';
 import { CanvasPlayerService } from './CanvasPlayerService';
 import { CanvasHeartService } from './CanvasHeartService';
 
@@ -24,7 +23,6 @@ const drawCanvas = ({
   xPos,
   yPos,
   pipes,
-  score,
   scaleFactor,
   velocity,
   pipeSpeed,
@@ -75,9 +73,6 @@ const drawCanvas = ({
 
   // Draw pipes
   CanvasPipeService.drawPipes(ctx, pipes, scaleFactor);
-
-  // Draw score
-  CanvasScoreService.drawScore(ctx, score, scaleFactor);
 
   // Calculate player dimensions
   const playerSizePercent = CanvasUtil.getScaledValue(

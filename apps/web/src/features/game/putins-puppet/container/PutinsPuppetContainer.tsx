@@ -32,6 +32,7 @@ export const PutinsPuppetContainer = observer(function PutinsPuppetContainer({
     startNewRound,
     playerTurnComplete,
     endPlayerRound,
+    updateCurrentScore,
     remoteCanvasStream,
     isLoading,
   } = usePutinsPuppet(gameStore, setGameActive);
@@ -74,13 +75,17 @@ export const PutinsPuppetContainer = observer(function PutinsPuppetContainer({
     startNewRound();
   }, [startNewRound]);
 
-  const handlePlayerTurnComplete = useCallback(
+  const handleScoreUpdate = useCallback(
     (score: number) => {
-      setShowResultDialog(true);
-      playerTurnComplete(score);
+      updateCurrentScore(score);
     },
-    [playerTurnComplete],
+    [updateCurrentScore],
   );
+
+  const handlePlayerTurnComplete = useCallback(() => {
+    setShowResultDialog(true);
+    playerTurnComplete();
+  }, [playerTurnComplete]);
 
   const handleOnResultDialogClose = useCallback(() => {
     setShowResultDialog(false);
@@ -90,7 +95,11 @@ export const PutinsPuppetContainer = observer(function PutinsPuppetContainer({
   return (
     <>
       {gameStore.state === GameState.PLAYER_TURN && (
-        <PlayerContainer onEndRound={handlePlayerTurnComplete} />
+        <PlayerContainer
+          score={gameStore.currentScore}
+          onEndRound={handlePlayerTurnComplete}
+          onScoreUpdate={handleScoreUpdate}
+        />
       )}
 
       {gameStore.state === GameState.SPECTATOR_TURN && (

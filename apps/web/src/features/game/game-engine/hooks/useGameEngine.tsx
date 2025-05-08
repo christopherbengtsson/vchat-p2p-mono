@@ -37,17 +37,35 @@ export const useGameEngine = (
     onStartRound();
   }, [gameStore.playerId, onStartRound]);
 
-  const playerTurnComplete = useCallback(
+  const updateCurrentScore = useCallback(
     (score: number) => {
+      gameStore.setCurrentScore(score);
+    },
+    [gameStore],
+  );
+
+  const playerTurnComplete = useCallback(
+    (score?: number) => {
+      const finalScore = score ?? gameStore.currentScore;
+
       GameEngineService.notifyPlayerTurnComplete({
         playerId: gameStore.playerId,
         round: gameStore.currentRound,
-        score,
+        score: finalScore,
       });
 
-      onPlayerTurnComplete(gameStore.playerId, score, gameStore.currentRound);
+      onPlayerTurnComplete(
+        gameStore.playerId,
+        finalScore,
+        gameStore.currentRound,
+      );
     },
-    [gameStore.currentRound, gameStore.playerId, onPlayerTurnComplete],
+    [
+      gameStore.currentRound,
+      gameStore.currentScore,
+      gameStore.playerId,
+      onPlayerTurnComplete,
+    ],
   );
 
   const endPlayerRound = useCallback(() => {
@@ -67,6 +85,7 @@ export const useGameEngine = (
 
   return {
     startNewRound,
+    updateCurrentScore,
     playerTurnComplete,
     endPlayerRound,
   };

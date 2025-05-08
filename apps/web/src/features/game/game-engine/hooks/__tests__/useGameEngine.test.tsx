@@ -126,6 +126,28 @@ describe('useGameEngine', () => {
     ]);
   });
 
+  it('should handle setCurrentScore correctly', () => {
+    const { result } = renderTestee();
+
+    const score = 150;
+
+    result.current.updateCurrentScore(score);
+
+    result.current.playerTurnComplete();
+
+    expect(GameEngineService.notifyPlayerTurnComplete).toHaveBeenCalledWith({
+      playerId: gameStore.playerId,
+      round: gameStore.currentRound,
+      score,
+    });
+
+    expect(gameStore.roundResults).toContainEqual({
+      playerId: gameStore.playerId,
+      round: gameStore.currentRound,
+      score,
+    });
+  });
+
   it('should handle playerTurnComplete correctly', () => {
     const { result } = renderTestee();
 

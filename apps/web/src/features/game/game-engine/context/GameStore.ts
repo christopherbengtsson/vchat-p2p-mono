@@ -23,6 +23,7 @@ export class GameStore {
   @observable accessor maxRounds: number;
   @observable accessor isMyTurn: boolean;
   @observable accessor roundResults: RoundResult[] = [];
+  @observable accessor currentScore = 0;
 
   readonly playerId: string;
   readonly gameType: GameType;
@@ -44,10 +45,16 @@ export class GameStore {
   }
 
   @action
+  setCurrentScore(score: number) {
+    this.currentScore = score;
+  }
+
+  @action
   onStartRound(state: GameState, playerId: Maybe<string>) {
     if (playerId) {
       this.opponentId = playerId;
     }
+    this.setCurrentScore(0);
     this.setState(state);
   }
 
@@ -61,6 +68,7 @@ export class GameStore {
   onSwitchTurns(newRound: number, isMyTurn: boolean, state: GameState) {
     this.currentRound = newRound;
     this.isMyTurn = isMyTurn;
+    this.setCurrentScore(0);
     this.setState(state);
   }
 

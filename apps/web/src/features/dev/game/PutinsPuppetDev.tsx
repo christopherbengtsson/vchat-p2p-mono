@@ -47,5 +47,7 @@ export const PutinsPuppetDev = observer(function PutinsPuppetDev() {
 
   if (!WebRTCService.get() || !isReady) return null;
 
-  return <PlayerContainer onEndRound={noop} />;
+  return (
+    <PlayerContainer onEndRound={noop} onScoreUpdate={noop} score={1337} />
+  );
 });

@@ -19,7 +19,8 @@ interface In {
   canvasRef: React.RefObject<HTMLCanvasElement | null>;
   endAudioRef: React.RefObject<HTMLAudioElement | null>;
   scaleFactor: ScaleFactor;
-  onGameOver: (score: number) => void;
+  onGameOver: VoidFunction;
+  handleScoreUpdate: (score: number) => void;
   getPitch: () => Maybe<[number, number]>;
 }
 
@@ -27,6 +28,7 @@ export const useCanvasAnimate = ({
   canvasRef,
   endAudioRef,
   scaleFactor,
+  handleScoreUpdate,
   onGameOver,
   getPitch,
 }: In) => {
@@ -64,7 +66,7 @@ export const useCanvasAnimate = ({
 
     cancelAnimationFrame(requestRef.current);
     CanvasDrawService.clearCache();
-    onGameOver(pipesPassedRef.current);
+    onGameOver();
   }, [onGameOver]);
 
   const animate = useCallback(() => {
@@ -140,6 +142,8 @@ export const useCanvasAnimate = ({
 
       if (pipeHit) {
         initDeathAnimation();
+      } else {
+        handleScoreUpdate(pipesPassedRef.current);
       }
     } else {
       const animationFinished = animateDeath();
@@ -159,7 +163,6 @@ export const useCanvasAnimate = ({
       xPos: playerXRef.current,
       yPos: playerYRef.current,
       pipes: pipesRef.current,
-      score: pipesPassedRef.current,
       scaleFactor,
       velocity: velocityRef.current,
       pipeSpeed: CanvasPipeService.getPipeSpeed(pipesPassedRef, scaleFactor),
@@ -177,6 +180,7 @@ export const useCanvasAnimate = ({
     deathAnimationFramesRef,
     getPitch,
     initDeathAnimation,
+    handleScoreUpdate,
     animateDeath,
     endAudioRef,
     endGame,
@@ -195,16 +199,8 @@ export const useCanvasAnimate = ({
     }
   }, [playerYRef, canvasRef, scaleFactor]);
 
-  // Initialize and clean up animation loop
+  // Render game
   useEffect(() => {
-    // Reset game state when scale factor changes
-    frameCountRef.current = 0;
-    pipesRef.current = [];
-    pipesPassedRef.current = 0;
-    isDeadRef.current = false;
-    deathAnimationFramesRef.current = 0;
-    heartAnimationStartedRef.current = false;
-
     requestRef.current = requestAnimationFrame(animate);
 
     return () => {
@@ -212,5 +208,5 @@ export const useCanvasAnimate = ({
         cancelAnimationFrame(requestRef.current);
       }
     };
-  }, [animate, deathAnimationFramesRef, isDeadRef, scaleFactor]);
+  }, [animate, deathAnimationFramesRef, isDeadRef]);
 };
