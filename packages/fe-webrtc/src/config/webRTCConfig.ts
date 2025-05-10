@@ -1,3 +1,4 @@
+// TODO: TURN server, can we detect when error is due to lack of TURN?
 export const webRTCConfig: RTCConfiguration = {
   iceServers: [
     {

@@ -48,8 +48,8 @@ classDiagram
         -maxRounds: number
         -isMyTurn: boolean
         -roundResults: RoundResult[]
-        -playerId: string
-        -gameType: GameType
+        -currentScore: number
+        +setCurrentScore(score)
         +get roundInProgress(): boolean
         +get isGameOver(): boolean
         +get myTotalScore(): number
@@ -75,7 +75,8 @@ classDiagram
         -onPlayerTurnComplete(playerId, score, round)
         -onSwitchTurns(isMyTurn)
         +startNewRound()
-        +playerTurnComplete(score)
+        +updateCurrentScore(score)
+        +playerTurnComplete(score?)
         +endPlayerRound()
     }
 
@@ -259,8 +260,8 @@ sequenceDiagram
 
 4. **Implementing a New Game**:
 
-   - Create a game-specific service (like PitchPlaneService)
-   - Create a game-specific hook (like usePitchPlaneGame) that configures useGameEngine
+   - Create a game-specific service (like PutinsPuppetService)
+   - Create a game-specific hook (like usePutinsPuppet) that configures useGameEngine
    - Implement game-specific UI components
    - The core game engine handles state management and communication
 

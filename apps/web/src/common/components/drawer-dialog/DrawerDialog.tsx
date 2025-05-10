@@ -21,7 +21,7 @@ interface Props {
   open: boolean;
   toggle: VoidFunction;
 
-  title: string;
+  title: string | React.ReactNode;
   description?: string;
 
   mainContent: React.ReactNode;
@@ -51,7 +51,9 @@ export const DrawerDialog = observer(function DrawerDialog({
         >
           <DialogHeader>
             <DialogTitle>{title}</DialogTitle>
-            <DialogDescription>{description}</DialogDescription>
+            {description && (
+              <DialogDescription>{description}</DialogDescription>
+            )}
           </DialogHeader>
 
           {mainContent}

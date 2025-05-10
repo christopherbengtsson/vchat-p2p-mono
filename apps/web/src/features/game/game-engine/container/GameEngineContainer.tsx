@@ -1,6 +1,6 @@
 import { observer } from 'mobx-react';
 import { GameStoreProvider } from '../../game-engine/context/GameStoreProvider';
-import { PitchPlaneGameContainer } from '../../pitch-plane/container/PitchPlaneGameContainer';
+import { PutinsPuppetContainer } from '../../putins-puppet/container/PutinsPuppetContainer';
 
 interface Props {
   initiator: boolean;
@@ -15,7 +15,7 @@ export const GameEngineContainer = observer(function GameEngineContainer({
 }: Props) {
   return (
     <GameStoreProvider playerId={playerId} isMyTurn={initiator}>
-      <PitchPlaneGameContainer setGameActive={setGameActive} />
+      <PutinsPuppetContainer setGameActive={setGameActive} />
     </GameStoreProvider>
   );
 });

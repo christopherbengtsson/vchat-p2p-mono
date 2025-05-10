@@ -1,3 +1,9 @@
+export enum DevRoutePath {
+  DEV = '/dev',
+  PUTINS_PUPPET = '/dev/putins-puppet',
+  RESULTS_DIALOG = '/dev/results-dialogs',
+}
+
 export enum RoutePath {
   TERMS = '/terms',
   AUTH = '/auth',
