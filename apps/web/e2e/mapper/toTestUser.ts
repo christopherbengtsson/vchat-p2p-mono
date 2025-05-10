@@ -1,8 +1,9 @@
 import type { Browser, BrowserContext, Page } from '@playwright/test';
-import { DatabaseUser } from '../model/DatabaseUser';
+import type { DatabaseUser } from '../model/DatabaseUser';
+import type { Credentials } from '../model/Credentials';
 
 const to = async (
-  testUsers: DatabaseUser[],
+  testUsers: DatabaseUser[] | Credentials[],
   browser: Browser,
   testTitle: string,
   onlyTestLastNumbers?: number,

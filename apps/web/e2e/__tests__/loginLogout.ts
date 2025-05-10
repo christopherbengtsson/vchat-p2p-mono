@@ -4,13 +4,13 @@ import { loginTestUser } from '../utils/loginTestUser';
 import type { SupabaseAdmin } from '../service/SupabaseAdmin';
 
 export const loginLogout = async (
-  testUsers: TestUser,
+  testUser: TestUser,
   supabaseAdmin: SupabaseAdmin,
 ) => {
-  await loginTestUser(testUsers.page, testUsers.email, supabaseAdmin);
-  await testUsers.page.getByRole('button', { name: 'Open settings' }).click();
-  await testUsers.page.getByRole('menuitem', { name: 'Log out' }).click();
+  await loginTestUser(testUser.page, testUser.email, supabaseAdmin);
+  await testUser.page.getByRole('button', { name: 'Open settings' }).click();
+  await testUser.page.getByRole('menuitem', { name: 'Log out' }).click();
   await expect(
-    testUsers.page.getByRole('button', { name: 'Login with email' }),
+    testUser.page.getByRole('button', { name: 'Login with email' }),
   ).toBeVisible();
 };

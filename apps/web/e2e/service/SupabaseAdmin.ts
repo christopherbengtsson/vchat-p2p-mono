@@ -1,8 +1,9 @@
 import type { Browser, Response as PlaywrightResponse } from '@playwright/test';
 import { SupabaseClientWrapper } from '@mono/common-supabase';
 import type { DatabaseUser } from '../model/DatabaseUser';
+import type { Credentials } from '../model/Credentials';
+import type { TestUser } from '../model/TestUser';
 import { TestUserMapper } from '../mapper/toTestUser';
-import { TestUser } from '../model/TestUser';
 
 const URL = process.env.TEST_SUPABASE_URL;
 const KEY = process.env.TEST_SUPABASE_SERVICE_ROLE_KEY;
@@ -47,12 +48,19 @@ export class SupabaseAdmin {
     this.generatedUsers = [];
   }
 
+  getCredentials(title: string, suffix: string): Credentials {
+    return {
+      email: `${title}-test-${suffix}@test.com`,
+      password: this.testUserPassword,
+    };
+  }
+
   private async generateTestUser(title: string, suffix: string) {
-    const email = `${title}-test-${suffix}@test.com`;
+    const { email, password } = this.getCredentials(title, suffix);
     const { data, error } = await SupabaseClient.instance.auth.admin.createUser(
       {
         email,
-        password: this.testUserPassword,
+        password,
         email_confirm: true,
       },
     );
@@ -86,6 +94,27 @@ export class SupabaseAdmin {
     const testUsers = await Promise.all(
       Array.from(Array(numberOfUsers)).map((_, index) =>
         this.generateTestUser(transformedTestTitle, String(index)),
+      ),
+    );
+
+    return TestUserMapper.to(
+      testUsers,
+      browser,
+      testTitle,
+      onlyTestLastNumbers,
+    );
+  }
+
+  async prepareAnonymousTestUsers(
+    numberOfUsers: number,
+    browser: Browser,
+    testTitle: string,
+    onlyTestLastNumbers?: number,
+  ) {
+    const transformedTestTitle = testTitle.replaceAll(' ', '-').toLowerCase();
+    const testUsers = await Promise.all(
+      Array.from(Array(numberOfUsers)).map((_, index) =>
+        this.getCredentials(transformedTestTitle, String(index)),
       ),
     );
 
