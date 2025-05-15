@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
 import { CustomError, CustomErrorType } from '@mono/common-dto';
-import logger from '../utils/logger.js';
+import { logger } from '../utils/logger.js';
 import type { IncomingMessage } from '../model/IncomingMessage.js';
 
 const JWT_SECRET = process.env.SUPABASE_JWT_SECRET ?? 'invalid';

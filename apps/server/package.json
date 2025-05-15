@@ -15,6 +15,7 @@
     "build": "tsc -p tsconfig.build.json",
     "start": "node dist/index.js",
     "test": "vitest",
+    "test:colima": "DOCKER_HOST=unix://${HOME}/.colima/default/docker.sock TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE=/var/run/docker.sock pnpm run test",
     "typecheck": "tsc --noEmit",
     "test:load": "tsx --env-file=.env src/__test__/load-test.ts"
   },
@@ -25,6 +26,7 @@
     "@mono/be-supabase": "workspace:*",
     "@mono/common-dto": "workspace:*",
     "@mono/common-supabase": "workspace:*",
+    "@mono/common-util": "workspace:*",
     "@socket.io/admin-ui": "^0.5.1",
     "@socket.io/redis-streams-adapter": "^0.2.2",
     "@supabase/supabase-js": "^2.49.4",

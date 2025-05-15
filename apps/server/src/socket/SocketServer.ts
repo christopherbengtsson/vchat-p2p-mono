@@ -5,9 +5,10 @@ import { Server as SocketIoServer } from 'socket.io';
 import type { Redis } from 'ioredis';
 import { RateLimiterRedis } from 'rate-limiter-flexible';
 import { CustomError, CustomErrorType } from '@mono/common-dto';
-import logger from '../utils/logger.js';
+import { logger } from '../utils/logger.js';
+import { WaitingQueueService } from '../service/WaitingQueueService.js';
+import { MatchmakingProcessor } from '../service/MatchmakingProcessor.js';
 import { VideoNsp } from './namespace/video-nsp/index.js';
-import { AdminUiNsp } from './namespace/admin-ui/index.js';
 
 const init = (httpServer: Server, redisClient: Redis) => {
   const io = new SocketIoServer(httpServer, {
@@ -48,7 +49,21 @@ const init = (httpServer: Server, redisClient: Redis) => {
       });
   });
 
-  AdminUiNsp.bootstrap(io, redisClient);
+  // Initialize services
+  const waitingQueueService = new WaitingQueueService(redisClient);
+  const matchmakingProcessor = new MatchmakingProcessor(
+    waitingQueueService,
+    io,
+  );
+
+  // Start the processor
+  matchmakingProcessor.start();
+
+  // Graceful shutdown
+  process.on('SIGTERM', () => {
+    matchmakingProcessor.stop();
+  });
+
   VideoNsp.bootstrap(io, redisClient);
 };
 

@@ -1,7 +1,5 @@
 import { type AddressInfo } from 'node:net';
 import { createServer } from 'node:http';
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
 import RedisMock from 'ioredis-mock';
 import { GenericContainer, Wait } from 'testcontainers';
 import { Server, type Socket as ServerSocket } from 'socket.io';

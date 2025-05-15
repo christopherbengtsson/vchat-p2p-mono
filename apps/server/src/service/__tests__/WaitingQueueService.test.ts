@@ -1,5 +1,3 @@
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
 import RedisMock from 'ioredis-mock';
 import { GenericContainer, Wait } from 'testcontainers';
 import { WaitingQueueService } from '../WaitingQueueService.js';

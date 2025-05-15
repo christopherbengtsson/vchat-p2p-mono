@@ -17,7 +17,11 @@ export interface ClientToServerEvents {
     partnerSocketId: string;
     banDuration: BanDuration;
   }) => void;
-  'user-reported': (partnerUserId: string) => void;
+  'user-reported': (
+    partnerSocketId: string,
+    partnerUserId: string,
+    userId: string,
+  ) => void;
 
   'browser-signature': (browserSignature: BrowserSignature) => void;
 }

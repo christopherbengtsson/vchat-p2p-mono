@@ -8,7 +8,7 @@ import { useInitNewCall } from '../hooks/useInitNewCall';
 import { InCallContainer } from './InCallContainer';
 import { NewMatchContainer } from './NewMatchContainer';
 
-export const MIN_MATCH_DISPLAY_DURATION = 2500;
+export const MIN_MATCH_DISPLAY_DURATION = 2000;
 
 interface Props {
   routerState: CallStoreParams;
@@ -34,7 +34,6 @@ export const CallContainer = observer(function CallContainer({
   useInitNewCall({ routerState, callStore, socketStore, mediaStore });
 
   if (!minMatchDurationElapsed || !callStore.connectionEstablished) {
-    // TODO: Set some timeout, if 'connecting' > x seconds
     return <NewMatchContainer partnerSocketId={routerState.partnerSocketId} />;
   }
 

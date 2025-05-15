@@ -1,8 +1,9 @@
 import { BanDuration } from '@mono/common-dto';
-import logger from '../../utils/logger.js';
+import { logger } from '../../utils/logger.js';
 import type { VChatSocket } from '../../model/VChatSocket.js';
 import { SupabaseService } from '../../service/SupabaseService.js';
 import type { WaitingQueueService } from '../../service/WaitingQueueService.js';
+import { IgnoredUsersService } from '../../service/IgnoredUsersService.js';
 
 export function setupRoomManagement(
   socket: VChatSocket,
@@ -35,9 +36,11 @@ export function setupRoomManagement(
 
   socket.on(
     'user-reported',
-    wrapHandler(async (userId) => {
-      logger.debug({ userId }, 'Received user reported');
-      socket.to(userId).emit('user-reported');
+    wrapHandler(async (partnerUserId, userId) => {
+      logger.debug({ partnerUserId }, 'Received user reported');
+      socket.to(partnerUserId).emit('user-reported');
+
+      await IgnoredUsersService.addToIgnoredCache(userId, partnerUserId);
     }),
   );
 

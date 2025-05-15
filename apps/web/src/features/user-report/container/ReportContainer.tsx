@@ -39,10 +39,20 @@ export const ReportContainer = observer(function ReportContainer() {
           banDuration,
         });
       } else {
-        socketStore.socket?.emit('user-reported', partnerSocketId);
+        socketStore.socket?.emit(
+          'user-reported',
+          partnerSocketId,
+          partnerUserId,
+          authStore.userId,
+        );
       }
     },
-    [callStore.partnerSocketId, callStore.partnerUserId, socketStore.socket],
+    [
+      authStore.userId,
+      callStore.partnerSocketId,
+      callStore.partnerUserId,
+      socketStore.socket,
+    ],
   );
 
   const handleReportSettled = useCallback(

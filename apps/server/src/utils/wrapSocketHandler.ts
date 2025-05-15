@@ -1,4 +1,4 @@
-import logger from './logger.js';
+import { logger } from './logger.js';
 
 export const wrapSocketHandler = <
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -1,4 +1,4 @@
-import logger from './utils/logger.js';
+import { logger } from './utils/logger.js';
 
 beforeAll(() => {
   logger.error = vi.fn();

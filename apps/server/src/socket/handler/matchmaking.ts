@@ -1,6 +1,6 @@
 import type { VChatSocket } from '../../model/VChatSocket.js';
 import type { WaitingQueueService } from '../../service/WaitingQueueService.js';
-import { MatchService } from '../../service/MatchService.js';
+import { logger } from '../../utils/logger.js';
 
 export function setupMatchmaking(
   socket: VChatSocket,
@@ -12,42 +12,8 @@ export function setupMatchmaking(
   socket.on(
     'find-match',
     wrapHandler(async (socketId, userId) => {
-      const roomData = await MatchService.findMatch(
-        redisQueue,
-        socketId,
-        userId,
-      );
-      if (
-        roomData?.roomId &&
-        roomData?.partnerSocketId &&
-        roomData?.partnerUserId
-      ) {
-        const { roomId, partnerSocketId, partnerUserId } = roomData;
-
-        await Promise.all([
-          redisQueue.setMatchAssignment(socketId, {
-            roomId,
-            partnerSocketId,
-          }),
-          redisQueue.setMatchAssignment(partnerSocketId, {
-            roomId,
-            partnerSocketId: socketId,
-          }),
-        ]);
-
-        // Inform the user that a match was found
-        socket.emit(
-          'match-found',
-          roomId,
-          partnerSocketId,
-          partnerUserId,
-          true,
-        );
-        // Inform the partner that a match was found
-        socket
-          .to(partnerSocketId)
-          .emit('match-found', roomId, socketId, userId, false);
-      }
+      await redisQueue.addToQueue(socketId, userId);
+      logger.debug({ socketId, userId }, 'User added to queue');
     }),
   );
 

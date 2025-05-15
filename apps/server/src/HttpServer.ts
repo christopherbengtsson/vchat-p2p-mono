@@ -6,7 +6,7 @@ import { register } from 'prom-client';
 import { apiKeyMiddleware } from './middleware/apiKeyMiddleware.js';
 import rateLimiterMiddleware from './middleware/rateLimiterMiddleware.js';
 import { FingerprintService } from './service/FingerprintService.js';
-import logger from './utils/logger.js';
+import { logger } from './utils/logger.js';
 
 const BASE_API_PATH = '/api/v1';
 

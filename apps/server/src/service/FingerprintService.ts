@@ -7,7 +7,7 @@ import type {
   Fingerprint,
   Maybe,
 } from '@mono/common-dto';
-import logger from '../utils/logger.js';
+import { logger } from '../utils/logger.js';
 
 const uaFallback = {
   device: {
@@ -19,6 +19,12 @@ const uaFallback = {
   },
 } as const;
 
+/**
+ * Generates a device signature by combining browser-provided signature with OS and device details from User-Agent.
+ * @param browserSignature The signature provided by the browser.
+ * @param headers Incoming HTTP headers from the request.
+ * @returns A device signature object.
+ */
 const getDeviceSignature = (
   browserSignature: BrowserSignature,
   headers: IncomingHttpHeaders,
@@ -27,41 +33,59 @@ const getDeviceSignature = (
   const uaData = uaHeaders ? new UAParser(uaHeaders).getResult() : uaFallback;
 
   if (!uaHeaders) {
-    logger.warn('[FingerprintService]: User-Agent header not found');
+    logger.warn(
+      '[FingerprintService]: User-Agent header not found, using fallback for device signature.',
+    );
   }
 
   return {
     ...browserSignature,
     os: uaData.os.name,
-    device: `${uaData.device.model}-${uaData.device.vendor}`,
+    device: `${uaData.device.model}-${uaData.device.vendor}`, // Combine model and vendor for device identifier.
   };
 };
 
+/**
+ * Extracts the client's IP address from the 'x-forwarded-for' header.
+ * @param headers Incoming HTTP headers from the request.
+ * @returns The extracted IP address or undefined if the header is not present.
+ */
 const extractIpFromHeaders = (
   headers: IncomingHttpHeaders,
 ): string | undefined => {
   const forwardedFor = headers['x-forwarded-for'] as Maybe<string>;
   if (forwardedFor) {
+    // The 'x-forwarded-for' header can contain a list of IPs; the first one is usually the client's.
     return forwardedFor.split(',')[0].trim();
   }
+  return undefined;
 };
 
+/**
+ * Generates a unique fingerprint string based on browser signature, device signature, and IP address.
+ * @param browserSignature The signature provided by the browser.
+ * @param headers Incoming HTTP headers from the request.
+ * @param requestIp Optional: The request IP, typically from req.ip in Express.
+ * @returns A SHA256 hash representing the fingerprint, or undefined if IP address cannot be determined.
+ */
 const generate = (
   browserSignature: BrowserSignature,
   headers: IncomingHttpHeaders,
   requestIp?: string,
-) => {
+): string | undefined => {
   const deviceSignature = getDeviceSignature(browserSignature, headers);
 
+  // Use requestIp if provided (e.g., from Express req.ip), otherwise try to extract from headers.
   const ip = requestIp ?? extractIpFromHeaders(headers);
 
   if (!ip) {
     logger.warn(
-      '[FingerprintService]: X-Forwarded-For header not found, cannot generate fingerprint.',
+      '[FingerprintService]: IP address could not be determined (requestIp and x-forwarded-for are missing), cannot generate fingerprint.',
     );
     return undefined;
   }
 
+  // Combine all parts into a single object for hashing.
   const fingerprint: Fingerprint = {
     ...deviceSignature,
     ip,

@@ -1,6 +1,7 @@
 import { observer } from 'mobx-react';
 import { UserAvatar } from '../component/UserAvatar';
 import { MatchedUserText } from '../component/MatchedUserText';
+import { useConnectionTimeout } from '../hooks/useConnectionTimeout';
 
 interface Props {
   partnerSocketId: string;
@@ -9,6 +10,8 @@ interface Props {
 export const NewMatchContainer = observer(function NewMatchContainer({
   partnerSocketId,
 }: Props) {
+  useConnectionTimeout();
+
   return (
     <div className="flex flex-col justify-center items-center gap-6">
       <div className="flex gap-4">

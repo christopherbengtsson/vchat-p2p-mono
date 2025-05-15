@@ -4,7 +4,7 @@ import type { Redis } from 'ioredis';
 import type { IncomingMessage } from '../../../model/IncomingMessage.js';
 import { validateJwtMiddleware } from '../../../middleware/validateJwtMiddleware.js';
 import { nspEmitters } from '../../handler/nspEmitters.js';
-import logger from '../../../utils/logger.js';
+import { logger } from '../../../utils/logger.js';
 import { setupMatchmaking } from '../../handler/matchmaking.js';
 import { setupWebRTC } from '../../handler/webRtc.js';
 import { setupRoomManagement } from '../../handler/roomManagement.js';

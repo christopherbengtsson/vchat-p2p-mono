@@ -12,6 +12,7 @@
     "server": "pnpm --filter server",
     "be-supabase": "pnpm --filter be-supabase",
     "common-dto": "pnpm --filter common-dto",
+    "common-util": "pnpm --filter common-util",
     "common-supabase": "pnpm --filter common-supabase",
     "fe-dto": "pnpm --filter fe-dto",
     "fe-supabase": "pnpm --filter fe-supabase",

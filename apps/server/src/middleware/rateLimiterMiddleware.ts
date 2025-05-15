@@ -1,12 +1,12 @@
 import { RateLimiterRedis } from 'rate-limiter-flexible';
 import type { Request, Response, NextFunction } from 'express';
-import redisClient from '../clients/redis.js';
+import { redisClient } from '../clients/redis.js';
 
 const rateLimiter = new RateLimiterRedis({
-  keyPrefix: 'api-rate-limit-middleware',
   storeClient: redisClient,
-  points: 2, // 2 requests
-  duration: 1, // per 1 second by IP
+  keyPrefix: 'api-rate-limit-middleware', // Prefix for Redis keys to avoid collisions.
+  points: 2, // Number of points (requests) allowed...
+  duration: 1, // ...per duration in seconds (1 second by default), by IP address.
 });
 
 const rateLimiterMiddleware = (
@@ -15,9 +15,9 @@ const rateLimiterMiddleware = (
   next: NextFunction,
 ) => {
   rateLimiter
-    .consume(req.ip as string)
+    .consume(req.ip as string) // Consume a point for the current IP address.
     .then(() => {
-      next();
+      next(); // Request is within limits, proceed.
     })
     .catch(() => {
       res.status(429).send('Too Many Requests');

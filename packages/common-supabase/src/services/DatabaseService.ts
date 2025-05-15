@@ -1,4 +1,4 @@
-import { SupabaseClient } from '@supabase/supabase-js';
+import { type SupabaseClient } from '@supabase/supabase-js';
 import {
   BanReason,
   CustomError,
@@ -16,22 +16,6 @@ async function getUser(
   const { data } = await QueryService.getSingleUserQueryById(client, userId);
 
   return data;
-}
-
-async function partnersNotIgnored(
-  client: SupabaseClient<Database>,
-  userId1: string,
-  userId2: string,
-) {
-  const { data } = await client
-    .from('ignored_users')
-    .select()
-    .or(
-      `and(user_id.eq.${userId1},ignored_user_id.eq.${userId2}),and(user_id.eq.${userId2},ignored_user_id.eq.${userId1})`,
-    )
-    .throwOnError();
-
-  return !data || data?.length === 0;
 }
 
 async function reportUser(
@@ -75,7 +59,6 @@ async function isBlacklisted(
 
 export const DatabaseService = {
   getUser,
-  partnersNotIgnored,
   reportUser,
   blacklistFingerprint,
   isBlacklisted,

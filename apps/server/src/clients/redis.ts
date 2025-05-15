@@ -1,5 +1,5 @@
 import { Redis } from 'ioredis';
-import logger from '../utils/logger.js';
+import { logger } from '../utils/logger.js';
 
 const host = process.env.REDIS_URL;
 const port = process.env.REDIS_PORT
@@ -14,6 +14,22 @@ const redisClient = new Redis({
   username,
   password,
   lazyConnect: true,
+
+  // Connection optimization
+  connectTimeout: 10000,
+  maxRetriesPerRequest: 3,
+  retryStrategy(times) {
+    const delay = Math.min(times * 50, 2000);
+    return delay;
+  },
+
+  // Command optimization
+  commandTimeout: 5000, // 5s timeout for commands
+  keepAlive: 30000, // Keep connections alive
+
+  // Connection pool for better concurrent performance
+  // Only needed if high concurrent loads
+  // enableReadyCheck: false,
 });
 
 redisClient.on('connecting', () => {
@@ -40,4 +56,4 @@ redisClient.on('error', (error) =>
   logger.error({ error }, 'Redis Client Error'),
 );
 
-export default redisClient;
+export { redisClient };

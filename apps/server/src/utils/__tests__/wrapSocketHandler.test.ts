@@ -1,5 +1,5 @@
 import { wrapSocketHandler } from '../wrapSocketHandler.js';
-import logger from '../logger.js';
+import { logger } from '../logger.js';
 
 vi.mock('../logger.js');
 
