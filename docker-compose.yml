@@ -71,6 +71,15 @@ services:
       - /sys/fs/cgroup:/sys/fs/cgroup:ro
       - /var/lib/docker/:/var/lib/docker:ro
       - /dev/disk/:/dev/disk:ro
+    environment:
+      # pass environment variables for config.alloy
+      - ALLOY_SERVICE_NAME=${ALLOY_SERVICE_NAME}
+      - ALLOY_METRICS_SERVICE_URL=${ALLOY_METRICS_SERVICE_URL}
+      - ALLOY_METRICS_SERVICE_USERNAME=${ALLOY_METRICS_SERVICE_USERNAME}
+      - ALLOY_METRICS_SERVICE_PASSWORD=${ALLOY_METRICS_SERVICE_PASSWORD}
+      - ALLOY_LOKI_URL=${ALLOY_LOKI_URL}
+      - ALLOY_LOKI_USERNAME=${ALLOY_LOKI_USERNAME}
+      - ALLOY_LOKI_PASSWORD=${ALLOY_LOKI_PASSWORD}
     devices:
       - /dev/kmsg
     ports:
