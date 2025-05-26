@@ -10,29 +10,29 @@ export interface TestRedisSetup {
 export async function setupTestRedis(): Promise<TestRedisSetup> {
   const isCI = process.env.CI === 'true';
 
-  // Set environment variables to fix pnpm compatibility issues
   if (isCI) {
-    process.env.PREFER_GLOBAL_PATH = 'true';
-    process.env.DOWNLOAD_DIR = '/tmp/redis-binaries';
+    // In CI, use the Redis service configured in GitHub Actions
+    const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
+    const redisClient = new Redis(redisUrl, {
+      maxRetriesPerRequest: 0,
+      lazyConnect: false,
+    });
+
+    return {
+      redisClient,
+      cleanup: async () => {
+        redisClient.disconnect();
+      },
+    };
   }
 
-  const redisServerConfig = isCI
-    ? {
-        instance: {
-          args: ['--maxmemory', '64mb', '--save', ''],
-        },
-        binary: {
-          version: '6.2.14', // Use older, more stable version for CI
-          downloadDir: '/tmp/redis-binaries', // Absolute path for CI
-        },
-        autoStart: true,
-      }
-    : {
-        instance: {
-          args: ['--maxmemory', '128mb'],
-        },
-        autoStart: true,
-      };
+  // For local development, use RedisMemoryServer
+  const redisServerConfig = {
+    instance: {
+      args: ['--maxmemory', '128mb'],
+    },
+    autoStart: true,
+  };
 
   const redisServer = new RedisMemoryServer(redisServerConfig);
 
