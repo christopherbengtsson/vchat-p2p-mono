@@ -1,4 +1,5 @@
 import type { Server } from 'socket.io';
+import { SocketNamespace } from '@mono/common-dto';
 import type { Match } from '../model/Match.js';
 
 /**
@@ -8,18 +9,16 @@ import type { Match } from '../model/Match.js';
 const notifyMatchedUsers = (io: Server, matches: Match[]): void => {
   for (const match of matches) {
     // Notify user1 - always impolite peer
-    io.of('video-chat') // TODO: Constant
-      .to(match.user1.socketId)
-      .emit(
-        'match-found',
-        match.roomId,
-        match.user2.socketId,
-        match.user2.userId,
-        false, // impolite peer
-      );
+    io.of(SocketNamespace.VIDEO_CHAT).to(match.user1.socketId).emit(
+      'match-found',
+      match.roomId,
+      match.user2.socketId,
+      match.user2.userId,
+      false, // impolite peer
+    );
 
     // Notify user2 - always polite peer
-    io.of('video-chat').to(match.user2.socketId).emit(
+    io.of(SocketNamespace.VIDEO_CHAT).to(match.user2.socketId).emit(
       'match-found',
       match.roomId,
       match.user1.socketId,

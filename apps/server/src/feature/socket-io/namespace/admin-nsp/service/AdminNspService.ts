@@ -1,12 +1,13 @@
 import { hostname } from 'os';
 import { instrument, RedisStore } from '@socket.io/admin-ui';
 import type { Server } from 'socket.io';
+import { SocketNamespace } from '@mono/common-dto';
 import type { ServerConfig } from '../../../../../common/config/model/ServerConfig.js';
 import { RedisClient } from '../../../../../common/client/RedisClient.js';
 import { SocketRateLimiterMiddleware } from '../../../../../common/middleware/SocketRateLimiterMiddleware.js';
 
 const bootstrap = (io: Server, serverConfig: ServerConfig) => {
-  const adminNamespace = io.of('/admin');
+  const adminNamespace = io.of(SocketNamespace.ADMIN_UI);
   const mode = serverConfig.config.env;
   instrument(io, {
     auth:

@@ -2,6 +2,7 @@ import { Redis } from 'ioredis';
 import { RedisMemoryServer } from 'redis-memory-server';
 import { Server } from 'socket.io';
 import { noop } from '@mono/common-util';
+import { SocketNamespace } from '@mono/common-dto';
 import { MatchmakingOrchestrator } from '../MatchmakingOrchestrator.js';
 import { MatchmakingQueueService } from '../MatchmakingQueueService.js';
 import { MatchAssignmentService } from '../MatchAssignmentService.js';
@@ -148,7 +149,7 @@ describe('MatchmakingOrchestrator Tests', () => {
       expect(assignment1?.roomId).toBe(assignment2?.roomId);
 
       // Verify: Socket notifications should be sent
-      expect(mockIo.of).toHaveBeenCalledWith('video-chat');
+      expect(mockIo.of).toHaveBeenCalledWith(SocketNamespace.VIDEO_CHAT);
       expect(mockNamespace.emit).toHaveBeenCalledTimes(2);
     });
 

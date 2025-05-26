@@ -1,5 +1,6 @@
 import type { NextFunction } from 'express';
 import type { Server } from 'socket.io';
+import { SocketNamespace } from '@mono/common-dto';
 import { SocketRateLimiterMiddleware } from '../../../../../common/middleware/SocketRateLimiterMiddleware.js';
 import { ValidateJwtMiddleware } from '../../../../../common/middleware/ValidateJwtMiddleware.js';
 import type { IncomingMessage } from '../../../../../common/middleware/model/IncomingMessage.js';
@@ -27,7 +28,7 @@ const setupListeners = (socket: VChatSocket, emitSocketCount: VoidFunction) => {
 };
 
 const bootstrap = (io: Server) => {
-  const videoChat = io.of('/video-chat');
+  const videoChat = io.of(SocketNamespace.VIDEO_CHAT);
   const emitSocketCount = nspEmitters(videoChat).connectionsCount;
 
   videoChat.use(SocketRateLimiterMiddleware.use);

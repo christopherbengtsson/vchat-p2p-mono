@@ -27,15 +27,14 @@ const init = async (httpServer: Server, serverConfig: ServerConfig) => {
       },
       '[SocketServer] Socket.io connection error',
     );
-
-    // TODO: Throw error?
   });
 
   /** Middlewares */
+
   // Apply helmet to the Socket.IO engine's underlying HTTP server
   io.engine.use(helmet());
   // Apply rate limiting per IP
-  io.use(SocketRateLimiterMiddleware.use); // NOTE: This only applies to main namespace ('/'), not to '/video-chat' namespace
+  io.use(SocketRateLimiterMiddleware.use);
 
   /** Bootstrap */
 
