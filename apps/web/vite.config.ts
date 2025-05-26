@@ -2,6 +2,7 @@
 import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
+import { generateGameChunks } from './scripts/generateGameChunks.js';
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
@@ -56,7 +57,8 @@ export default defineConfig(({ mode }) => ({
             'vaul',
           ],
 
-          // TODO: Possible to split up games?
+          // Game chunks - dynamically generated
+          ...generateGameChunks(),
 
           // Form handling
           'form-utils': ['react-hook-form', '@hookform/resolvers', 'zod'],
