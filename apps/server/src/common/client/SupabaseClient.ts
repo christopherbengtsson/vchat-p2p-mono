@@ -9,7 +9,6 @@ let supabaseInstanceWrapper: SupabaseClientWrapper | null = null;
 
 const init = () => {
   if (supabaseInstanceWrapper) {
-    // Log a warning if trying to re-initialize, though SupabaseClientWrapper handles singleton internally.
     log.warn('Supabase client wrapper is already initialized.');
     return;
   }

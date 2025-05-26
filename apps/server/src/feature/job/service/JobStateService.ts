@@ -12,12 +12,11 @@ const _set = (jobId: string, newState: JobState): void => {
 const get = (jobId: string): JobState => {
   const jobState = jobStates.get(jobId);
   if (!jobState) {
-    // This error is thrown and should be caught by the caller.
-    // The caller can then decide the log level (e.g., error or fatal).
     throw CustomError.badState(
       `[JobStateService] Queue job state for job ID '${jobId}' not initialized.`,
     );
   }
+
   return jobState;
 };
 
@@ -29,7 +28,6 @@ const update = (
   if (currentJobState) {
     jobStates.set(jobId, { ...currentJobState, ...updates });
   } else {
-    // This is a significant issue if an update is attempted on a non-existent job state.
     log.error(
       { jobId, updates },
       `[JobStateService]: Cannot update, state for job ID '${jobId}' not initialized.`,
@@ -46,12 +44,15 @@ const init = (jobId: string): JobState => {
   };
 
   _set(jobId, initialState);
+
   log.info({ jobId }, '[JobStateService] Job state initialized.');
+
   return initialState;
 };
 
 const remove = (jobId: string): void => {
   const deleted = jobStates.delete(jobId);
+
   if (deleted) {
     log.info({ jobId }, '[JobStateService] Job state removed.');
   } else {

@@ -2,7 +2,7 @@ import { io } from 'socket.io-client';
 import jwt from 'jsonwebtoken';
 import { SocketNamespace } from '@mono/common-dto';
 
-const URL = `http://localhost:8000/${SocketNamespace.VIDEO_CHAT}`;
+const URL = `http://localhost:8000${SocketNamespace.VIDEO_CHAT}`;
 
 const MAX_CLIENTS = 1000;
 const POLLING_PERCENTAGE = 0.05;

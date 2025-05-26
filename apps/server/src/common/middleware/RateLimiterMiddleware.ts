@@ -11,7 +11,7 @@ const getRateLimiter = () => {
       storeClient: RedisClient.get(),
       keyPrefix: 'api-rate-limit-middleware', // Prefix for Redis keys to avoid collisions.
       points: 2, // Number of points (requests) allowed...
-      duration: 1, // ...per duration in seconds (1 second by default), by IP address.
+      duration: 1, // ...per duration in seconds (1 second by default)
     });
   }
   return rateLimiter;
@@ -19,9 +19,9 @@ const getRateLimiter = () => {
 
 const use = (req: Request, res: Response, next: NextFunction) => {
   getRateLimiter()
-    .consume(req.ip as string) // Consume a point for the current IP address.
+    .consume(req.ip as string)
     .then(() => {
-      next(); // Request is within limits, proceed.
+      next();
     })
     .catch(() => {
       res.status(429).send('Too Many Requests');

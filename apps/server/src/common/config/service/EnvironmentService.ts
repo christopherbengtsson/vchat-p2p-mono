@@ -12,14 +12,14 @@ const loadServerConfig = (
   env: processEnv.NODE_ENV as InputEnvironmentConfig['env'],
   logLevel: processEnv.PINO_LOG_LEVEL as InputEnvironmentConfig['logLevel'],
   serverRegion: processEnv.SERVER_REGION || '',
-  cache: {
-    redis: {
-      ignoredUsersTTL: processEnv.IGNORED_USERS_REDIS_CACHE_TTL,
-    },
-  },
   allowedOrigins: processEnv.CORS_ORIGINS || '',
   jobConfig: {
     periodicCleanupInterval: processEnv.PERIODIC_CLEANUP_INTERVAL as string,
+    cache: {
+      redis: {
+        ignoredUsersTTL: processEnv.IGNORED_USERS_REDIS_CACHE_TTL,
+      },
+    },
   },
 });
 

@@ -5,7 +5,6 @@ import { MatchmakingQueueService } from '../MatchmakingQueueService.js';
 import { MatchAssignmentService } from '../MatchAssignmentService.js';
 import { RedisClient } from '../../../../common/client/RedisClient.js';
 import type { Match } from '../../model/Match.js';
-import type { ProcessingMetrics } from '../../model/ProcessingMetrics.js';
 import { ServerConfigService } from '../../../../common/config/service/ServerConfigService.js';
 
 describe('RedisOperations', () => {
@@ -75,17 +74,8 @@ describe('RedisOperations', () => {
         },
       ];
 
-      const metrics: ProcessingMetrics = {
-        usersProcessed: 0,
-        matchesCreated: 0,
-        redisOperations: 0,
-        ignoredPairsChecked: 0,
-        processTimeMs: 0,
-        startTime: Date.now(),
-      };
-
       // Execute
-      await RedisOperations.processMatchedUsers(matches, 5, metrics);
+      await RedisOperations.processMatchedUsers(matches, 5);
 
       // Verify: Users removed from queue
       expect(await redisClient.zcard(queueKey)).toBe(0);
@@ -115,9 +105,6 @@ describe('RedisOperations', () => {
         roomId: 'room2',
         partnerSocketId: 'socket3',
       });
-
-      // Verify: Metrics updated
-      expect(metrics.redisOperations).toBe(1);
     });
 
     it('should handle large batches with Lua processing batch size', async () => {
@@ -159,43 +146,23 @@ describe('RedisOperations', () => {
         });
       }
 
-      const metrics: ProcessingMetrics = {
-        usersProcessed: 0,
-        matchesCreated: 0,
-        redisOperations: 0,
-        ignoredPairsChecked: 0,
-        processTimeMs: 0,
-        startTime: Date.now(),
-      };
-
       // Execute with small batch size to test batching
-      await RedisOperations.processMatchedUsers(matches, 3, metrics);
+      await RedisOperations.processMatchedUsers(matches, 3);
 
       // Verify: All users removed from queue
       expect(await redisClient.zcard(queueKey)).toBe(0);
 
       // Verify: All assignments created
       expect(await redisClient.hlen(assignmentKey)).toBe(20);
-
-      // Verify: Multiple Redis operations due to batching
-      expect(metrics.redisOperations).toBeGreaterThan(1);
     });
 
     it('should handle empty matches array', async () => {
-      const metrics: ProcessingMetrics = {
-        usersProcessed: 0,
-        matchesCreated: 0,
-        redisOperations: 0,
-        ignoredPairsChecked: 0,
-        processTimeMs: 0,
-        startTime: Date.now(),
-      };
-
       // Execute with empty matches
-      await RedisOperations.processMatchedUsers([], 5, metrics);
+      await RedisOperations.processMatchedUsers([], 5);
 
-      // Verify: No Redis operations performed
-      expect(metrics.redisOperations).toBe(0);
+      // Verify: Queue remains empty (no operations performed)
+      const queueKey = MatchmakingQueueService.getZoneSpecificQueueKey();
+      expect(await redisClient.zcard(queueKey)).toBe(0);
     });
 
     it('should maintain atomicity even with Redis errors', async () => {
@@ -212,15 +179,6 @@ describe('RedisOperations', () => {
         },
       ];
 
-      const metrics: ProcessingMetrics = {
-        usersProcessed: 0,
-        matchesCreated: 0,
-        redisOperations: 0,
-        ignoredPairsChecked: 0,
-        processTimeMs: 0,
-        startTime: Date.now(),
-      };
-
       // Mock Redis eval to fail
       const originalEval = redisClient.eval;
       vi.spyOn(redisClient, 'eval').mockRejectedValue(
@@ -229,7 +187,7 @@ describe('RedisOperations', () => {
 
       // Execute and verify it throws
       await expect(
-        RedisOperations.processMatchedUsers(matches, 5, metrics),
+        RedisOperations.processMatchedUsers(matches, 5),
       ).rejects.toThrow('Redis eval failed');
 
       // Restore original eval
@@ -255,17 +213,8 @@ describe('RedisOperations', () => {
         },
       ];
 
-      const metrics: ProcessingMetrics = {
-        usersProcessed: 0,
-        matchesCreated: 0,
-        redisOperations: 0,
-        ignoredPairsChecked: 0,
-        processTimeMs: 0,
-        startTime: Date.now(),
-      };
-
       // Execute
-      await RedisOperations.processMatchedUsers(matches, 5, metrics);
+      await RedisOperations.processMatchedUsers(matches, 5);
 
       // Verify: Both assignments have the same room ID
       const assignment1 = await redisClient.hget(assignmentKey, 'socket1');
@@ -312,17 +261,8 @@ describe('RedisOperations', () => {
         },
       ];
 
-      const metrics: ProcessingMetrics = {
-        usersProcessed: 0,
-        matchesCreated: 0,
-        redisOperations: 0,
-        ignoredPairsChecked: 0,
-        processTimeMs: 0,
-        startTime: Date.now(),
-      };
-
       // Execute
-      await RedisOperations.processMatchedUsers(matches, 5, metrics);
+      await RedisOperations.processMatchedUsers(matches, 5);
 
       // Verify: Special characters handled correctly
       const assignment1 = await redisClient.hget(assignmentKey, specialSocket1);
@@ -338,9 +278,10 @@ describe('RedisOperations', () => {
       });
     });
 
-    it('should update metrics correctly for multiple operations', async () => {
+    it('should process multiple batches correctly', async () => {
       // Setup: Create matches that will require multiple Lua script calls
       const queueKey = MatchmakingQueueService.getZoneSpecificQueueKey();
+      const assignmentKey = MatchAssignmentService.MATCH_ASSIGNMENT_KEY;
       const matches: Match[] = [];
 
       // Create 8 matches (will require 2 Lua calls with batch size 5)
@@ -376,20 +317,14 @@ describe('RedisOperations', () => {
         });
       }
 
-      const metrics: ProcessingMetrics = {
-        usersProcessed: 0,
-        matchesCreated: 0,
-        redisOperations: 0,
-        ignoredPairsChecked: 0,
-        processTimeMs: 0,
-        startTime: Date.now(),
-      };
-
       // Execute with batch size 5 (should require 2 Redis operations)
-      await RedisOperations.processMatchedUsers(matches, 5, metrics);
+      await RedisOperations.processMatchedUsers(matches, 5);
 
-      // Verify: Metrics updated correctly
-      expect(metrics.redisOperations).toBe(2); // 5 matches + 3 matches = 2 operations
+      // Verify: All users removed from queue
+      expect(await redisClient.zcard(queueKey)).toBe(0);
+
+      // Verify: All assignments created
+      expect(await redisClient.hlen(assignmentKey)).toBe(16);
     });
   });
 });

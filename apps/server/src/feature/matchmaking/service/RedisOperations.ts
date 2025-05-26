@@ -1,6 +1,5 @@
 import { RedisClient } from '../../../common/client/RedisClient.js';
 import type { Match } from '../model/Match.js';
-import type { ProcessingMetrics } from '../model/ProcessingMetrics.js';
 import { MatchmakingQueueService } from './MatchmakingQueueService.js';
 import { MatchAssignmentService } from './MatchAssignmentService.js';
 
@@ -33,12 +32,11 @@ return #ARGV / 3
 const processMatchedUsers = async (
   matches: Match[],
   luaProcessingBatchSize: number,
-  metrics: ProcessingMetrics,
 ): Promise<void> => {
   // Process matches in batches to avoid Redis timeouts and memory issues
   for (let i = 0; i < matches.length; i += luaProcessingBatchSize) {
     const batch = matches.slice(i, i + luaProcessingBatchSize);
-    await processMatchBatchWithLua(batch, metrics);
+    await processMatchBatchWithLua(batch);
   }
 };
 
@@ -46,10 +44,7 @@ const processMatchedUsers = async (
  * Processes a batch of matches using Lua script for atomicity
  * Optimized to prevent memory bloat from large argument arrays
  */
-const processMatchBatchWithLua = async (
-  matches: Match[],
-  metrics: ProcessingMetrics,
-): Promise<void> => {
+const processMatchBatchWithLua = async (matches: Match[]): Promise<void> => {
   if (matches.length === 0) return;
 
   const redis = RedisClient.get();
@@ -97,8 +92,6 @@ const processMatchBatchWithLua = async (
     assignmentKey,
     ...args,
   );
-
-  metrics.redisOperations += 1;
 };
 
 export const RedisOperations = {

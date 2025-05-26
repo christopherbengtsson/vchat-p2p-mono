@@ -7,6 +7,7 @@ import { JobDistributedLockService } from './JobDistributedLockService.js';
 import { JobStateService } from './JobStateService.js';
 import { JobConfigService } from './JobConfigService.js';
 
+// TODO: Get from job config zod schema
 const LOCK_TTL_FACTOR = 3; // Lock TTL will be 3 times the job interval
 const LOCK_RENEW_INTERVAL_FACTOR = 0.5; // Renew lock at 50% of TTL
 const MAX_JOB_RETRIES = 3; // Maximum number of retries for a failing job
@@ -35,7 +36,6 @@ const start = async (
     ? maybeJobConfig
     : JobConfigService.get(jobId);
 
-  // Check if the job is already in an active state
   if (JobStateService.isJobStatusActive(jobState.status)) {
     log.warn(
       { jobId, jobType, status: jobState.status },
@@ -57,18 +57,16 @@ const start = async (
       { error: redisError, jobId, jobType, lockTtl },
       `[JobRunnerService] Redis error while trying to acquire lock for job '${jobId}'. Job will not start.`,
     );
-    // Set status to ERROR_STATE if lock acquisition fails due to Redis error
+
     JobStateService.update(jobId, { status: 'ERROR_STATE' });
     return;
   }
 
   if (!acquiredLock) {
-    // If lock not acquired, job goes back to IDLE, as it didn't truly start.
     JobStateService.update(jobId, { status: 'IDLE' });
     return;
   }
 
-  // Set status to RUNNING now that lock is acquired and we are proceeding
   JobStateService.update(jobId, { status: 'RUNNING' });
 
   const renewLockTask = async () => {
@@ -83,10 +81,11 @@ const start = async (
           { jobId, jobType },
           `[JobRunnerService] Failed to renew lock for job '${jobId}'. Lock might have expired or been taken. Stopping job.`,
         );
-        await stop(jobId, jobType, true); // Pass lockLost = true
+
+        await stop(jobId, jobType, true);
       } else {
-        // Ensure status is RUNNING if lock is renewed successfully and job is supposed to be active
         const currentJobState = JobStateService.get(jobId);
+
         if (JobStateService.isJobStatusActive(currentJobState.status)) {
           JobStateService.update(jobId, { status: 'RUNNING' });
         }
@@ -96,7 +95,7 @@ const start = async (
         { error: redisError, jobId, jobType },
         `[JobRunnerService] Redis error during lock renewal for job '${jobId}'. Stopping job to be safe.`,
       );
-      // Update status to ERROR_STATE before stopping if renewal fails due to Redis error
+
       try {
         JobStateService.update(jobId, { status: 'ERROR_STATE' });
       } catch (stateError) {
@@ -105,7 +104,8 @@ const start = async (
           '[JobRunnerService] Failed to update job state to ERROR_STATE during lock renewal error.',
         );
       }
-      await stop(jobId, jobType, true); // Stop job if renewal fails due to Redis error
+
+      await stop(jobId, jobType, true);
     }
   };
 
@@ -119,30 +119,33 @@ const start = async (
   let jobExecutionTimeoutId: NodeJS.Timeout | null = null;
 
   const runJob = async (currentAttempt = 1) => {
-    if (jobExecutionTimeoutId) clearTimeout(jobExecutionTimeoutId);
-    jobExecutionTimeoutId = null;
+    if (jobExecutionTimeoutId) {
+      clearTimeout(jobExecutionTimeoutId);
+    }
 
+    jobExecutionTimeoutId = null;
     let currentJobState;
+
     try {
-      currentJobState = JobStateService.get(jobId); // Can throw if state is removed
+      currentJobState = JobStateService.get(jobId);
     } catch (error) {
       log.error(
         { error, jobId, jobType },
         `[JobRunnerService] Failed to get job state before execution for job '${jobId}'. Job might have been removed. Stopping attempts.`,
       );
+
       return;
     }
 
-    // Check if the job is supposed to be active before executing
     if (!JobStateService.isJobStatusActive(currentJobState.status)) {
       log.info(
         { jobId, jobType, status: currentJobState.status },
         `[JobRunnerService] Job '${jobId}' is in status '${currentJobState.status}'. Skipping execution.`,
       );
+
       return;
     }
-    // Explicitly set to RUNNING if it was, for example, RETRYING and now is about to run.
-    // Or if it was STARTING and this is the first run.
+
     JobStateService.update(jobId, { status: 'RUNNING' });
 
     log.debug(
@@ -151,17 +154,20 @@ const start = async (
     );
     try {
       await jobEntryPoint();
+
       log.debug(
         { jobId, jobType },
         `[JobRunnerService] Job '${jobId}' executed successfully.`,
       );
+
       const stateAfterRun = JobStateService.get(jobId);
-      // Only reschedule if the job is still in an active status (e.g. RUNNING)
+
       if (JobStateService.isJobStatusActive(stateAfterRun.status)) {
         jobExecutionTimeoutId = setTimeout(() => runJob(1), jobConfig.interval);
+
         JobStateService.update(jobId, {
           intervalId: jobExecutionTimeoutId,
-          status: 'RUNNING', // Ensure it's RUNNING for the next scheduled execution
+          status: 'RUNNING',
         });
       }
     } catch (error) {
@@ -169,7 +175,9 @@ const start = async (
         { error, jobId, jobType, attempt: currentAttempt },
         `[JobRunnerService] Error executing job '${jobId}'.`,
       );
+
       let stateBeforeRetryHandling;
+
       try {
         stateBeforeRetryHandling = JobStateService.get(jobId);
       } catch (stateError) {
@@ -177,17 +185,16 @@ const start = async (
           { error: stateError, jobId, jobType },
           `[JobRunnerService] Failed to get job state for job '${jobId}' during error handling. Cannot proceed with retry logic.`,
         );
-        // If we can't get state, we can't safely proceed.
-        // The job might have been stopped and its state removed.
+
         return;
       }
 
-      // If the job is no longer active (e.g., was stopped externally), don't attempt retry.
       if (!JobStateService.isJobStatusActive(stateBeforeRetryHandling.status)) {
         log.info(
           { jobId, jobType, status: stateBeforeRetryHandling.status },
           `[JobRunnerService] Job '${jobId}' was in status '${stateBeforeRetryHandling.status}' during error handling. Not retrying.`,
         );
+
         return;
       }
 
@@ -206,6 +213,7 @@ const start = async (
           { jobId, jobType, attempts: MAX_JOB_RETRIES },
           `[JobRunnerService] Job '${jobId}' failed after ${MAX_JOB_RETRIES} retries. Setting status to FAILED_MAX_RETRIES and stopping.`,
         );
+
         try {
           JobStateService.update(jobId, {
             status: 'FAILED_MAX_RETRIES',
@@ -217,6 +225,7 @@ const start = async (
             { error: cleanupError, jobId, jobType },
             `[JobRunnerService] Error during stop or subsequent cleanup of job '${jobId}' after max retries. Current status should be FAILED_MAX_RETRIES.`,
           );
+
           try {
             JobStateService.update(jobId, {
               status: 'FAILED_MAX_RETRIES',
@@ -236,6 +245,7 @@ const start = async (
     { jobId, jobType },
     `[JobRunnerService] Scheduling initial run for job '${jobId}'.`,
   );
+
   jobExecutionTimeoutId = setTimeout(() => runJob(1), 0); // Start immediately
   JobStateService.update(jobId, { intervalId: jobExecutionTimeoutId });
 };
@@ -257,11 +267,10 @@ const stop = async (
       { jobId, jobType, error: _error },
       `[JobRunnerService] Cannot stop job '${jobId}'. State not found. Might have been already removed.`,
     );
+
     return;
   }
 
-  // If not active and no timers, it's effectively stopped or was never fully started.
-  // Check current status instead of relying on isRunning or timer IDs alone.
   if (
     !JobStateService.isJobStatusActive(jobState.status) &&
     jobState.status !== 'RETRYING' &&
@@ -273,12 +282,14 @@ const stop = async (
       { jobId, jobType, status: jobState.status },
       `[JobRunnerService] Job '${jobId}' is already in status '${jobState.status}' or not fully started. No further stop action needed.`,
     );
+
     if (
       jobState.status !== 'FAILED_MAX_RETRIES' &&
       jobState.status !== 'ERROR_STATE'
     ) {
       JobStateService.update(jobId, { status: 'STOPPED' });
     }
+
     return;
   }
 
@@ -290,8 +301,8 @@ const stop = async (
   if (jobState.intervalId) clearTimeout(jobState.intervalId);
   if (jobState.renewLockIntervalId) clearInterval(jobState.renewLockIntervalId);
 
-  // Determine final status: preserve FAILED_MAX_RETRIES or ERROR_STATE, otherwise set to STOPPED.
   let finalStatus: JobStatus = 'STOPPED';
+
   if (
     jobState.status === 'FAILED_MAX_RETRIES' ||
     jobState.status === 'ERROR_STATE'
@@ -304,6 +315,7 @@ const stop = async (
     renewLockIntervalId: null,
     status: finalStatus,
   });
+
   log.info(
     { jobId, jobType, finalStatus },
     `[JobRunnerService] Job '${jobId}' processing loop stopped and state updated to '${finalStatus}'.`,
@@ -314,11 +326,13 @@ const stop = async (
       { jobId, jobType },
       `[JobRunnerService] Attempting to release lock for job '${jobId}'.`,
     );
+
     try {
       const released = await JobDistributedLockService.releaseLock(
         jobType,
         jobId,
       );
+
       if (!released) {
         log.warn(
           { jobId, jobType },

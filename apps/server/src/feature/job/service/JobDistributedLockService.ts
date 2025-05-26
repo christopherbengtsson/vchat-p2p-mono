@@ -116,7 +116,7 @@ const renewLock = async (
     return result === 1;
   } catch (error) {
     log.error(
-      { error, lockKey, instanceId, jobType }, // Added jobType
+      { error, lockKey, instanceId, jobType },
       '[JobDistributedLockService] Error renewing lock',
     );
     return false;

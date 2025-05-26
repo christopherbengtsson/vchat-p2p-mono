@@ -10,7 +10,6 @@ const getIgnoredPairs = async (
   userIds: string[],
 ): Promise<[string, string][]> => {
   try {
-    // Early return for empty input
     if (userIds.length === 0) {
       return [];
     }

@@ -81,7 +81,7 @@ const init = (
   };
 
   return {
-    jobId: jobId,
+    jobId,
     baseJobType,
     effectiveJobType,
     serverRegion,

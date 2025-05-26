@@ -11,7 +11,6 @@ import { SupabaseService } from '../../../../common/service/SupabaseService.js';
 import type { MatchmakingConfig } from '../../model/MatchmakingConfig.js';
 import type { QueueUser } from '../../model/QueueUser.js';
 import { ServerConfigService } from '../../../../common/config/service/ServerConfigService.js';
-import { PerformanceMetrics } from '../PerformanceMetrics.js';
 import { MatchMakingJobEntry } from '../MatchmakingJobEntry.js';
 
 vi.mock('../../../../common/client/RedisClient.js');
@@ -304,13 +303,7 @@ describe('MatchmakingOrchestrator Tests', () => {
   });
 
   describe('Performance', () => {
-    it('should track performance metrics correctly', async () => {
-      // Spy on PerformanceMetrics.logPerformanceMetrics
-      const logPerformanceMetricsSpy = vi.spyOn(
-        PerformanceMetrics,
-        'logPerformanceMetrics',
-      );
-
+    it('should handle basic matching correctly', async () => {
       // Setup: Add two users to queue
       const users: QueueUser[] = [
         { socketId: 'socket1', userId: 'user1', score: 1000 },
@@ -325,17 +318,17 @@ describe('MatchmakingOrchestrator Tests', () => {
       // Execute
       await MatchmakingOrchestrator.processQueue(mockIo, TEST_CONFIG);
 
-      // Verify: Performance metrics should be logged
-      expect(logPerformanceMetricsSpy).toHaveBeenCalledWith(
-        expect.objectContaining({
-          usersProcessed: 2,
-          matchesCreated: 1,
-          redisOperations: expect.any(Number),
-          ignoredPairsChecked: expect.any(Number),
-          processTimeMs: expect.any(Number),
-        }),
-        'Processing completed successfully',
-      );
+      // Verify: Queue should be empty after matching
+      const queueCount = await MatchmakingQueueService._getQueueCount();
+      expect(queueCount).toBe(0);
+
+      // Verify: Match assignments created
+      const assignment1 =
+        await MatchAssignmentService.getMatchAssignment('socket1');
+      const assignment2 =
+        await MatchAssignmentService.getMatchAssignment('socket2');
+      expect(assignment1?.partnerSocketId).toBe('socket2');
+      expect(assignment2?.partnerSocketId).toBe('socket1');
     });
 
     it('should handle default user batches efficiently', async () => {
@@ -569,20 +562,14 @@ describe('MatchmakingOrchestrator Tests', () => {
       }
     });
 
-    it('should handle disabled performance metrics', async () => {
-      const noMetricsConfig: MatchmakingConfig = {
+    it('should handle different configuration settings', async () => {
+      const configWithoutMetrics: MatchmakingConfig = {
         ...TEST_CONFIG,
         performance: {
           enableMetrics: false,
           slowProcessingThreshold: 500,
         },
       };
-
-      // Spy on PerformanceMetrics
-      const logPerformanceMetricsSpy = vi.spyOn(
-        PerformanceMetrics,
-        'logPerformanceMetrics',
-      );
 
       // Setup: Add two users
       const users: QueueUser[] = [
@@ -596,10 +583,7 @@ describe('MatchmakingOrchestrator Tests', () => {
       vi.mocked(SupabaseService.getIgnoredPairs).mockResolvedValue([]);
 
       // Execute with metrics disabled
-      await MatchmakingOrchestrator.processQueue(mockIo, noMetricsConfig);
-
-      // Verify: Performance metrics should not be logged
-      expect(logPerformanceMetricsSpy).not.toHaveBeenCalled();
+      await MatchmakingOrchestrator.processQueue(mockIo, configWithoutMetrics);
 
       // Verify: Matching should still work
       const queueCount = await MatchmakingQueueService._getQueueCount();
@@ -881,23 +865,17 @@ describe('MatchmakingOrchestrator Tests', () => {
       expect(redisClient.hmset).toHaveBeenCalled(); // Cache update for misses
     });
 
-    it('should handle performance threshold violations', async () => {
+    it('should handle processing under time constraints', async () => {
       // Use real timers for this test since we need actual timing behavior
       vi.useRealTimers();
 
-      const slowProcessingConfig: MatchmakingConfig = {
+      const quickProcessingConfig: MatchmakingConfig = {
         ...TEST_CONFIG,
         performance: {
           enableMetrics: true,
           slowProcessingThreshold: 1, // Very low threshold
         },
       };
-
-      // Spy on PerformanceMetrics
-      const logPerformanceMetricsSpy = vi.spyOn(
-        PerformanceMetrics,
-        'logPerformanceMetrics',
-      );
 
       // Setup: Add users
       const users: QueueUser[] = [
@@ -917,15 +895,11 @@ describe('MatchmakingOrchestrator Tests', () => {
       );
 
       // Execute
-      await MatchmakingOrchestrator.processQueue(mockIo, slowProcessingConfig);
+      await MatchmakingOrchestrator.processQueue(mockIo, quickProcessingConfig);
 
-      // Verify: Slow processing should be logged
-      expect(logPerformanceMetricsSpy).toHaveBeenCalledWith(
-        expect.objectContaining({
-          processTimeMs: expect.any(Number),
-        }),
-        expect.stringContaining('slow'), // Should contain warning about slow processing
-      );
+      // Verify: Processing should complete successfully despite slow operation
+      const queueCount = await MatchmakingQueueService._getQueueCount();
+      expect(queueCount).toBe(0);
 
       // Restore fake timers for other tests
       vi.useFakeTimers();
