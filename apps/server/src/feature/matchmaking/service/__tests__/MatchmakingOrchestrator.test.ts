@@ -20,10 +20,6 @@ vi.mock('../../../../common/service/SupabaseService.js');
 const TEST_CONFIG: MatchmakingConfig = {
   batchSize: 10,
   luaProcessingBatchSize: 5,
-  performance: {
-    enableMetrics: true,
-    slowProcessingThreshold: 500,
-  },
 };
 
 describe('MatchmakingOrchestrator Tests', () => {
@@ -34,7 +30,7 @@ describe('MatchmakingOrchestrator Tests', () => {
 
   // Helper function to add users to queue
   async function addUsersToQueue(users: QueueUser[]): Promise<void> {
-    const queueKey = MatchmakingQueueService.getZoneSpecificQueueKey();
+    const queueKey = MatchmakingQueueService.getRegionSpecificQueueKey();
 
     for (const user of users) {
       const member = MatchmakingQueueService.composeKey({
@@ -500,7 +496,7 @@ describe('MatchmakingOrchestrator Tests', () => {
 
     it('should handle malformed queue data gracefully', async () => {
       // Setup: Add malformed data to queue directly
-      const queueKey = MatchmakingQueueService.getZoneSpecificQueueKey();
+      const queueKey = MatchmakingQueueService.getRegionSpecificQueueKey();
       await redisClient.zadd(
         queueKey,
         1000,
@@ -565,10 +561,6 @@ describe('MatchmakingOrchestrator Tests', () => {
     it('should handle different configuration settings', async () => {
       const configWithoutMetrics: MatchmakingConfig = {
         ...TEST_CONFIG,
-        performance: {
-          enableMetrics: false,
-          slowProcessingThreshold: 500,
-        },
       };
 
       // Setup: Add two users
@@ -871,10 +863,6 @@ describe('MatchmakingOrchestrator Tests', () => {
 
       const quickProcessingConfig: MatchmakingConfig = {
         ...TEST_CONFIG,
-        performance: {
-          enableMetrics: true,
-          slowProcessingThreshold: 1, // Very low threshold
-        },
       };
 
       // Setup: Add users

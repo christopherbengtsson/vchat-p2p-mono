@@ -25,10 +25,6 @@ const init = (
     defaultConfig,
     overrides,
   );
-  log.debug(
-    { instanceJobId: jobId, finalConfig },
-    '[JobFactoryService] Job config stored.',
-  );
 
   const initialState = JobStateService.init(jobId);
 
@@ -97,13 +93,10 @@ const init = (
         { effectiveJobType, instanceJobId: jobId },
         '[JobFactoryService] Destroying job instance via facade',
       );
+
       await JobRunnerService.stop(jobId, effectiveJobType);
       JobStateService.remove(jobId);
       JobConfigService.remove(jobId);
-      log.debug(
-        { effectiveJobType, instanceJobId: jobId },
-        '[JobFactoryService] Job instance data cleaned up after destroy.',
-      );
     },
   };
 };

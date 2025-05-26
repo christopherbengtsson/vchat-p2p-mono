@@ -39,9 +39,6 @@ const init = async (httpServer: Server, serverConfig: ServerConfig) => {
   /** Bootstrap */
 
   await SocketIoBootstrapService.bootstrap(io);
-  log.info(
-    '[SocketServer] SocketIoBootstrapService bootstrapped successfully.',
-  );
 };
 
 export const SocketServer = {

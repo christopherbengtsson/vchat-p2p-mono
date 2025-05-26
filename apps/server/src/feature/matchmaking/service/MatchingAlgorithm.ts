@@ -14,7 +14,6 @@ const findOptimizedMatches = (
   const matches: Match[] = [];
   const used = new Set<string>();
 
-  // Validate inputs
   if (!users || users.length < 2 || !ignoreMatrix) {
     return matches;
   }
@@ -41,7 +40,7 @@ const findOptimizedMatches = (
 
         used.add(user1.socketId);
         used.add(user2.socketId);
-        break; // Move to next user1
+        break;
       }
     }
   }

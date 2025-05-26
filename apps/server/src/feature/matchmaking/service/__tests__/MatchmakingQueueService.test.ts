@@ -204,12 +204,12 @@ describe('MatchmakingQueueService', async () => {
     });
   });
 
-  describe('_findByMatchPatternInZone', () => {
+  describe('_findByMatchPatternInRegion', () => {
     it('should find user by pattern', async () => {
       await MatchmakingQueueService.addToQueue('socketId1', 'userId1');
 
       const result =
-        await MatchmakingQueueService._findByMatchPatternInZone(
+        await MatchmakingQueueService._findByMatchPatternInRegion(
           'socketId1__:__*',
         );
       expect(result).toEqual({
@@ -220,7 +220,7 @@ describe('MatchmakingQueueService', async () => {
 
     it('should return null when pattern not found', async () => {
       const result =
-        await MatchmakingQueueService._findByMatchPatternInZone(
+        await MatchmakingQueueService._findByMatchPatternInRegion(
           'nonexistent__:__*',
         );
       expect(result).toBeNull();

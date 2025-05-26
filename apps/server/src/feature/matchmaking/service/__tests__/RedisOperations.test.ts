@@ -48,7 +48,7 @@ describe('RedisOperations', () => {
   describe('processMatchedUsers', () => {
     it('should atomically remove matched users from queue and create assignments', async () => {
       // Setup: Add users to queue
-      const queueKey = MatchmakingQueueService.getZoneSpecificQueueKey();
+      const queueKey = MatchmakingQueueService.getRegionSpecificQueueKey();
       const assignmentKey = MatchAssignmentService.MATCH_ASSIGNMENT_KEY;
 
       await redisClient.zadd(queueKey, 1000, 'socket1__:__user1');
@@ -109,7 +109,7 @@ describe('RedisOperations', () => {
 
     it('should handle large batches with Lua processing batch size', async () => {
       // Setup: Add many users to queue
-      const queueKey = MatchmakingQueueService.getZoneSpecificQueueKey();
+      const queueKey = MatchmakingQueueService.getRegionSpecificQueueKey();
       const assignmentKey = MatchAssignmentService.MATCH_ASSIGNMENT_KEY;
 
       // Create 10 matches (20 users)
@@ -161,13 +161,13 @@ describe('RedisOperations', () => {
       await RedisOperations.processMatchedUsers([], 5);
 
       // Verify: Queue remains empty (no operations performed)
-      const queueKey = MatchmakingQueueService.getZoneSpecificQueueKey();
+      const queueKey = MatchmakingQueueService.getRegionSpecificQueueKey();
       expect(await redisClient.zcard(queueKey)).toBe(0);
     });
 
     it('should maintain atomicity even with Redis errors', async () => {
       // Setup: Add users to queue
-      const queueKey = MatchmakingQueueService.getZoneSpecificQueueKey();
+      const queueKey = MatchmakingQueueService.getRegionSpecificQueueKey();
       await redisClient.zadd(queueKey, 1000, 'socket1__:__user1');
       await redisClient.zadd(queueKey, 1001, 'socket2__:__user2');
 
@@ -199,7 +199,7 @@ describe('RedisOperations', () => {
 
     it('should handle matches with identical room IDs correctly', async () => {
       // Setup: Add users to queue
-      const queueKey = MatchmakingQueueService.getZoneSpecificQueueKey();
+      const queueKey = MatchmakingQueueService.getRegionSpecificQueueKey();
       const assignmentKey = MatchAssignmentService.MATCH_ASSIGNMENT_KEY;
 
       await redisClient.zadd(queueKey, 1000, 'socket1__:__user1');
@@ -226,7 +226,7 @@ describe('RedisOperations', () => {
 
     it('should handle special characters in socket IDs and user IDs', async () => {
       // Setup: Add users with special characters
-      const queueKey = MatchmakingQueueService.getZoneSpecificQueueKey();
+      const queueKey = MatchmakingQueueService.getRegionSpecificQueueKey();
       const assignmentKey = MatchAssignmentService.MATCH_ASSIGNMENT_KEY;
 
       const specialSocket1 = 'socket@#$%^&*()';
@@ -280,7 +280,7 @@ describe('RedisOperations', () => {
 
     it('should process multiple batches correctly', async () => {
       // Setup: Create matches that will require multiple Lua script calls
-      const queueKey = MatchmakingQueueService.getZoneSpecificQueueKey();
+      const queueKey = MatchmakingQueueService.getRegionSpecificQueueKey();
       const assignmentKey = MatchAssignmentService.MATCH_ASSIGNMENT_KEY;
       const matches: Match[] = [];
 

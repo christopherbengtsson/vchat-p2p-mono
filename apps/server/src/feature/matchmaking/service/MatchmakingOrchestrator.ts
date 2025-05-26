@@ -9,7 +9,6 @@ import { SocketNotifications } from './SocketNotifications.js';
 
 /**
  * Main processing function for random user matching
- * Optimized for speed and simplicity
  */
 const processQueue = async (
   io: Server,

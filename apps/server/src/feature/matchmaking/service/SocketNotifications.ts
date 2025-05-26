@@ -8,7 +8,6 @@ import type { Match } from '../model/Match.js';
  */
 const notifyMatchedUsers = (io: Server, matches: Match[]): void => {
   for (const match of matches) {
-    // Notify user1 - always impolite peer
     io.of(SocketNamespace.VIDEO_CHAT).to(match.user1.socketId).emit(
       'match-found',
       match.roomId,
@@ -17,7 +16,6 @@ const notifyMatchedUsers = (io: Server, matches: Match[]): void => {
       false, // impolite peer
     );
 
-    // Notify user2 - always polite peer
     io.of(SocketNamespace.VIDEO_CHAT).to(match.user2.socketId).emit(
       'match-found',
       match.roomId,

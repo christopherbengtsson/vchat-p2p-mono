@@ -21,7 +21,7 @@ export const start = async () => {
 
   const port = serverConfig.config.port;
   httpServer.listen(port, () => {
-    log.info({ port }, `Server is running on port ${port}`);
+    log.info(`Server is running on port ${port}`);
   });
 };
 
@@ -32,13 +32,10 @@ export const gracefulShutdown = async (signal: string) => {
   );
 
   JobManagerService.stopPeriodicCleanup();
-  log.info('[main] Queue job periodic cleanup task stopped.');
 
   await JobManagerService.destroyAllJobs();
-  log.info('[main] All queue jobs destroyed.');
 
   await RedisClient._redisClientInstance?.quit();
-  log.info('[main] Redis client connection closed.');
 
   log.info('[main] Graceful shutdown completed. Exiting.');
   process.exit(0);

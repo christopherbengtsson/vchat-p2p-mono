@@ -7,7 +7,7 @@ import { JobDistributedLockService } from './JobDistributedLockService.js';
 import { JobStateService } from './JobStateService.js';
 import { JobConfigService } from './JobConfigService.js';
 
-// TODO: Get from job config zod schema
+// TODO: Get from job config zod schema "jobConfigSchema"
 const LOCK_TTL_FACTOR = 3; // Lock TTL will be 3 times the job interval
 const LOCK_RENEW_INTERVAL_FACTOR = 0.5; // Renew lock at 50% of TTL
 const MAX_JOB_RETRIES = 3; // Maximum number of retries for a failing job

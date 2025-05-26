@@ -16,14 +16,14 @@ const getMatchAssignment = async (
   if (!result) return null;
 
   try {
-    // Parse the JSON string stored in the hash field.
     return JSON.parse(result);
   } catch (error) {
     log.error(
       { error, socketId },
       '[MatchAssignmentService]: Error parsing match assignment from Redis',
     );
-    return null; // Return null on parsing error to prevent crashes.
+
+    return null;
   }
 };
 
@@ -47,10 +47,10 @@ const cleanupMatchAssignments = async (socketId: string) => {
       },
     );
 
-    return matchData; // Return the data of the cleaned match.
+    return matchData;
   }
 
-  return null; // No match assignment found for the given socketId.
+  return null;
 };
 
 /**
@@ -88,6 +88,7 @@ const _removeMatchAssignment = async (
 
 /**
  * Service for managing match assignments in Redis.
+ * TODO: Do we still need this service?
  */
 export const MatchAssignmentService = {
   MATCH_ASSIGNMENT_KEY,

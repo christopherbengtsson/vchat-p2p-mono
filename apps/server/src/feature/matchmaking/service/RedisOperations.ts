@@ -48,7 +48,7 @@ const processMatchBatchWithLua = async (matches: Match[]): Promise<void> => {
   if (matches.length === 0) return;
 
   const redis = RedisClient.get();
-  const queueKey = MatchmakingQueueService.getZoneSpecificQueueKey();
+  const queueKey = MatchmakingQueueService.getRegionSpecificQueueKey();
   const assignmentKey = MatchAssignmentService.MATCH_ASSIGNMENT_KEY;
 
   // Pre-allocate array with known size for better memory efficiency

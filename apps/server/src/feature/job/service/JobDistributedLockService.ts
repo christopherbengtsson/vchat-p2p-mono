@@ -1,6 +1,7 @@
 import { RedisClient } from '../../../common/client/RedisClient.js';
 import { log } from '../../../common/util/logger.js';
 
+// TODO: Centralized placed for redis keys?
 const LOCK_KEY_PREFIX = 'queuejob:lock:';
 
 /**

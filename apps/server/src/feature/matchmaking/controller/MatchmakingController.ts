@@ -1,5 +1,4 @@
 import type { VChatSocket } from '../../../common/model/VChatSocket.js';
-import { log } from '../../../common/util/logger.js';
 import { MatchmakingQueueService } from '../service/MatchmakingQueueService.js';
 import { MatchAssignmentService } from '../service/MatchAssignmentService.js';
 
@@ -13,7 +12,6 @@ const register = (
     'find-match',
     wrapHandler(async (socketId, userId) => {
       await MatchmakingQueueService.addToQueue(socketId, userId);
-      log.debug({ socketId, userId }, 'User added to queue');
     }),
   );
 

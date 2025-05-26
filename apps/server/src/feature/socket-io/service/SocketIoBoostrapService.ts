@@ -5,6 +5,7 @@ import { JobManagerService } from '../../job/service/JobManagerService.js';
 import { MatchMakingJobEntry } from '../../matchmaking/service/MatchmakingJobEntry.js';
 
 const bootstrap = async (io: Server) => {
+  // TODO: Centralized list of jobs to register on startup?
   JobManagerService.registerJob(
     JobType.DEFAULT_MATCHMAKING,
     MatchMakingJobEntry.create(io),
