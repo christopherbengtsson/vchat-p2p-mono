@@ -10,63 +10,48 @@ export interface TestRedisSetup {
 export async function setupTestRedis(): Promise<TestRedisSetup> {
   const isCI = process.env.CI === 'true';
 
+  // Set environment variables to fix pnpm compatibility issues
   if (isCI) {
-    // Fallback to memory server with minimal config for CI
-    const redisServer = new RedisMemoryServer({
-      instance: {
-        args: ['--maxmemory', '64mb', '--save', ''],
-      },
-      binary: {
-        version: '6.2.14', // Use older, more stable version for CI
-        downloadDir: './tmp',
-      },
-      autoStart: true,
-    });
-
-    const host = await redisServer.getHost();
-    const port = await redisServer.getPort();
-
-    const redisClient = new Redis({
-      host,
-      port,
-      maxRetriesPerRequest: 0,
-      lazyConnect: false,
-    });
-
-    return {
-      redisServer,
-      redisClient,
-      cleanup: async () => {
-        redisClient.disconnect();
-        await redisServer.stop();
-      },
-    };
-  } else {
-    // Local development - use latest version
-    const redisServer = new RedisMemoryServer({
-      instance: {
-        args: ['--maxmemory', '128mb'],
-      },
-      autoStart: true,
-    });
-
-    const host = await redisServer.getHost();
-    const port = await redisServer.getPort();
-
-    const redisClient = new Redis({
-      host,
-      port,
-      maxRetriesPerRequest: 0,
-      lazyConnect: false,
-    });
-
-    return {
-      redisServer,
-      redisClient,
-      cleanup: async () => {
-        redisClient.disconnect();
-        await redisServer.stop();
-      },
-    };
+    process.env.PREFER_GLOBAL_PATH = 'true';
+    process.env.DOWNLOAD_DIR = '/tmp/redis-binaries';
   }
+
+  const redisServerConfig = isCI
+    ? {
+        instance: {
+          args: ['--maxmemory', '64mb', '--save', ''],
+        },
+        binary: {
+          version: '6.2.14', // Use older, more stable version for CI
+          downloadDir: '/tmp/redis-binaries', // Absolute path for CI
+        },
+        autoStart: true,
+      }
+    : {
+        instance: {
+          args: ['--maxmemory', '128mb'],
+        },
+        autoStart: true,
+      };
+
+  const redisServer = new RedisMemoryServer(redisServerConfig);
+
+  const host = await redisServer.getHost();
+  const port = await redisServer.getPort();
+
+  const redisClient = new Redis({
+    host,
+    port,
+    maxRetriesPerRequest: 0,
+    lazyConnect: false,
+  });
+
+  return {
+    redisServer,
+    redisClient,
+    cleanup: async () => {
+      redisClient.disconnect();
+      await redisServer.stop();
+    },
+  };
 }
