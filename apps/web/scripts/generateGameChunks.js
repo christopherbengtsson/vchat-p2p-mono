@@ -28,7 +28,9 @@ function scanDirectory(dirPath, basePath = '', options = DEFAULT_OPTIONS) {
   for (const item of items) {
     if (item.isDirectory()) {
       // Skip directories matching exclude patterns
-      if (options.excludePatterns.some((pattern) => item.name.includes(pattern))) {
+      if (
+        options.excludePatterns.some((pattern) => item.name.includes(pattern))
+      ) {
         continue;
       }
 
