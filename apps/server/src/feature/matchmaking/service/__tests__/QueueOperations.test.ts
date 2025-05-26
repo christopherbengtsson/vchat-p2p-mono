@@ -1,13 +1,13 @@
-import { RedisMemoryServer } from 'redis-memory-server';
 import { Redis } from 'ioredis';
 import { QueueOperations } from '../QueueOperations.js';
 import { MatchmakingQueueService } from '../MatchmakingQueueService.js';
 import { RedisClient } from '../../../../common/client/RedisClient.js';
 import type { MatchmakingConfig } from '../../model/MatchmakingConfig.js';
 import { ServerConfigService } from '../../../../common/config/service/ServerConfigService.js';
+import { setupTestRedis, type TestRedisSetup } from './testUtils.js';
 
 describe('QueueOperations', () => {
-  let redisServer: RedisMemoryServer;
+  let testRedisSetup: TestRedisSetup;
   let redisClient: Redis;
 
   const TEST_CONFIG: MatchmakingConfig = {
@@ -18,29 +18,17 @@ describe('QueueOperations', () => {
   beforeAll(async () => {
     ServerConfigService.init(process.env);
 
-    // Start Redis memory server
-    redisServer = new RedisMemoryServer();
-    const host = await redisServer.getHost();
-    const port = await redisServer.getPort();
-
-    // Create Redis client
-    redisClient = new Redis({
-      host,
-      port,
-      maxRetriesPerRequest: 0,
-      lazyConnect: false,
-    });
+    // Setup Redis for testing
+    testRedisSetup = await setupTestRedis();
+    redisClient = testRedisSetup.redisClient;
 
     // Mock RedisClient to use our test instance
     vi.spyOn(RedisClient, 'get').mockReturnValue(redisClient);
   });
 
   afterAll(async () => {
-    if (redisClient) {
-      redisClient.disconnect();
-    }
-    if (redisServer) {
-      await redisServer.stop();
+    if (testRedisSetup) {
+      await testRedisSetup.cleanup();
     }
   });
 

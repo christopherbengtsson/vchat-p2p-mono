@@ -1,27 +1,18 @@
 import { Redis } from 'ioredis';
-import { RedisMemoryServer } from 'redis-memory-server';
 import { MatchAssignmentService } from '../MatchAssignmentService.js';
 import { RedisClient } from '../../../../common/client/RedisClient.js';
+import { setupTestRedis, type TestRedisSetup } from './testUtils.js';
 
 vi.mock('../../../../common/client/RedisClient.js');
 
 describe('MatchAssignmentService', async () => {
-  let redisServer: RedisMemoryServer;
+  let testRedisSetup: TestRedisSetup;
   let redisClient: Redis;
 
   beforeAll(async () => {
-    // Start Redis memory server
-    redisServer = new RedisMemoryServer();
-    const host = await redisServer.getHost();
-    const port = await redisServer.getPort();
-
-    // Create Redis client
-    redisClient = new Redis({
-      host,
-      port,
-      maxRetriesPerRequest: 0,
-      lazyConnect: false,
-    });
+    // Setup Redis for testing
+    testRedisSetup = await setupTestRedis();
+    redisClient = testRedisSetup.redisClient;
   });
 
   beforeEach(async () => {
@@ -32,11 +23,8 @@ describe('MatchAssignmentService', async () => {
   });
 
   afterAll(async () => {
-    if (redisClient) {
-      redisClient.disconnect();
-    }
-    if (redisServer) {
-      await redisServer.stop();
+    if (testRedisSetup) {
+      await testRedisSetup.cleanup();
     }
   });
 

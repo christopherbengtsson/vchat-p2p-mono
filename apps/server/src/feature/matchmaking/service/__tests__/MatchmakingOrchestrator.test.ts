@@ -1,5 +1,4 @@
 import { Redis } from 'ioredis';
-import { RedisMemoryServer } from 'redis-memory-server';
 import { Server } from 'socket.io';
 import { noop } from '@mono/common-util';
 import { SocketNamespace } from '@mono/common-dto';
@@ -12,6 +11,7 @@ import type { MatchmakingConfig } from '../../model/MatchmakingConfig.js';
 import type { QueueUser } from '../../model/QueueUser.js';
 import { ServerConfigService } from '../../../../common/config/service/ServerConfigService.js';
 import { MatchMakingJobEntry } from '../MatchmakingJobEntry.js';
+import { setupTestRedis, type TestRedisSetup } from './testUtils.js';
 
 vi.mock('../../../../common/client/RedisClient.js');
 vi.mock('../../../../common/service/SupabaseService.js');
@@ -23,7 +23,7 @@ const TEST_CONFIG: MatchmakingConfig = {
 };
 
 describe('MatchmakingOrchestrator Tests', () => {
-  let redisServer: RedisMemoryServer;
+  let testRedisSetup: TestRedisSetup;
   let redisClient: Redis;
   let mockIo: Server;
   let mockNamespace: any;
@@ -44,18 +44,9 @@ describe('MatchmakingOrchestrator Tests', () => {
   beforeAll(async () => {
     ServerConfigService.init(process.env);
 
-    // Start Redis memory server
-    redisServer = new RedisMemoryServer();
-    const host = await redisServer.getHost();
-    const port = await redisServer.getPort();
-
-    // Create Redis client
-    redisClient = new Redis({
-      host,
-      port,
-      maxRetriesPerRequest: 0,
-      lazyConnect: false,
-    });
+    // Setup Redis for testing
+    testRedisSetup = await setupTestRedis();
+    redisClient = testRedisSetup.redisClient;
 
     // Create mock Socket.IO server with proper chaining
     mockNamespace = {
@@ -69,11 +60,8 @@ describe('MatchmakingOrchestrator Tests', () => {
   });
 
   afterAll(async () => {
-    if (redisClient) {
-      redisClient.disconnect();
-    }
-    if (redisServer) {
-      await redisServer.stop();
+    if (testRedisSetup) {
+      await testRedisSetup.cleanup();
     }
   });
 
