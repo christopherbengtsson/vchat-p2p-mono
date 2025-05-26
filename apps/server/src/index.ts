@@ -1,29 +1,36 @@
 import 'dotenv/config';
-import { collectDefaultMetrics } from 'prom-client';
-import { HttpServer } from './HttpServer.js';
-import { SocketServer } from './socket/SocketServer.js';
-import { logger } from './utils/logger.js';
-import { redisClient } from './clients/redis.js';
+import { log } from './common/util/logger.js';
+import { gracefulShutdown, start } from './main.js';
 
-collectDefaultMetrics();
-
-const PORT = process.env.PORT || 8000;
-
-await redisClient.connect();
-
-const httpServer = HttpServer.init();
-
-SocketServer.init(httpServer, redisClient);
-
-process.on('uncaughtException', (error) => {
-  logger.fatal({ error }, 'Uncaught Exception');
+start().catch((error) => {
+  log.fatal({ error }, 'Server failed to start');
   process.exit(1);
 });
 
-process.on('unhandledRejection', (reason, promise) => {
-  logger.fatal({ reason, promise }, 'Unhandled Rejection');
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGQUIT', () => gracefulShutdown('SIGQUIT'));
+
+process.on('uncaughtException', (error) => {
+  log.fatal({ error }, 'Uncaught Exception. Shutting down...');
+  // Attempt a graceful shutdown if possible, otherwise force exit after a timeout
+  gracefulShutdown('uncaughtException')
+    .catch(() => {
+      log.error('Graceful shutdown during uncaughtException failed.');
+    })
+    .finally(() => {
+      process.exit(1);
+    });
 });
 
-httpServer.listen(Number(PORT), () => {
-  logger.info(`Server is running on port ${PORT}`);
+process.on('unhandledRejection', (reason, promise) => {
+  log.fatal({ reason, promise }, 'Unhandled Rejection. Shutting down...');
+  // Attempt a graceful shutdown if possible, otherwise force exit after a timeout
+  gracefulShutdown('unhandledRejection')
+    .catch(() => {
+      log.error('Graceful shutdown during unhandledRejection failed.');
+    })
+    .finally(() => {
+      process.exit(1);
+    });
 });

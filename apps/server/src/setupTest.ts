@@ -1,8 +1,8 @@
-import { logger } from './utils/logger.js';
+import { log } from './common/util/logger.js';
 
 beforeAll(() => {
-  logger.error = vi.fn();
-  logger.warn = vi.fn();
-  logger.info = vi.fn();
-  logger.debug = vi.fn();
+  log.error = vi.fn();
+  log.warn = vi.fn();
+  log.info = vi.fn();
+  log.debug = vi.fn();
 });

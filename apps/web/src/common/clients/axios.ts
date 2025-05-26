@@ -13,6 +13,7 @@ export const axiosClient = axios.create({
   },
 });
 
+// TODO: Why not using supabase jwt?
 axiosClient.interceptors.request.use((config) => {
   config.headers['x-api-key'] = API_KEY;
 

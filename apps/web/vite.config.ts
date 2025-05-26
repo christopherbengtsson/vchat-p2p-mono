@@ -56,6 +56,8 @@ export default defineConfig(({ mode }) => ({
             'vaul',
           ],
 
+          // TODO: Possible to split up games?
+
           // Form handling
           'form-utils': ['react-hook-form', '@hookform/resolvers', 'zod'],
 
