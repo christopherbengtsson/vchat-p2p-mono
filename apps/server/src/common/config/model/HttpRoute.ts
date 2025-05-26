@@ -4,3 +4,10 @@ export enum HttpRoute {
   METRICS = '/metrics',
   SIGNATURE = '/signature',
 }
+
+export const HttpRoutePaths: Record<HttpRoute, string> = {
+  [HttpRoute.BASE]: HttpRoute.BASE,
+  [HttpRoute.HEALTH]: HttpRoute.HEALTH,
+  [HttpRoute.METRICS]: HttpRoute.METRICS,
+  [HttpRoute.SIGNATURE]: `${HttpRoute.BASE}${HttpRoute.SIGNATURE}`,
+} as const;

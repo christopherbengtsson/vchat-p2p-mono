@@ -1,6 +1,5 @@
 import { CustomError } from '@mono/common-dto';
 import { type z } from 'zod/v4';
-import { HttpRoute } from '../model/HttpRoute.js';
 import type { EnvironmentConfigSchema } from '../model/EnvironmentConfig.js';
 import type { EnvironmentSecretsSchema } from '../model/EnvironmentSecrets.js';
 import {
@@ -12,13 +11,6 @@ import { log } from '../../util/logger.js';
 type InputEnvironmentConfig = z.input<typeof EnvironmentConfigSchema>;
 type InputEnvironmentSecrets = z.input<typeof EnvironmentSecretsSchema>;
 
-const httpRoutePaths: Record<HttpRoute, string> = {
-  [HttpRoute.BASE]: HttpRoute.BASE,
-  [HttpRoute.HEALTH]: HttpRoute.HEALTH,
-  [HttpRoute.METRICS]: HttpRoute.METRICS,
-  [HttpRoute.SIGNATURE]: `${HttpRoute.BASE}${HttpRoute.SIGNATURE}`,
-} as const;
-
 const to = (envConfigInput: {
   config: InputEnvironmentConfig;
   secrets: InputEnvironmentSecrets;
@@ -27,7 +19,6 @@ const to = (envConfigInput: {
     const parsedServerConfig = ServerConfigSchema.parse({
       config: envConfigInput.config,
       secrets: envConfigInput.secrets,
-      httpRoutePaths: httpRoutePaths,
     });
     return parsedServerConfig;
   } catch (error: unknown) {

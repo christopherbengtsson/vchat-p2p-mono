@@ -11,7 +11,7 @@ export const start = async () => {
 
   const serverConfig = ServerConfigService.getConfig();
 
-  const httpServer = HttpServer.init(serverConfig);
+  const httpServer = HttpServer.init();
 
   await SocketServer.init(httpServer, serverConfig);
 

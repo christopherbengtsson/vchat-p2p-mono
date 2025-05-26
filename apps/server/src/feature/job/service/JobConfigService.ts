@@ -5,7 +5,7 @@ const jobConfigs = new Map<string, JobConfig>();
 
 const loadDefaultConfig = (): JobConfig => {
   // TODO
-  // Fetch parts of the default config from ServerConfigService if needed
+  // Fetch parts of the default config from ServerConfigService (or job specific configs? if needed
   // For example, if 'interval' should come from a global app setting:
   // const serverConfig = ServerConfigService.getConfig();
   // const defaultInterval = serverConfig.config.matchmaking?.interval || 5000;
