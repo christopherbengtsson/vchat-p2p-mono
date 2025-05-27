@@ -1,40 +1,28 @@
-import { Redis } from 'ioredis';
 import { RedisOperations } from '../RedisOperations.js';
 import { MatchmakingQueueService } from '../MatchmakingQueueService.js';
 import { MatchAssignmentService } from '../MatchAssignmentService.js';
 import { RedisClient } from '../../../../common/client/RedisClient.js';
 import type { Match } from '../../model/Match.js';
 import { ServerConfigService } from '../../../../common/config/service/ServerConfigService.js';
-import { setupTestRedis, type TestRedisSetup } from './testUtils.js';
+import { useRedisTestHooks } from '../../../../common/test-utils/redis/hooks.js';
 
 describe('RedisOperations', () => {
-  let testRedisSetup: TestRedisSetup;
-  let redisClient: Redis;
+  const { getRedisClient } = useRedisTestHooks();
 
-  beforeAll(async () => {
+  beforeAll(() => {
     ServerConfigService.init(process.env);
+  });
 
-    // Setup Redis for testing
-    testRedisSetup = await setupTestRedis();
-    redisClient = testRedisSetup.redisClient;
-
+  beforeEach(() => {
     // Mock RedisClient to use our test instance
-    vi.spyOn(RedisClient, 'get').mockReturnValue(redisClient);
-  });
-
-  afterAll(async () => {
-    if (testRedisSetup) {
-      await testRedisSetup.cleanup();
-    }
-  });
-
-  beforeEach(async () => {
+    vi.spyOn(RedisClient, 'get').mockReturnValue(getRedisClient());
     vi.clearAllMocks();
-    await redisClient.flushall();
   });
 
   describe('processMatchedUsers', () => {
     it('should atomically remove matched users from queue and create assignments', async () => {
+      const redisClient = getRedisClient();
+
       // Setup: Add users to queue
       const queueKey = MatchmakingQueueService.getRegionSpecificQueueKey();
       const assignmentKey = MatchAssignmentService.MATCH_ASSIGNMENT_KEY;
@@ -96,6 +84,8 @@ describe('RedisOperations', () => {
     });
 
     it('should handle large batches with Lua processing batch size', async () => {
+      const redisClient = getRedisClient();
+
       // Setup: Add many users to queue
       const queueKey = MatchmakingQueueService.getRegionSpecificQueueKey();
       const assignmentKey = MatchAssignmentService.MATCH_ASSIGNMENT_KEY;
@@ -145,6 +135,8 @@ describe('RedisOperations', () => {
     });
 
     it('should handle empty matches array', async () => {
+      const redisClient = getRedisClient();
+
       // Execute with empty matches
       await RedisOperations.processMatchedUsers([], 5);
 
@@ -154,6 +146,8 @@ describe('RedisOperations', () => {
     });
 
     it('should maintain atomicity even with Redis errors', async () => {
+      const redisClient = getRedisClient();
+
       // Setup: Add users to queue
       const queueKey = MatchmakingQueueService.getRegionSpecificQueueKey();
       await redisClient.zadd(queueKey, 1000, 'socket1__:__user1');
@@ -186,6 +180,8 @@ describe('RedisOperations', () => {
     });
 
     it('should handle matches with identical room IDs correctly', async () => {
+      const redisClient = getRedisClient();
+
       // Setup: Add users to queue
       const queueKey = MatchmakingQueueService.getRegionSpecificQueueKey();
       const assignmentKey = MatchAssignmentService.MATCH_ASSIGNMENT_KEY;
@@ -213,6 +209,8 @@ describe('RedisOperations', () => {
     });
 
     it('should handle special characters in socket IDs and user IDs', async () => {
+      const redisClient = getRedisClient();
+
       // Setup: Add users with special characters
       const queueKey = MatchmakingQueueService.getRegionSpecificQueueKey();
       const assignmentKey = MatchAssignmentService.MATCH_ASSIGNMENT_KEY;
@@ -267,6 +265,8 @@ describe('RedisOperations', () => {
     });
 
     it('should process multiple batches correctly', async () => {
+      const redisClient = getRedisClient();
+
       // Setup: Create matches that will require multiple Lua script calls
       const queueKey = MatchmakingQueueService.getRegionSpecificQueueKey();
       const assignmentKey = MatchAssignmentService.MATCH_ASSIGNMENT_KEY;

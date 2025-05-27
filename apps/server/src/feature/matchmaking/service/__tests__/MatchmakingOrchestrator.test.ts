@@ -1,4 +1,3 @@
-import { Redis } from 'ioredis';
 import { Server } from 'socket.io';
 import { noop } from '@mono/common-util';
 import { SocketNamespace } from '@mono/common-dto';
@@ -11,7 +10,7 @@ import type { MatchmakingConfig } from '../../model/MatchmakingConfig.js';
 import type { QueueUser } from '../../model/QueueUser.js';
 import { ServerConfigService } from '../../../../common/config/service/ServerConfigService.js';
 import { MatchMakingJobEntry } from '../MatchmakingJobEntry.js';
-import { setupTestRedis, type TestRedisSetup } from './testUtils.js';
+import { useRedisTestHooks } from '../../../../common/test-utils/index.js';
 
 vi.mock('../../../../common/client/RedisClient.js');
 vi.mock('../../../../common/service/SupabaseService.js');
@@ -23,13 +22,13 @@ const TEST_CONFIG: MatchmakingConfig = {
 };
 
 describe('MatchmakingOrchestrator Tests', () => {
-  let testRedisSetup: TestRedisSetup;
-  let redisClient: Redis;
+  const redisHooks = useRedisTestHooks();
   let mockIo: Server;
   let mockNamespace: any;
 
   // Helper function to add users to queue
   async function addUsersToQueue(users: QueueUser[]): Promise<void> {
+    const redisClient = redisHooks.getRedisClient();
     const queueKey = MatchmakingQueueService.getRegionSpecificQueueKey();
 
     for (const user of users) {
@@ -41,12 +40,8 @@ describe('MatchmakingOrchestrator Tests', () => {
     }
   }
 
-  beforeAll(async () => {
+  beforeAll(() => {
     ServerConfigService.init(process.env);
-
-    // Setup Redis for testing
-    testRedisSetup = await setupTestRedis();
-    redisClient = testRedisSetup.redisClient;
 
     // Create mock Socket.IO server with proper chaining
     mockNamespace = {
@@ -59,13 +54,9 @@ describe('MatchmakingOrchestrator Tests', () => {
     } as any;
   });
 
-  afterAll(async () => {
-    if (testRedisSetup) {
-      await testRedisSetup.cleanup();
-    }
-  });
+  beforeEach(() => {
+    const redisClient = redisHooks.getRedisClient();
 
-  beforeEach(async () => {
     // Mock time for consistent testing
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2024-01-01T00:00:00Z'));
@@ -87,10 +78,9 @@ describe('MatchmakingOrchestrator Tests', () => {
     mockNamespace.emit.mockImplementation(() => noop);
   });
 
-  afterEach(async () => {
+  afterEach(() => {
     vi.useRealTimers();
     vi.clearAllMocks();
-    await redisClient.flushall();
   });
 
   describe('Basic Matching', () => {
@@ -264,6 +254,7 @@ describe('MatchmakingOrchestrator Tests', () => {
       await addUsersToQueue(users);
 
       // Mock Redis cache error but successful DB fallback
+      const redisClient = redisHooks.getRedisClient();
       redisClient.hmget = vi
         .fn()
         .mockRejectedValue(new Error('Redis connection failed'));
@@ -484,6 +475,7 @@ describe('MatchmakingOrchestrator Tests', () => {
 
     it('should handle malformed queue data gracefully', async () => {
       // Setup: Add malformed data to queue directly
+      const redisClient = redisHooks.getRedisClient();
       const queueKey = MatchmakingQueueService.getRegionSpecificQueueKey();
       await redisClient.zadd(
         queueKey,
@@ -817,6 +809,7 @@ describe('MatchmakingOrchestrator Tests', () => {
       await addUsersToQueue(users);
 
       // Mock mixed cache scenario
+      const redisClient = redisHooks.getRedisClient();
       redisClient.hmget = vi.fn().mockResolvedValue([
         JSON.stringify(['user2']), // user1 cache hit - ignores user2
         null, // user2 cache miss
@@ -894,6 +887,7 @@ describe('MatchmakingOrchestrator Tests', () => {
       await addUsersToQueue(users);
 
       // Mock Redis cache hit (user1 has cached ignore data)
+      const redisClient = redisHooks.getRedisClient();
       redisClient.hmget = vi.fn().mockResolvedValue([
         JSON.stringify([]), // user1 ignores no one
         null, // user2 cache miss
@@ -926,6 +920,7 @@ describe('MatchmakingOrchestrator Tests', () => {
       await addUsersToQueue(users);
 
       // Mock cache miss for both users
+      const redisClient = redisHooks.getRedisClient();
       redisClient.hmget = vi.fn().mockResolvedValue([null, null]);
 
       // Mock DB response

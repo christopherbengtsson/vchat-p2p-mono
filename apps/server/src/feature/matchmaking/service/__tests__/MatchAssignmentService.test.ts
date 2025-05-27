@@ -1,31 +1,15 @@
-import { Redis } from 'ioredis';
 import { MatchAssignmentService } from '../MatchAssignmentService.js';
 import { RedisClient } from '../../../../common/client/RedisClient.js';
-import { setupTestRedis, type TestRedisSetup } from './testUtils.js';
+import { useRedisTestHooks } from '../../../../common/test-utils/index.js';
 
 vi.mock('../../../../common/client/RedisClient.js');
 
 describe('MatchAssignmentService', async () => {
-  let testRedisSetup: TestRedisSetup;
-  let redisClient: Redis;
+  const { getRedisClient } = useRedisTestHooks();
 
-  beforeAll(async () => {
-    // Setup Redis for testing
-    testRedisSetup = await setupTestRedis();
-    redisClient = testRedisSetup.redisClient;
-  });
-
-  beforeEach(async () => {
-    await redisClient.flushall();
-
+  beforeEach(() => {
     // Mock RedisClient to use our test instance
-    vi.mocked(RedisClient.get).mockReturnValue(redisClient);
-  });
-
-  afterAll(async () => {
-    if (testRedisSetup) {
-      await testRedisSetup.cleanup();
-    }
+    vi.mocked(RedisClient.get).mockReturnValue(getRedisClient());
   });
 
   describe('getMatchAssignment', () => {
@@ -46,7 +30,7 @@ describe('MatchAssignmentService', async () => {
 
     it('should handle JSON parsing errors gracefully', async () => {
       // Manually set invalid JSON
-      await redisClient.hset(
+      await getRedisClient().hset(
         MatchAssignmentService.MATCH_ASSIGNMENT_KEY,
         'socketId1',
         'invalid-json',

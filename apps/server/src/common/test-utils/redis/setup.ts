@@ -1,13 +1,16 @@
 import { Redis } from 'ioredis';
 import { RedisMemoryServer } from 'redis-memory-server';
+import type { RedisTestOptions } from './model/RedisTestOptions.js';
+import type { TestRedisSetup } from './model/TestRedisSetup.js';
 
-export interface TestRedisSetup {
-  redisServer?: RedisMemoryServer;
-  redisClient: Redis;
-  cleanup: () => Promise<void>;
-}
-
-export async function setupTestRedis(): Promise<TestRedisSetup> {
+/**
+ * Sets up a Redis instance for testing.
+ * In CI environment, connects to the external Redis service.
+ * In local development, uses RedisMemoryServer.
+ */
+export async function setupTestRedis(
+  options: RedisTestOptions = {},
+): Promise<TestRedisSetup> {
   const isCI = process.env.CI === 'true';
 
   if (isCI) {
@@ -29,7 +32,11 @@ export async function setupTestRedis(): Promise<TestRedisSetup> {
   // For local development, use RedisMemoryServer
   const redisServerConfig = {
     instance: {
-      args: ['--maxmemory', '128mb'],
+      args: [
+        '--maxmemory',
+        options.localConfig?.maxMemory || '128mb',
+        ...(options.localConfig?.args || []),
+      ],
     },
     autoStart: true,
   };
@@ -50,7 +57,7 @@ export async function setupTestRedis(): Promise<TestRedisSetup> {
     redisServer,
     redisClient,
     cleanup: async () => {
-      redisClient.disconnect();
+      await redisClient.quit();
       await redisServer.stop();
     },
   };

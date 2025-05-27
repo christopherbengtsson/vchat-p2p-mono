@@ -1,38 +1,26 @@
-import { Redis } from 'ioredis';
 import { MatchmakingQueueService } from '../MatchmakingQueueService.js';
 import { ServerConfigService } from '../../../../common/config/service/ServerConfigService.js';
 import { RedisClient } from '../../../../common/client/RedisClient.js';
-import { setupTestRedis, type TestRedisSetup } from './testUtils.js';
+import { useRedisTestHooks } from '../../../../common/test-utils/redis/hooks.js';
 
 vi.mock('../../../../common/client/RedisClient.js');
 
 describe('MatchmakingQueueService', async () => {
-  let testRedisSetup: TestRedisSetup;
-  let redisClient: Redis;
+  const { getRedisClient } = useRedisTestHooks();
 
-  beforeAll(async () => {
+  beforeAll(() => {
     ServerConfigService.init(process.env);
-
-    // Setup Redis for testing
-    testRedisSetup = await setupTestRedis();
-    redisClient = testRedisSetup.redisClient;
   });
 
-  beforeEach(async () => {
+  beforeEach(() => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
 
-    await redisClient.flushall();
-
     // Mock RedisClient to use our test instance
-    vi.mocked(RedisClient.get).mockReturnValue(redisClient);
+    vi.mocked(RedisClient.get).mockReturnValue(getRedisClient());
   });
 
-  afterAll(async () => {
+  afterEach(() => {
     vi.useRealTimers();
-
-    if (testRedisSetup) {
-      await testRedisSetup.cleanup();
-    }
   });
 
   describe('addToQueue', () => {
