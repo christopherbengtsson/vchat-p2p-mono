@@ -11,24 +11,23 @@ import type { TestRedisSetup } from './model/TestRedisSetup.js';
 export async function setupTestRedis(
   options: RedisTestOptions = {},
 ): Promise<TestRedisSetup> {
-  const isCI = process.env.CI === 'true';
+  // const isCI = process.env.CI === 'true';
 
-  if (isCI) {
-    console.log('Setting up Redis for CI environment...');
-    // In CI, use the Redis service configured in GitHub Actions
-    const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
-    const redisClient = new Redis(redisUrl, {
-      maxRetriesPerRequest: 0,
-      lazyConnect: false,
-    });
+  // if (isCI) {
+  //   console.log('Setting up Redis for CI environment...');
+  //   // In CI, use the Redis service configured in GitHub Actions
+  //   const redisClient = new Redis({
+  //     maxRetriesPerRequest: 0,
+  //     lazyConnect: false,
+  //   });
 
-    return {
-      redisClient,
-      cleanup: async () => {
-        redisClient.disconnect();
-      },
-    };
-  }
+  //   return {
+  //     redisClient,
+  //     cleanup: async () => {
+  //       redisClient.disconnect();
+  //     },
+  //   };
+  // }
 
   // For local development, use RedisMemoryServer
   const redisServerConfig = {
