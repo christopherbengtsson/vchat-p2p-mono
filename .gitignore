@@ -8,6 +8,7 @@ dump.rdb
 ssh.md
 .env
 CD.md
+tmp/
 
 playwright/.auth
 privacy-policy-notes.md

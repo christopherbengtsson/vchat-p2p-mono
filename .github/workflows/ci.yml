@@ -8,8 +8,11 @@ jobs:
   mono-ci:
     runs-on: ubuntu-latest
 
-    # env:
-    #   REDIS_URL: redis://localhost:6379
+    env:
+      # Configure redis-memory-server to use pre-built binaries
+      REDISMS_DOWNLOAD_MIRROR: https://download.redis.io/redis-stable/
+      REDISMS_DISABLE_POSTINSTALL: 1
+      MALLOC: libc
 
     # services:
     #   redis:
