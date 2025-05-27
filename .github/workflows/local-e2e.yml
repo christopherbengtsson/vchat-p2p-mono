@@ -37,13 +37,29 @@ jobs:
       - name: Setup environment variables
         run: |
           touch apps/server/.env
-          echo SUPABASE_URL=${{ secrets.SUPABASE_URL }} >> apps/server/.env
-          echo SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY }} >> apps/server/.env
-          echo SUPABASE_JWT_SECRET=${{ secrets.SUPABASE_JWT_SECRET }} >> apps/server/.env
+          # server
           echo API_KEY=testapikey >> apps/server/.env
-          echo CORS_ORIGINS=http://localhost:3000 >> apps/server/.env
+          echo SERVER_REGION=localhost >> apps/server/.env
           echo NODE_ENV=development >> apps/server/.env
-          echo PINO_LOG_LEVEL=debug >> apps/server/.env
+          echo PINO_LOG_LEVEL=info >> apps/server/.env
+          echo CORS_ORIGINS=http://localhost:3000 >> apps/server/.env
+          
+          # redis
+          echo REDIS_URL=redis://localhost:6379 >> apps/server/.env
+          echo REDIS_PORT=6379 >> apps/server/.env
+          echo REDIS_USERNAME= >> apps/server/.env
+          echo REDIS_PASSWORD= >> apps/server/.env
+          
+          # supabase
+          echo SUPABASE_DB_PWD=SUPABASE_DB_PWD >> apps/server/.env
+          echo SUPABASE_ANON_PUB=${{ secrets.SUPABASE_ANON_KEY }} >> apps/server/.env
+          echo SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY }} >> apps/server/.env
+          echo SUPABASE_URL=${{ secrets.SUPABASE_URL }} >> apps/server/.env
+          echo SUPABASE_JWT_SECRET=${{ secrets.SUPABASE_JWT_SECRET }} >> apps/server/.env
+          
+          # socket-io
+          echo ADMIN_UI_USERNAME=ADMIN_UI_USERNAME >> apps/server/.env
+          echo ADMIN_UI_PASSWORD=ADMIN_UI_PASSWORD >> apps/server/.env
           cat apps/server/.env
 
           touch apps/web/.env

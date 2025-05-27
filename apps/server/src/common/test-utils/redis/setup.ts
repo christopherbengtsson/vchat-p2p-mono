@@ -14,6 +14,7 @@ export async function setupTestRedis(
   const isCI = process.env.CI === 'true';
 
   if (isCI) {
+    console.log('Setting up Redis for CI environment...');
     // In CI, use the Redis service configured in GitHub Actions
     const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
     const redisClient = new Redis(redisUrl, {
