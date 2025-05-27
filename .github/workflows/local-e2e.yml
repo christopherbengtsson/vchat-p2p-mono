@@ -38,11 +38,12 @@ jobs:
         run: |
           touch apps/server/.env
           # server
-          echo API_KEY=testapikey >> apps/server/.env
+          echo PORT=8000 >> apps/server/.env
           echo SERVER_REGION=localhost >> apps/server/.env
           echo NODE_ENV=development >> apps/server/.env
           echo PINO_LOG_LEVEL=info >> apps/server/.env
           echo CORS_ORIGINS=http://localhost:3000 >> apps/server/.env
+          echo API_KEY=testapikey >> apps/server/.env
           
           # redis
           echo REDIS_URL=redis://localhost:6379 >> apps/server/.env
@@ -81,15 +82,55 @@ jobs:
 
       - name: Server start
         run: |
+          # Start server in background with logs
           nohup pnpm run server dev > server.log 2>&1 &
-          while ! grep -q "Server is running on port 8000" server.log; do
-            echo "Waiting for server to be ready..."
-            sleep 1
+          SERVER_PID=$!
+          echo "Server started with PID: $SERVER_PID"
+          
+          # Show logs in real-time while waiting for server to be ready
+          timeout=30
+          elapsed=0
+          while [ $elapsed -lt $timeout ]; do
+            # Check if server process is still running
+            if ! kill -0 $SERVER_PID 2>/dev/null; then
+              echo "❌ Server process died unexpectedly"
+              echo "📋 Final server logs:"
+              cat server.log
+              exit 1
+            fi
+            
+            # Show recent logs
+            if [ -f server.log ]; then
+              echo "📋 Server logs (last 10 lines):"
+              tail -10 server.log
+            fi
+            
+            # Check if server is ready
+            if grep -q "Server is running on port 8000" server.log 2>/dev/null; then
+              echo "✅ Server is ready!"
+              break
+            fi
+            
+            echo "⏳ Waiting for server... ($elapsed/$timeout seconds)"
+            sleep 3
+            elapsed=$((elapsed + 3))
           done
-          echo "Server is ready!"
+          
+          if [ $elapsed -ge $timeout ]; then
+            echo "❌ Server failed to start within $timeout seconds"
+            echo "📋 Full server logs:"
+            cat server.log
+            exit 1
+          fi
 
       - name: Web E2E tests
         run: pnpm run web e2e
+
+      - name: Show server logs on failure
+        if: failure()
+        run: |
+          echo "📋 Server logs for debugging:"
+          cat server.log || echo "No server.log found"
 
       - name: Upload reports to GitHub Actions Artifacts
         if: failure()
