@@ -42,6 +42,7 @@ export async function setupTestRedis(
     autoStart: true,
 
     binary: {
+      version: '7.4.3',
       downloadDir:
         '../../node_modules/.cache/redis-memory-server/redis-binaries',
     },
