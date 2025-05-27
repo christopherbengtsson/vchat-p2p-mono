@@ -1,5 +1,6 @@
 import { Redis } from 'ioredis';
 import { RedisMemoryServer } from 'redis-memory-server';
+import type { RedisMemoryServerOptsT } from 'redis-memory-server/lib/RedisMemoryServer.js';
 import type { RedisTestOptions } from './model/RedisTestOptions.js';
 import type { TestRedisSetup } from './model/TestRedisSetup.js';
 
@@ -30,7 +31,7 @@ export async function setupTestRedis(
   // }
 
   // For local development, use RedisMemoryServer
-  const redisServerConfig = {
+  const redisServerConfig: RedisMemoryServerOptsT = {
     instance: {
       args: [
         '--maxmemory',
@@ -39,7 +40,12 @@ export async function setupTestRedis(
       ],
     },
     autoStart: true,
-  };
+
+    binary: {
+      downloadDir:
+        '../../node_modules/.cache/redis-memory-server/redis-binaries',
+    },
+  }; // https://download.redis.io/releases/redis-7.4.3.tar.gz
 
   const redisServer = new RedisMemoryServer(redisServerConfig);
 

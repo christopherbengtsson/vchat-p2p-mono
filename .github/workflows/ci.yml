@@ -10,6 +10,7 @@ jobs:
 
     env:
       # Configure redis-memory-server to use pre-built binaries
+      REDISMS_DEBUG: 1
       REDISMS_DOWNLOAD_MIRROR: https://download.redis.io/redis-stable/
       REDISMS_DISABLE_POSTINSTALL: 1
       MALLOC: libc
