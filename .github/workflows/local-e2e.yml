@@ -44,20 +44,20 @@ jobs:
           echo PINO_LOG_LEVEL=info >> apps/server/.env
           echo CORS_ORIGINS=http://localhost:3000 >> apps/server/.env
           echo API_KEY=testapikey >> apps/server/.env
-          
+
           # redis
-          echo REDIS_URL=redis://localhost:6379 >> apps/server/.env
+          #echo REDIS_URL=localhost >> apps/server/.env
           echo REDIS_PORT=6379 >> apps/server/.env
           echo REDIS_USERNAME= >> apps/server/.env
           echo REDIS_PASSWORD= >> apps/server/.env
-          
+
           # supabase
           echo SUPABASE_DB_PWD=SUPABASE_DB_PWD >> apps/server/.env
           echo SUPABASE_ANON_PUB=${{ secrets.SUPABASE_ANON_KEY }} >> apps/server/.env
           echo SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY }} >> apps/server/.env
           echo SUPABASE_URL=${{ secrets.SUPABASE_URL }} >> apps/server/.env
           echo SUPABASE_JWT_SECRET=${{ secrets.SUPABASE_JWT_SECRET }} >> apps/server/.env
-          
+
           # socket-io
           echo ADMIN_UI_USERNAME=ADMIN_UI_USERNAME >> apps/server/.env
           echo ADMIN_UI_PASSWORD=ADMIN_UI_PASSWORD >> apps/server/.env
@@ -86,7 +86,7 @@ jobs:
           nohup pnpm run server dev > server.log 2>&1 &
           SERVER_PID=$!
           echo "Server started with PID: $SERVER_PID"
-          
+
           # Show logs in real-time while waiting for server to be ready
           timeout=30
           elapsed=0
@@ -115,7 +115,7 @@ jobs:
             sleep 3
             elapsed=$((elapsed + 3))
           done
-          
+
           if [ $elapsed -ge $timeout ]; then
             echo "❌ Server failed to start within $timeout seconds"
             echo "📋 Full server logs:"
