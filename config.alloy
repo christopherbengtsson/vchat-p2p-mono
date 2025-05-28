@@ -63,6 +63,7 @@ loki.write "grafana_cloud_loki" {
 discovery.relabel "metrics_integrations_integrations_nodejs" {
         targets = [{
                 __address__ = "backend:8000",
+                __metrics_path__ = "/api/v1/metrics",
         }]
 
         rule {
