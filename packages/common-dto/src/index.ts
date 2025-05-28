@@ -14,6 +14,7 @@ export * from './generated/models/Database.js';
 export * from './monad/model/Maybe.js';
 export * from './socket-io/model/ClientToServerEvents.js';
 export * from './socket-io/model/ServerToClientEvents.js';
+export * from './socket-io/model/SocketNamespace.js';
 export * from './user-ban/model/BanDuration.js';
 export * from './user-ban/model/BanReason.js';
 export * from './webrtc/model/PeerMessage.js';

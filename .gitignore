@@ -8,7 +8,7 @@ dump.rdb
 ssh.md
 .env
 CD.md
-config.alloy
+tmp/
 
 playwright/.auth
 privacy-policy-notes.md

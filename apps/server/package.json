@@ -25,6 +25,7 @@
     "@mono/be-supabase": "workspace:*",
     "@mono/common-dto": "workspace:*",
     "@mono/common-supabase": "workspace:*",
+    "@mono/common-util": "workspace:*",
     "@socket.io/admin-ui": "^0.5.1",
     "@socket.io/redis-streams-adapter": "^0.2.2",
     "@supabase/supabase-js": "^2.49.4",
@@ -40,7 +41,8 @@
     "rate-limiter-flexible": "^7.0.0",
     "socket.io": "^4.8.1",
     "ua-parser-js": "^2.0.3",
-    "uuid": "^11.1.0"
+    "uuid": "^11.1.0",
+    "zod": "^3.25.28"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",
@@ -49,12 +51,10 @@
     "@types/jsonwebtoken": "^9.0.9",
     "@types/lodash.throttle": "^4.1.9",
     "@types/node": "^22.14.1",
-    "@types/supertest": "^6.0.3",
-    "ioredis-mock": "^8.9.0",
+    "@types/uuid": "^10.0.0",
     "pino-pretty": "^13.0.0",
+    "redis-memory-server": "^0.12.1",
     "socket.io-client": "^4.8.1",
-    "supertest": "^7.1.0",
-    "testcontainers": "^10.24.2",
     "ts-node": "^10.9.2",
     "tsx": "^4.19.3",
     "typescript": "^5.8.3",
