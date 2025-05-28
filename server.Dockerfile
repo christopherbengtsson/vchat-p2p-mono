@@ -4,11 +4,6 @@ ENV PATH="$PNPM_HOME:$PATH"
 RUN npm install -g corepack@latest && corepack enable pnpm
 
 FROM base AS build
-# Install build dependencies needed for native modules
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    python3 \
-    && rm -rf /var/lib/apt/lists/*
 COPY . /usr/src/app
 WORKDIR /usr/src/app
 
