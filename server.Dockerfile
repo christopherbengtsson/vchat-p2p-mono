@@ -11,7 +11,12 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 COPY . /usr/src/app
 WORKDIR /usr/src/app
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile --no-optional
+
+# Install dependencies without redis-memory-server postinstall to avoid binary download
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
+    REDISMS_DISABLE_POSTINSTALL=1 \
+    pnpm install --frozen-lockfile --ignore-scripts
+
 RUN pnpm --filter=server^... --filter=server run build
 RUN pnpm deploy --filter=server --prod /prod/server
 
