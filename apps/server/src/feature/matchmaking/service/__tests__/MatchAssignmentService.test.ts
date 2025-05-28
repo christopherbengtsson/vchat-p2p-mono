@@ -1,17 +1,6 @@
 import { MatchAssignmentService } from '../MatchAssignmentService.js';
-import { RedisClient } from '../../../../common/client/RedisClient.js';
-import { useRedisTestHooks } from '../../../../common/test-utils/index.js';
 
-vi.mock('../../../../common/client/RedisClient.js');
-
-describe('MatchAssignmentService', async () => {
-  const { getRedisClient } = useRedisTestHooks();
-
-  beforeEach(() => {
-    // Mock RedisClient to use our test instance
-    vi.mocked(RedisClient.get).mockReturnValue(getRedisClient());
-  });
-
+describe('MatchAssignmentService', () => {
   describe('getMatchAssignment', () => {
     it('should return null when no assignment exists', async () => {
       const result =
@@ -30,7 +19,7 @@ describe('MatchAssignmentService', async () => {
 
     it('should handle JSON parsing errors gracefully', async () => {
       // Manually set invalid JSON
-      await getRedisClient().hset(
+      await globalThis.redisClient.hset(
         MatchAssignmentService.MATCH_ASSIGNMENT_KEY,
         'socketId1',
         'invalid-json',

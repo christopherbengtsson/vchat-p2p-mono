@@ -4,15 +4,12 @@ import { SocketNamespace } from '@mono/common-dto';
 import { MatchmakingOrchestrator } from '../MatchmakingOrchestrator.js';
 import { MatchmakingQueueService } from '../MatchmakingQueueService.js';
 import { MatchAssignmentService } from '../MatchAssignmentService.js';
-import { RedisClient } from '../../../../common/client/RedisClient.js';
 import { SupabaseService } from '../../../../common/service/SupabaseService.js';
 import type { MatchmakingConfig } from '../../model/MatchmakingConfig.js';
 import type { QueueUser } from '../../model/QueueUser.js';
 import { ServerConfigService } from '../../../../common/config/service/ServerConfigService.js';
 import { MatchMakingJobEntry } from '../MatchmakingJobEntry.js';
-import { useRedisTestHooks } from '../../../../common/test-utils/index.js';
 
-vi.mock('../../../../common/client/RedisClient.js');
 vi.mock('../../../../common/service/SupabaseService.js');
 
 // Test configuration
@@ -22,13 +19,11 @@ const TEST_CONFIG: MatchmakingConfig = {
 };
 
 describe('MatchmakingOrchestrator Tests', () => {
-  const redisHooks = useRedisTestHooks();
   let mockIo: Server;
   let mockNamespace: any;
 
   // Helper function to add users to queue
   async function addUsersToQueue(users: QueueUser[]): Promise<void> {
-    const redisClient = redisHooks.getRedisClient();
     const queueKey = MatchmakingQueueService.getRegionSpecificQueueKey();
 
     for (const user of users) {
@@ -36,7 +31,7 @@ describe('MatchmakingOrchestrator Tests', () => {
         socketId: user.socketId,
         userId: user.userId,
       });
-      await redisClient.zadd(queueKey, user.score, member);
+      await globalThis.redisClient.zadd(queueKey, user.score, member);
     }
   }
 
@@ -55,22 +50,17 @@ describe('MatchmakingOrchestrator Tests', () => {
   });
 
   beforeEach(() => {
-    const redisClient = redisHooks.getRedisClient();
-
     // Mock time for consistent testing
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2024-01-01T00:00:00Z'));
-
-    // Mock RedisClient to use our test instance
-    vi.mocked(RedisClient.get).mockReturnValue(redisClient);
 
     // Mock SupabaseService - default to no ignored pairs
     vi.mocked(SupabaseService.getIgnoredPairs).mockResolvedValue([]);
 
     // Mock Redis cache operations for IgnoredUsersService
-    redisClient.hmget = vi.fn().mockResolvedValue([null, null]); // Cache miss by default
-    redisClient.hmset = vi.fn().mockResolvedValue('OK');
-    redisClient.expire = vi.fn().mockResolvedValue(1);
+    globalThis.redisClient.hmget = vi.fn().mockResolvedValue([null, null]); // Cache miss by default
+    globalThis.redisClient.hmset = vi.fn().mockResolvedValue('OK');
+    globalThis.redisClient.expire = vi.fn().mockResolvedValue(1);
 
     // Reset namespace mocks
     mockNamespace.to.mockClear();
@@ -254,8 +244,8 @@ describe('MatchmakingOrchestrator Tests', () => {
       await addUsersToQueue(users);
 
       // Mock Redis cache error but successful DB fallback
-      const redisClient = redisHooks.getRedisClient();
-      redisClient.hmget = vi
+
+      globalThis.redisClient.hmget = vi
         .fn()
         .mockRejectedValue(new Error('Redis connection failed'));
       vi.mocked(SupabaseService.getIgnoredPairs).mockResolvedValue([]);
@@ -475,14 +465,14 @@ describe('MatchmakingOrchestrator Tests', () => {
 
     it('should handle malformed queue data gracefully', async () => {
       // Setup: Add malformed data to queue directly
-      const redisClient = redisHooks.getRedisClient();
+
       const queueKey = MatchmakingQueueService.getRegionSpecificQueueKey();
-      await redisClient.zadd(
+      await globalThis.redisClient.zadd(
         queueKey,
         1000,
         'malformed:data:without:proper:format',
       );
-      await redisClient.zadd(queueKey, 1001, 'socket1__:__user1'); // Valid format
+      await globalThis.redisClient.zadd(queueKey, 1001, 'socket1__:__user1'); // Valid format
 
       // Mock external dependencies: no ignored pairs
       vi.mocked(SupabaseService.getIgnoredPairs).mockResolvedValue([]);
@@ -809,8 +799,8 @@ describe('MatchmakingOrchestrator Tests', () => {
       await addUsersToQueue(users);
 
       // Mock mixed cache scenario
-      const redisClient = redisHooks.getRedisClient();
-      redisClient.hmget = vi.fn().mockResolvedValue([
+
+      globalThis.redisClient.hmget = vi.fn().mockResolvedValue([
         JSON.stringify(['user2']), // user1 cache hit - ignores user2
         null, // user2 cache miss
         JSON.stringify([]), // user3 cache hit - ignores no one
@@ -830,12 +820,12 @@ describe('MatchmakingOrchestrator Tests', () => {
       expect(queueCount).toBe(0);
 
       // Verify: Cache was used and updated appropriately
-      expect(redisClient.hmget).toHaveBeenCalled();
+      expect(globalThis.redisClient.hmget).toHaveBeenCalled();
       expect(SupabaseService.getIgnoredPairs).toHaveBeenCalledWith([
         'user2',
         'user4',
       ]);
-      expect(redisClient.hmset).toHaveBeenCalled(); // Cache update for misses
+      expect(globalThis.redisClient.hmset).toHaveBeenCalled(); // Cache update for misses
     });
 
     it('should handle processing under time constraints', async () => {
@@ -887,8 +877,8 @@ describe('MatchmakingOrchestrator Tests', () => {
       await addUsersToQueue(users);
 
       // Mock Redis cache hit (user1 has cached ignore data)
-      const redisClient = redisHooks.getRedisClient();
-      redisClient.hmget = vi.fn().mockResolvedValue([
+
+      globalThis.redisClient.hmget = vi.fn().mockResolvedValue([
         JSON.stringify([]), // user1 ignores no one
         null, // user2 cache miss
       ]);
@@ -900,7 +890,7 @@ describe('MatchmakingOrchestrator Tests', () => {
       await MatchmakingOrchestrator.processQueue(mockIo, TEST_CONFIG);
 
       // Verify: Redis cache was checked
-      expect(redisClient.hmget).toHaveBeenCalled();
+      expect(globalThis.redisClient.hmget).toHaveBeenCalled();
 
       // Verify: Database was queried for cache miss
       expect(SupabaseService.getIgnoredPairs).toHaveBeenCalledWith(['user2']);
@@ -920,8 +910,8 @@ describe('MatchmakingOrchestrator Tests', () => {
       await addUsersToQueue(users);
 
       // Mock cache miss for both users
-      const redisClient = redisHooks.getRedisClient();
-      redisClient.hmget = vi.fn().mockResolvedValue([null, null]);
+
+      globalThis.redisClient.hmget = vi.fn().mockResolvedValue([null, null]);
 
       // Mock DB response
       vi.mocked(SupabaseService.getIgnoredPairs).mockResolvedValue([]);
@@ -930,8 +920,8 @@ describe('MatchmakingOrchestrator Tests', () => {
       await MatchmakingOrchestrator.processQueue(mockIo, TEST_CONFIG);
 
       // Verify: Cache was updated after DB query
-      expect(redisClient.hmset).toHaveBeenCalled();
-      expect(redisClient.expire).toHaveBeenCalled();
+      expect(globalThis.redisClient.hmset).toHaveBeenCalled();
+      expect(globalThis.redisClient.expire).toHaveBeenCalled();
     });
   });
 });

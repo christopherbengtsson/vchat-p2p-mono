@@ -1,22 +1,13 @@
 import { MatchmakingQueueService } from '../MatchmakingQueueService.js';
 import { ServerConfigService } from '../../../../common/config/service/ServerConfigService.js';
-import { RedisClient } from '../../../../common/client/RedisClient.js';
-import { useRedisTestHooks } from '../../../../common/test-utils/redis/hooks.js';
-
-vi.mock('../../../../common/client/RedisClient.js');
 
 describe('MatchmakingQueueService', async () => {
-  const { getRedisClient } = useRedisTestHooks();
-
   beforeAll(() => {
     ServerConfigService.init(process.env);
   });
 
   beforeEach(() => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
-
-    // Mock RedisClient to use our test instance
-    vi.mocked(RedisClient.get).mockReturnValue(getRedisClient());
   });
 
   afterEach(() => {

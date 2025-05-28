@@ -3,11 +3,8 @@ import { MatchmakingQueueService } from '../MatchmakingQueueService.js';
 import { RedisClient } from '../../../../common/client/RedisClient.js';
 import type { MatchmakingConfig } from '../../model/MatchmakingConfig.js';
 import { ServerConfigService } from '../../../../common/config/service/ServerConfigService.js';
-import { useRedisTestHooks } from '../../../../common/test-utils/index.js';
 
 describe('QueueOperations', () => {
-  const { getRedisClient } = useRedisTestHooks();
-
   const TEST_CONFIG: MatchmakingConfig = {
     batchSize: 5,
     luaProcessingBatchSize: 3,
@@ -15,9 +12,6 @@ describe('QueueOperations', () => {
 
   beforeAll(() => {
     ServerConfigService.init(process.env);
-
-    // Mock RedisClient to use our test instance
-    vi.spyOn(RedisClient, 'get').mockReturnValue(getRedisClient());
   });
 
   beforeEach(() => {
@@ -29,9 +23,9 @@ describe('QueueOperations', () => {
       // Setup: Add users to queue with different scores (timestamps)
       const queueKey = MatchmakingQueueService.getRegionSpecificQueueKey();
 
-      await getRedisClient().zadd(queueKey, 1000, 'socket1__:__user1'); // Oldest
-      await getRedisClient().zadd(queueKey, 1005, 'socket2__:__user2');
-      await getRedisClient().zadd(queueKey, 1010, 'socket3__:__user3'); // Newest
+      await globalThis.redisClient.zadd(queueKey, 1000, 'socket1__:__user1'); // Oldest
+      await globalThis.redisClient.zadd(queueKey, 1005, 'socket2__:__user2');
+      await globalThis.redisClient.zadd(queueKey, 1010, 'socket3__:__user3'); // Newest
 
       // Execute
       const queueUsers = await QueueOperations.fetchQueueBatch(TEST_CONFIG);
@@ -60,7 +54,7 @@ describe('QueueOperations', () => {
       const queueKey = MatchmakingQueueService.getRegionSpecificQueueKey();
 
       for (let i = 0; i < 10; i++) {
-        await getRedisClient().zadd(
+        await globalThis.redisClient.zadd(
           queueKey,
           1000 + i,
           `socket${i}__:__user${i}`,
@@ -95,8 +89,8 @@ describe('QueueOperations', () => {
       // Setup: Add fewer users than batch size
       const queueKey = MatchmakingQueueService.getRegionSpecificQueueKey();
 
-      await getRedisClient().zadd(queueKey, 1000, 'socket1__:__user1');
-      await getRedisClient().zadd(queueKey, 1005, 'socket2__:__user2');
+      await globalThis.redisClient.zadd(queueKey, 1000, 'socket1__:__user1');
+      await globalThis.redisClient.zadd(queueKey, 1005, 'socket2__:__user2');
 
       // Execute with batch size of 5
       const queueUsers = await QueueOperations.fetchQueueBatch(TEST_CONFIG);
@@ -111,12 +105,12 @@ describe('QueueOperations', () => {
       // Setup: Add users with complex IDs containing special characters
       const queueKey = MatchmakingQueueService.getRegionSpecificQueueKey();
 
-      await getRedisClient().zadd(
+      await globalThis.redisClient.zadd(
         queueKey,
         1000,
         'complex-socket-id__:__user@example.com',
       );
-      await getRedisClient().zadd(
+      await globalThis.redisClient.zadd(
         queueKey,
         1005,
         'socket.with.dots__:__user_with_underscores',
@@ -143,8 +137,16 @@ describe('QueueOperations', () => {
       // Setup: Add users with floating point scores
       const queueKey = MatchmakingQueueService.getRegionSpecificQueueKey();
 
-      await getRedisClient().zadd(queueKey, 1000.123, 'socket1__:__user1');
-      await getRedisClient().zadd(queueKey, 1000.456, 'socket2__:__user2');
+      await globalThis.redisClient.zadd(
+        queueKey,
+        1000.123,
+        'socket1__:__user1',
+      );
+      await globalThis.redisClient.zadd(
+        queueKey,
+        1000.456,
+        'socket2__:__user2',
+      );
 
       // Execute
       const queueUsers = await QueueOperations.fetchQueueBatch(TEST_CONFIG);
@@ -159,9 +161,9 @@ describe('QueueOperations', () => {
       // Setup: Add users with identical scores (Redis uses lexicographic ordering for ties)
       const queueKey = MatchmakingQueueService.getRegionSpecificQueueKey();
 
-      await getRedisClient().zadd(queueKey, 1000, 'socketA__:__userA');
-      await getRedisClient().zadd(queueKey, 1000, 'socketB__:__userB');
-      await getRedisClient().zadd(queueKey, 1000, 'socketC__:__userC');
+      await globalThis.redisClient.zadd(queueKey, 1000, 'socketA__:__userA');
+      await globalThis.redisClient.zadd(queueKey, 1000, 'socketB__:__userB');
+      await globalThis.redisClient.zadd(queueKey, 1000, 'socketC__:__userC');
 
       // Execute multiple times to ensure consistency
       const queueUsers1 = await QueueOperations.fetchQueueBatch(TEST_CONFIG);
