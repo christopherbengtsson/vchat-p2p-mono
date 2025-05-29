@@ -6,9 +6,37 @@ notes.md
 dump.rdb
 .vercel
 ssh.md
-.env
 CD.md
 tmp/
 
+# Environment and secrets
+.env
+.env.local
+.env.production
+.env.staging
+*.env
+!.env.example
+secrets.md
+*.key
+*.pem
+*.p12
+*.pfx
+
+# Database dumps and backups
+dump.rdb
+*.rdb
+*.sql
+backup*/
+backups/
+
+# Logs and monitoring
+*.log
+monitoring.log
+deployment.log
+
+# Auth and session data
 playwright/.auth
+.auth/
+
+# Personal notes
 privacy-policy-notes.md
