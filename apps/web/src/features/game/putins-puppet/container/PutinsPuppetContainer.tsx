@@ -16,7 +16,9 @@ interface Props {
 }
 
 const toggleMicrophone = (micEnabled: boolean) => {
+  // Only control call audio stream for communication/muting opponents
   mediaStore.setLocalAudioEnabled(micEnabled);
+
   WebRTCService.get()?.sendMessage({
     type: 'AUDIO_TOGGLE',
     toggle: micEnabled,
@@ -94,17 +96,15 @@ export const PutinsPuppetContainer = observer(function PutinsPuppetContainer({
 
   return (
     <>
-      {gameStore.state === GameState.PLAYER_TURN && (
+      {gameStore.state === GameState.PLAYER_TURN ? (
         <PlayerContainer
           score={gameStore.currentScore}
           onEndRound={handlePlayerTurnComplete}
           onScoreUpdate={handleScoreUpdate}
         />
-      )}
-
-      {gameStore.state === GameState.SPECTATOR_TURN && (
+      ) : gameStore.state === GameState.SPECTATOR_TURN ? (
         <SpectatorContainer remoteCanvasStream={remoteCanvasStream} />
-      )}
+      ) : null}
 
       <StartGameAlertDialog
         open={showStartDialog}
@@ -121,13 +121,19 @@ export const PutinsPuppetContainer = observer(function PutinsPuppetContainer({
         score={gameStore.latestRoundResult?.score || 0}
       />
 
-      {import.meta.env.DEV && (
-        <div className="fixed bottom-0 left-0 p-2 bg-black/70 text-white text-xs z-50">
-          State: {gameStore.state} | Round: {gameStore.currentRound}/
-          {gameStore.maxRounds} | My Turn: {gameStore.isMyTurn ? 'Yes' : 'No'} |
-          Score: {gameStore.myTotalScore} vs {gameStore.opponentTotalScore}
-        </div>
-      )}
+      {import.meta.env.DEV ||
+        // TODO: Temp debug
+        // eslint-disable-next-line no-constant-binary-expression
+        (true && (
+          <div className="fixed bottom-0 left-0 p-2 bg-black/70 text-white text-xs z-50">
+            State: {gameStore.state} | Round: {gameStore.currentRound}/
+            {gameStore.maxRounds} | My Turn: {gameStore.isMyTurn ? 'Yes' : 'No'}{' '}
+            | Score: {gameStore.myTotalScore} vs {gameStore.opponentTotalScore}
+            <br />
+            Call Audio: {mediaStore.localAudioEnabled ? '🎤' : '🔇'} | Game
+            Stream: {mediaStore.localAudioGameStream ? '✅' : '❌'}
+          </div>
+        ))}
     </>
   );
 });
