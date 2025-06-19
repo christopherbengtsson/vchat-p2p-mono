@@ -1,6 +1,6 @@
 import type { VChatSocket } from '../../../common/model/VChatSocket.js';
-import { MatchmakingQueueService } from '../service/MatchmakingQueueService.js';
-import { MatchAssignmentService } from '../service/MatchAssignmentService.js';
+import { QueueService } from '../service/queue/QueueService.js';
+import { AssignmentService } from '../service/assignment/AssignmentService.js';
 
 const register = (
   socket: VChatSocket,
@@ -11,24 +11,26 @@ const register = (
   socket.on(
     'find-match',
     wrapHandler(async (socketId, userId) => {
-      await MatchmakingQueueService.addToQueue(socketId, userId);
+      await QueueService.addToQueue(socketId, userId);
     }),
   );
 
   socket.on(
     'cancel-match',
     wrapHandler(async (userId) => {
-      const matchData = await MatchAssignmentService.getMatchAssignment(
-        socket.id,
-      );
+      const matchData = await AssignmentService.getMatchAssignment(socket.id);
 
       if (matchData) {
         // User was already matched - clean up and notify partner
-        await MatchAssignmentService.cleanupMatchAssignments(socket.id);
+        await AssignmentService.cleanupMatchAssignments(socket.id);
         socket.to(matchData.partnerSocketId).emit('user-left', userId);
       }
 
-      return await MatchmakingQueueService.removeFromQueue(socket.id, userId);
+      return await QueueService.removeFromQueue(
+        socket.id,
+        userId,
+        'cancel-match',
+      );
     }),
   );
 
@@ -36,7 +38,7 @@ const register = (
     'disconnect',
     wrapHandler(async () => {
       // User was already matched - clean up and notify partner
-      const matchData = await MatchAssignmentService.cleanupMatchAssignments(
+      const matchData = await AssignmentService.cleanupMatchAssignments(
         socket.id,
       );
 
@@ -44,9 +46,10 @@ const register = (
         socket.to(matchData.partnerSocketId).emit('partner-disconnected');
       }
 
-      return await MatchmakingQueueService.removeFromQueue(
+      return await QueueService.removeFromQueue(
         socket.id,
         undefined,
+        'disconnect',
       );
     }),
   );

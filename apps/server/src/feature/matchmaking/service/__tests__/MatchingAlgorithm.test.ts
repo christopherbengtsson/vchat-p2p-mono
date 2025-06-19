@@ -1,28 +1,14 @@
-import { MatchingAlgorithm } from '../MatchingAlgorithm.js';
 import type { QueueUser } from '../../model/QueueUser.js';
-import { IgnoredUsersService } from '../IgnoredUsersService.js';
-
-vi.mock('../IgnoredUsersService.js', () => ({
-  IgnoredUsersService: {
-    isIgnored: vi.fn(),
-  },
-}));
+import { MatchingAlgorithm } from '../match-prerequisite/MatchingAlgorithm.js';
 
 describe('MatchingAlgorithm', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
   describe('findOptimizedMatches', () => {
     it('should match two compatible users', () => {
       const users: QueueUser[] = [
         { socketId: 'socket1', userId: 'user1', score: 1000 },
         { socketId: 'socket2', userId: 'user2', score: 1001 },
       ];
-      const ignoreMatrix = new Set<string>();
-
-      // Mock isIgnored to return false (users are compatible)
-      vi.mocked(IgnoredUsersService.isIgnored).mockReturnValue(false);
+      const ignoreMatrix = new Set<string>(); // Empty matrix = no ignores
 
       const matches = MatchingAlgorithm.findOptimizedMatches(
         users,
@@ -33,11 +19,6 @@ describe('MatchingAlgorithm', () => {
       expect(matches[0].user1).toEqual(users[0]);
       expect(matches[0].user2).toEqual(users[1]);
       expect(matches[0].roomId).toBeTruthy();
-      expect(IgnoredUsersService.isIgnored).toHaveBeenCalledWith(
-        'user1',
-        'user2',
-        ignoreMatrix,
-      );
     });
 
     it('should not match incompatible users', () => {
@@ -45,10 +26,8 @@ describe('MatchingAlgorithm', () => {
         { socketId: 'socket1', userId: 'user1', score: 1000 },
         { socketId: 'socket2', userId: 'user2', score: 1001 },
       ];
-      const ignoreMatrix = new Set<string>();
-
-      // Mock isIgnored to return true (users ignore each other)
-      vi.mocked(IgnoredUsersService.isIgnored).mockReturnValue(true);
+      // Add user1:user2 to ignore matrix (users ignore each other)
+      const ignoreMatrix = new Set<string>(['user1:user2']);
 
       const matches = MatchingAlgorithm.findOptimizedMatches(
         users,
@@ -56,11 +35,6 @@ describe('MatchingAlgorithm', () => {
       );
 
       expect(matches).toHaveLength(0);
-      expect(IgnoredUsersService.isIgnored).toHaveBeenCalledWith(
-        'user1',
-        'user2',
-        ignoreMatrix,
-      );
     });
 
     it('should match multiple pairs from a larger group', () => {
@@ -70,10 +44,7 @@ describe('MatchingAlgorithm', () => {
         { socketId: 'socket3', userId: 'user3', score: 1002 },
         { socketId: 'socket4', userId: 'user4', score: 1003 },
       ];
-      const ignoreMatrix = new Set<string>();
-
-      // Mock isIgnored to return false for all pairs
-      vi.mocked(IgnoredUsersService.isIgnored).mockReturnValue(false);
+      const ignoreMatrix = new Set<string>(); // No ignores
 
       const matches = MatchingAlgorithm.findOptimizedMatches(
         users,
@@ -101,17 +72,8 @@ describe('MatchingAlgorithm', () => {
         { socketId: 'socket3', userId: 'user3', score: 1002 },
         { socketId: 'socket4', userId: 'user4', score: 1003 },
       ];
-      const ignoreMatrix = new Set<string>();
-
-      // Mock isIgnored: user1 ignores user2, but user1 can match with user3
-      vi.mocked(IgnoredUsersService.isIgnored).mockImplementation(
-        (id1, id2) => {
-          return (
-            (id1 === 'user1' && id2 === 'user2') ||
-            (id1 === 'user2' && id2 === 'user1')
-          );
-        },
-      );
+      // user1 ignores user2, but user1 can match with user3
+      const ignoreMatrix = new Set<string>(['user1:user2']);
 
       const matches = MatchingAlgorithm.findOptimizedMatches(
         users,
@@ -136,8 +98,6 @@ describe('MatchingAlgorithm', () => {
         { socketId: 'socket3', userId: 'user3', score: 1002 },
       ];
       const ignoreMatrix = new Set<string>();
-
-      vi.mocked(IgnoredUsersService.isIgnored).mockReturnValue(false);
 
       const matches = MatchingAlgorithm.findOptimizedMatches(
         users,
@@ -191,8 +151,6 @@ describe('MatchingAlgorithm', () => {
       ];
       const ignoreMatrix = new Set<string>();
 
-      vi.mocked(IgnoredUsersService.isIgnored).mockReturnValue(false);
-
       const matches = MatchingAlgorithm.findOptimizedMatches(
         users,
         ignoreMatrix,
@@ -216,8 +174,6 @@ describe('MatchingAlgorithm', () => {
         score: 1000 + i,
       }));
       const ignoreMatrix = new Set<string>();
-
-      vi.mocked(IgnoredUsersService.isIgnored).mockReturnValue(false);
 
       const matches = MatchingAlgorithm.findOptimizedMatches(
         users,
@@ -248,8 +204,6 @@ describe('MatchingAlgorithm', () => {
         ];
         const ignoreMatrix = new Set<string>();
 
-        vi.mocked(IgnoredUsersService.isIgnored).mockReturnValue(false);
-
         const matches = MatchingAlgorithm.findOptimizedMatches(
           users,
           ignoreMatrix,
@@ -271,8 +225,6 @@ describe('MatchingAlgorithm', () => {
           { socketId: 'socket4', userId: 'user3', score: 1003 },
         ];
         const ignoreMatrix = new Set<string>();
-
-        vi.mocked(IgnoredUsersService.isIgnored).mockReturnValue(false);
 
         const matches = MatchingAlgorithm.findOptimizedMatches(
           users,
@@ -296,8 +248,6 @@ describe('MatchingAlgorithm', () => {
         ];
         const ignoreMatrix = new Set<string>();
 
-        vi.mocked(IgnoredUsersService.isIgnored).mockReturnValue(false);
-
         const matches = MatchingAlgorithm.findOptimizedMatches(
           users,
           ignoreMatrix,
@@ -320,8 +270,6 @@ describe('MatchingAlgorithm', () => {
         ];
         const ignoreMatrix = new Set<string>();
 
-        vi.mocked(IgnoredUsersService.isIgnored).mockReturnValue(false);
-
         const matches = MatchingAlgorithm.findOptimizedMatches(
           users,
           ignoreMatrix,
@@ -343,8 +291,6 @@ describe('MatchingAlgorithm', () => {
           score: 1000 + i,
         }));
         const ignoreMatrix = new Set<string>();
-
-        vi.mocked(IgnoredUsersService.isIgnored).mockReturnValue(false);
 
         const startTime = performance.now();
         const matches = MatchingAlgorithm.findOptimizedMatches(
@@ -373,10 +319,15 @@ describe('MatchingAlgorithm', () => {
           { socketId: 'socket3', userId: 'user3', score: 1002 },
           { socketId: 'socket4', userId: 'user4', score: 1003 },
         ];
-        const ignoreMatrix = new Set<string>();
-
-        // Mock all users to ignore each other
-        vi.mocked(IgnoredUsersService.isIgnored).mockReturnValue(true);
+        // Add all possible ignore combinations to the matrix
+        const ignoreMatrix = new Set<string>([
+          'user1:user2',
+          'user1:user3',
+          'user1:user4',
+          'user2:user3',
+          'user2:user4',
+          'user3:user4',
+        ]);
 
         const matches = MatchingAlgorithm.findOptimizedMatches(
           users,
@@ -395,8 +346,6 @@ describe('MatchingAlgorithm', () => {
           { socketId: 'socket4', userId: 'user4', score: 1003 },
         ] as QueueUser[];
         const ignoreMatrix = new Set<string>();
-
-        vi.mocked(IgnoredUsersService.isIgnored).mockReturnValue(false);
 
         const matches = MatchingAlgorithm.findOptimizedMatches(
           users,

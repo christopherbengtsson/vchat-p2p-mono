@@ -42,30 +42,26 @@ const init = async () => {
     username: serverConfig.secrets.redis.username,
     password: serverConfig.secrets.redis.password,
 
+    enableAutoPipelining: true,
     lazyConnect: true,
 
-    // Connection optimization for matchmaking workload
-    connectTimeout: 3000,
+    connectTimeout: 5000,
     maxRetriesPerRequest: 3,
     retryStrategy(times) {
-      const delay = Math.min(times * 50, 2000);
+      const delay = Math.min(times * 100, 3000);
       return delay;
     },
 
-    commandTimeout: 10000, // Increased for complex Lua scripts in matchmaking
+    commandTimeout: 12000,
     keepAlive: 30000,
 
-    // Memory and performance optimizations
-    enableOfflineQueue: false, // Fail fast if Redis is down
+    enableOfflineQueue: false,
 
-    // Enhanced connection pool settings for concurrent operations
-    family: 4, // IPv4 only for performance
-    enableReadyCheck: true, // Ensure Redis is ready before use
+    family: 4,
+    enableReadyCheck: true,
 
-    // Production optimizations for sophisticated workload
-    db: 0, // Explicit database selection
+    db: 0,
 
-    // Network optimizations for VPS environment
     reconnectOnError: (err: Error) => {
       const targetError = 'READONLY';
       return err.message.includes(targetError);

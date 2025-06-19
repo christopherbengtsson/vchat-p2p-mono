@@ -47,7 +47,7 @@ services:
       - ADMIN_UI_USERNAME=${ADMIN_UI_USERNAME}
       - ADMIN_UI_PASSWORD=${ADMIN_UI_PASSWORD}
       # Docker-specific optimizations
-      - NODE_OPTIONS=--max-old-space-size=1200
+      - NODE_OPTIONS=--max-old-space-size=1800
       - UV_THREADPOOL_SIZE=20
     depends_on:
       redis:
@@ -61,11 +61,11 @@ services:
     deploy:
       resources:
         limits:
-          memory: 1.4G
-          cpus: '0.8'
+          memory: 2.2G
+          cpus: '1.2'
         reservations:
-          memory: 900M
-          cpus: '0.4'
+          memory: 1.4G
+          cpus: '0.6'
 
   caddy:
     image: caddy:latest

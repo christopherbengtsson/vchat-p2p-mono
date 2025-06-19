@@ -1,6 +1,7 @@
 /// <reference types="vitest" />
 import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
+import { qrcode } from 'vite-plugin-qrcode';
 import path from 'path';
 import { generateGameChunks } from './scripts/generateGameChunks.js';
 
@@ -19,6 +20,7 @@ export default defineConfig(({ mode }) => ({
         ],
       },
     }),
+    qrcode(),
   ],
   assetsInclude: ['**/*.md'],
   define: {

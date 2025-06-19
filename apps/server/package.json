@@ -29,6 +29,7 @@
     "@socket.io/admin-ui": "^0.5.1",
     "@socket.io/redis-streams-adapter": "^0.2.2",
     "@supabase/supabase-js": "^2.49.4",
+    "bullmq": "^5.53.2",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",

@@ -6,7 +6,11 @@ import {
   flushGlobalRedis,
 } from './common/test-utils/global-redis.js';
 
-vi.mock('./common/client/RedisClient.js');
+vi.mock('./common/client/RedisClient.js', () => ({
+  RedisClient: {
+    get: vi.fn(() => globalThis.redisClient),
+  },
+}));
 
 beforeAll(async () => {
   log.error = vi.fn();

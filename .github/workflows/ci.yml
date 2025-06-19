@@ -24,6 +24,17 @@ jobs:
           node-version: 22.14.0
           cache: 'pnpm'
 
+      # Add Redis binaries cache
+      - name: Cache Redis binaries
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules/.cache/redis-memory-server
+            apps/server/node_modules/.cache/redis-memory-server
+          key: ${{ runner.os }}-redis-memory-server-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-redis-memory-server-
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
