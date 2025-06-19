@@ -29,9 +29,7 @@ jobs:
         uses: actions/cache@v4
         id: redis-cache
         with:
-          path: |
-            ~/.cache/redis-memory-server
-            node_modules/.cache/redis-memory-server
+          path: node_modules/.cache/redis-memory-server/redis-binaries/stable/redis-server
           key: ${{ runner.os }}-redis-memory-server-${{ hashFiles('**/pnpm-lock.yaml') }}
           restore-keys: |
             ${{ runner.os }}-redis-memory-server-
