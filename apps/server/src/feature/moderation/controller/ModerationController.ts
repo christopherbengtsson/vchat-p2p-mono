@@ -1,5 +1,5 @@
 import type { VChatSocket } from '../../../common/model/VChatSocket.js';
-import { IgnoredUsersService } from '../../matchmaking/service/IgnoredUsersService.js';
+import { IgnoredUsersService } from '../../matchmaking/service/match-prerequisite/IgnoredUsersService.js';
 import { ModerationService } from '../service/ModerationService.js';
 
 const register = (
@@ -13,7 +13,12 @@ const register = (
     wrapHandler(async (partnerUserId, _userId) => {
       socket.to(partnerUserId).emit('user-reported');
 
-      await IgnoredUsersService.clearUsersIgnoreCache([partnerUserId]);
+      void IgnoredUsersService.clearUsersIgnoreCache([partnerUserId]); // TODO: Add prio BullMQ job instead?
+      /**
+       * user 1 ignores, added to queue
+       * user 2 ignores, added to queue
+       * job triggers, should gather both ignore events above and update matrix?
+       */
     }),
   );
 

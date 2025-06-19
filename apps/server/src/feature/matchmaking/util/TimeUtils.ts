@@ -1,5 +1,5 @@
 /**
- * Gets current time as score for Redis (in seconds, rounded for optimization)
+ * Gets current time as score for Redis (in seconds)
  */
 const getCurrentTimeAsScore = (): number => Math.round(Date.now() / 1000);
 

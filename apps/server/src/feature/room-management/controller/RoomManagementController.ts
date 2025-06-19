@@ -1,6 +1,6 @@
 import type { VChatSocket } from '../../../common/model/VChatSocket.js';
 import { log } from '../../../common/util/logger.js';
-import { MatchAssignmentService } from '../../matchmaking/service/MatchAssignmentService.js';
+import { AssignmentService } from '../../matchmaking/service/assignment/AssignmentService.js';
 
 const register = (
   socket: VChatSocket,
@@ -21,7 +21,7 @@ const register = (
   socket.on(
     'leave-room',
     wrapHandler(async (roomId, userId) => {
-      await MatchAssignmentService.cleanupMatchAssignments(socket.id);
+      await AssignmentService.cleanupMatchAssignments(socket.id);
 
       socket.leave(roomId);
       socket.to(roomId).emit('user-left', userId);
@@ -33,7 +33,7 @@ const register = (
   socket.on(
     'disconnecting',
     wrapHandler(async () => {
-      await MatchAssignmentService.cleanupMatchAssignments(socket.id);
+      await AssignmentService.cleanupMatchAssignments(socket.id);
 
       Array.from(socket.rooms.values()).forEach((roomId) => {
         if (roomId !== socket.id) {

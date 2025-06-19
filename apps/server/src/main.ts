@@ -3,8 +3,8 @@ import { HttpServer } from './HttpServer.js';
 import { ServerConfigService } from './common/config/service/ServerConfigService.js';
 import { BootstrapService } from './feature/bootstrap/service/BootstrapService.js';
 import { SocketServer } from './feature/socket-io/server/SocketServer.js';
-import { JobManagerService } from './feature/job/service/JobManagerService.js';
 import { RedisClient } from './common/client/RedisClient.js';
+import { BullMQBootstrapService } from './feature/job/bullmq/bootstrap/BullMQBootstrapService.js';
 
 export const start = async () => {
   await BootstrapService.init();
@@ -15,9 +15,7 @@ export const start = async () => {
 
   await SocketServer.init(httpServer, serverConfig);
 
-  await JobManagerService.startAllJobs();
-
-  JobManagerService.startPeriodicCleanup(serverConfig);
+  await BullMQBootstrapService.initialize();
 
   const port = serverConfig.config.port;
   httpServer.listen(port, () => {
@@ -31,9 +29,11 @@ export const gracefulShutdown = async (signal: string) => {
     `[main] Received ${signal}. Starting graceful shutdown...`,
   );
 
-  JobManagerService.stopPeriodicCleanup();
-
-  await JobManagerService.destroyAllJobs();
+  if (BullMQBootstrapService.bullMQInstances) {
+    for (const instance of BullMQBootstrapService.bullMQInstances) {
+      await BullMQBootstrapService.shutdown(instance);
+    }
+  }
 
   await RedisClient._redisClientInstance?.quit();
 

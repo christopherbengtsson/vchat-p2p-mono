@@ -42,30 +42,32 @@ const init = async () => {
     username: serverConfig.secrets.redis.username,
     password: serverConfig.secrets.redis.password,
 
+    // connection pooling
+    enableAutoPipelining: true, // Batch Redis commands automatically
     lazyConnect: true,
 
-    // Connection optimization for matchmaking workload
-    connectTimeout: 3000,
-    maxRetriesPerRequest: 3,
+    // Connection optimization for low-resource server (2 vCPU, 4GB RAM)
+    connectTimeout: 5000,
+    maxRetriesPerRequest: 3, // Reduced for faster failure detection
     retryStrategy(times) {
-      const delay = Math.min(times * 50, 2000);
+      const delay = Math.min(times * 100, 3000); // Slightly more aggressive
       return delay;
     },
 
-    commandTimeout: 10000, // Increased for complex Lua scripts in matchmaking
-    keepAlive: 30000,
+    commandTimeout: 12000, // Reduced for faster timeouts
+    keepAlive: 30000, // Increased to reduce reconnection overhead
 
-    // Memory and performance optimizations
+    // Memory and performance optimizations for limited resources
     enableOfflineQueue: false, // Fail fast if Redis is down
 
-    // Enhanced connection pool settings for concurrent operations
+    // Enhanced connection pool settings for limited CPU
     family: 4, // IPv4 only for performance
     enableReadyCheck: true, // Ensure Redis is ready before use
 
-    // Production optimizations for sophisticated workload
+    // Production optimizations for low-resource environment
     db: 0, // Explicit database selection
 
-    // Network optimizations for VPS environment
+    // Network optimizations for ARM server with limited resources
     reconnectOnError: (err: Error) => {
       const targetError = 'READONLY';
       return err.message.includes(targetError);
