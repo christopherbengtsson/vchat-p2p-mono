@@ -23,6 +23,10 @@ const TEST_CONFIG: MatchmakingProcessConfig = {
 const mockJob = {
   queueName: 'mockQueue',
   updateProgress: vi.fn(),
+  updateData: vi.fn(),
+  data: {
+    workerId: 'mock-worker-id',
+  },
 } as unknown as Job;
 
 describe('MatchmakingOrchestrator Tests', () => {

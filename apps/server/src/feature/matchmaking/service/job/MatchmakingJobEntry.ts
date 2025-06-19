@@ -3,12 +3,9 @@ import { log } from '../../../../common/util/logger.js';
 import { SocketServer } from '../../../socket-io/server/SocketServer.js';
 import { matchmakingProcessConfig } from '../../config/MatchmakingProcessConfig.js';
 import { MatchmakingOrchestrator } from '../orchestrator/MatchmakingOrchestrator.js';
-import { AtomicQueueService } from '../queue/AtomicQueueService.js';
 import { MatchmakingMetricsService } from '../metrics/MatchmakingMetricsService.js';
 
 const create = async (job: Job) => {
-  const workerId = AtomicQueueService.generateWorkerId(job.id || 'unknown');
-
   try {
     const result = await MatchmakingOrchestrator.processQueue(
       SocketServer.io,
@@ -22,7 +19,7 @@ const create = async (job: Job) => {
       {
         error,
         jobId: job.id,
-        workerId,
+        workerId: job.data.workerId,
         queueName: job.queueName,
       },
       `Worker failed matchmaking job processing`,

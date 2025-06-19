@@ -83,50 +83,13 @@ describe('AtomicQueueService - Concurrent Processing Tests', () => {
     vi.clearAllMocks();
   });
 
-  describe('Worker ID Generation', () => {
-    it('should generate unique worker IDs', () => {
-      const jobId = generateTestJobId();
-
-      const workerId1 = AtomicQueueService.generateWorkerId(jobId);
-      const workerId2 = AtomicQueueService.generateWorkerId(jobId);
-
-      expect(workerId1).not.toEqual(workerId2);
-      expect(workerId1).toMatch(/^worker:.+:.+:.+$/);
-      expect(workerId2).toMatch(/^worker:.+:.+:.+$/);
-      expect(workerId1).toContain(jobId);
-      expect(workerId2).toContain(jobId);
-    });
-
-    it('should include timestamp and randomness in worker ID', () => {
-      const jobId = generateTestJobId();
-
-      const beforeTime = Date.now();
-      const workerId = AtomicQueueService.generateWorkerId(jobId);
-      const afterTime = Date.now();
-
-      // Extract timestamp from worker ID
-      const parts = workerId.split(':');
-      expect(parts).toHaveLength(4);
-      expect(parts[0]).toBe('worker');
-      expect(parts[1]).toBe(jobId);
-
-      const timestamp = parseInt(parts[2]);
-      expect(timestamp).toBeGreaterThanOrEqual(beforeTime);
-      expect(timestamp).toBeLessThanOrEqual(afterTime);
-
-      // Random component should exist and be 6 characters
-      expect(parts[3]).toHaveLength(6);
-    });
-  });
-
   describe('Single Worker Operations', () => {
     it('should claim users from queue successfully', async () => {
       const users = await addUsersToQueue(10);
-      const workerId = AtomicQueueService.generateWorkerId(generateTestJobId());
 
       const claimedUsers = await AtomicQueueService.claimUsersFromQueue(
         TEST_CONFIG,
-        workerId,
+        'mock-workerId',
       );
 
       // Should claim batch size number of users
@@ -149,11 +112,9 @@ describe('AtomicQueueService - Concurrent Processing Tests', () => {
     });
 
     it('should return empty array when queue is empty', async () => {
-      const workerId = AtomicQueueService.generateWorkerId(generateTestJobId());
-
       const claimedUsers = await AtomicQueueService.claimUsersFromQueue(
         TEST_CONFIG,
-        workerId,
+        'mock-workerId',
       );
 
       expect(claimedUsers).toEqual([]);
@@ -163,11 +124,10 @@ describe('AtomicQueueService - Concurrent Processing Tests', () => {
 
     it('should claim partial batch when fewer users available', async () => {
       await addUsersToQueue(3); // Less than batch size
-      const workerId = AtomicQueueService.generateWorkerId(generateTestJobId());
 
       const claimedUsers = await AtomicQueueService.claimUsersFromQueue(
         TEST_CONFIG,
-        workerId,
+        'mock-workerId',
       );
 
       expect(claimedUsers).toHaveLength(3);
@@ -177,15 +137,17 @@ describe('AtomicQueueService - Concurrent Processing Tests', () => {
 
     it('should complete processing and remove claims', async () => {
       await addUsersToQueue(5);
-      const workerId = AtomicQueueService.generateWorkerId(generateTestJobId());
 
       const claimedUsers = await AtomicQueueService.claimUsersFromQueue(
         TEST_CONFIG,
-        workerId,
+        'mock-workerId',
       );
       expect(await getProcessingClaims()).toHaveLength(5);
 
-      await AtomicQueueService.completeUserProcessing(claimedUsers, workerId);
+      await AtomicQueueService.completeUserProcessing(
+        claimedUsers,
+        'mock-workerId',
+      );
 
       // Claims should be removed
       expect(await getProcessingClaims()).toHaveLength(0);
@@ -196,14 +158,16 @@ describe('AtomicQueueService - Concurrent Processing Tests', () => {
 
     it('should release claimed users back to queue', async () => {
       await addUsersToQueue(5);
-      const workerId = AtomicQueueService.generateWorkerId(generateTestJobId());
 
-      await AtomicQueueService.claimUsersFromQueue(TEST_CONFIG, workerId);
+      await AtomicQueueService.claimUsersFromQueue(
+        TEST_CONFIG,
+        'mock-workerId',
+      );
       expect(await getQueueCount()).toBe(0);
       expect(await getProcessingClaims()).toHaveLength(5);
 
       const releasedCount =
-        await AtomicQueueService.releaseClaimedUsers(workerId);
+        await AtomicQueueService.releaseClaimedUsers('mock-workerId');
 
       expect(releasedCount).toBe(5);
       expect(await getQueueCount()).toBe(5); // Users returned to queue
@@ -246,8 +210,9 @@ describe('AtomicQueueService - Concurrent Processing Tests', () => {
     it('should handle multiple workers claiming from same queue', async () => {
       const users = await addUsersToQueue(20);
       const workerCount = 4;
-      const workers = Array.from({ length: workerCount }, () =>
-        AtomicQueueService.generateWorkerId(generateTestJobId()),
+      const workers = Array.from(
+        { length: workerCount },
+        (i: number) => `workerId-${i}`,
       );
 
       // All workers claim concurrently
@@ -298,9 +263,11 @@ describe('AtomicQueueService - Concurrent Processing Tests', () => {
   describe('TTL and Auto-Expiry', () => {
     it('should auto-expire claims after TTL', async () => {
       await addUsersToQueue(3);
-      const workerId = AtomicQueueService.generateWorkerId(generateTestJobId());
 
-      await AtomicQueueService.claimUsersFromQueue(TEST_CONFIG, workerId);
+      await AtomicQueueService.claimUsersFromQueue(
+        TEST_CONFIG,
+        'mock-workerId',
+      );
 
       // Verify claims exist
       expect(await getProcessingClaims()).toHaveLength(3);
@@ -339,9 +306,11 @@ describe('AtomicQueueService - Concurrent Processing Tests', () => {
 
     it('should verify TTL is set correctly on claims', async () => {
       await addUsersToQueue(2);
-      const workerId = AtomicQueueService.generateWorkerId(generateTestJobId());
 
-      await AtomicQueueService.claimUsersFromQueue(TEST_CONFIG, workerId);
+      await AtomicQueueService.claimUsersFromQueue(
+        TEST_CONFIG,
+        'mock-workerId',
+      );
 
       const claims = await getProcessingClaims();
       expect(claims).toHaveLength(2);
@@ -416,7 +385,6 @@ describe('AtomicQueueService - Concurrent Processing Tests', () => {
 
     it('should handle Redis connection errors gracefully', async () => {
       await addUsersToQueue(3);
-      const workerId = AtomicQueueService.generateWorkerId(generateTestJobId());
 
       // Mock Redis to fail
       const originalEval = globalThis.redisClient.eval;
@@ -425,7 +393,7 @@ describe('AtomicQueueService - Concurrent Processing Tests', () => {
       );
 
       await expect(
-        AtomicQueueService.claimUsersFromQueue(TEST_CONFIG, workerId),
+        AtomicQueueService.claimUsersFromQueue(TEST_CONFIG, 'mock-workerId'),
       ).rejects.toThrow('Redis connection failed');
 
       // Restore Redis
@@ -437,11 +405,9 @@ describe('AtomicQueueService - Concurrent Processing Tests', () => {
     });
 
     it('should handle empty user list in completeUserProcessing', async () => {
-      const workerId = AtomicQueueService.generateWorkerId(generateTestJobId());
-
       // Should not throw with empty array
       await expect(
-        AtomicQueueService.completeUserProcessing([], workerId),
+        AtomicQueueService.completeUserProcessing([], 'mock-workerId'),
       ).resolves.not.toThrow();
     });
   });
@@ -505,10 +471,9 @@ describe('AtomicQueueService - Concurrent Processing Tests', () => {
       await QueueService.addToQueue('socket2', 'user2');
       await QueueService.addToQueue('socket3', 'user3');
 
-      const workerId = AtomicQueueService.generateWorkerId(generateTestJobId());
       const claimedUsers = await AtomicQueueService.claimUsersFromQueue(
         TEST_CONFIG,
-        workerId,
+        'mock-workerId',
       );
 
       expect(claimedUsers).toHaveLength(3);
@@ -533,10 +498,9 @@ describe('AtomicQueueService - Concurrent Processing Tests', () => {
         await QueueService.addToQueue(user.socketId, user.userId);
       }
 
-      const workerId = AtomicQueueService.generateWorkerId(generateTestJobId());
       const claimedUsers = await AtomicQueueService.claimUsersFromQueue(
         TEST_CONFIG,
-        workerId,
+        'mock-workerId',
       );
 
       expect(claimedUsers).toHaveLength(3);
@@ -554,7 +518,10 @@ describe('AtomicQueueService - Concurrent Processing Tests', () => {
         expect(claimedMap.get(socketId)).toBe(userId);
       }
 
-      await AtomicQueueService.completeUserProcessing(claimedUsers, workerId);
+      await AtomicQueueService.completeUserProcessing(
+        claimedUsers,
+        'mock-workerId',
+      );
       expect(await getProcessingClaims()).toHaveLength(0);
     });
   });
@@ -562,10 +529,10 @@ describe('AtomicQueueService - Concurrent Processing Tests', () => {
   describe('Atomic release of specific claimed users', () => {
     it('should atomically release only specified unmatched users back to the queue', async () => {
       await addUsersToQueue(5);
-      const workerId = AtomicQueueService.generateWorkerId(generateTestJobId());
+
       const claimedUsers = await AtomicQueueService.claimUsersFromQueue(
         TEST_CONFIG,
-        workerId,
+        'mock-workerId',
       );
       // Release only the first two users
       const toRelease = claimedUsers.slice(0, 2);
@@ -573,7 +540,7 @@ describe('AtomicQueueService - Concurrent Processing Tests', () => {
       const releasedCount =
         await AtomicQueueService.releaseSpecificClaimedUsers(
           toRelease,
-          workerId,
+          'mock-workerId',
         );
       expect(releasedCount).toBe(2);
       // The queue should now have 2 users returned
@@ -582,7 +549,7 @@ describe('AtomicQueueService - Concurrent Processing Tests', () => {
       const claims = await getProcessingClaims();
       expect(claims).toHaveLength(3);
       // Clean up remaining claims
-      await AtomicQueueService.completeUserProcessing(toKeep, workerId);
+      await AtomicQueueService.completeUserProcessing(toKeep, 'mock-workerId');
     });
 
     it('should not release claims not owned by the worker', async () => {
@@ -614,9 +581,8 @@ describe('AtomicQueueService - Concurrent Processing Tests', () => {
     });
 
     it('should do nothing if given an empty user list', async () => {
-      const workerId = AtomicQueueService.generateWorkerId(generateTestJobId());
       await expect(
-        AtomicQueueService.releaseSpecificClaimedUsers([], workerId),
+        AtomicQueueService.releaseSpecificClaimedUsers([], 'mock-workerId'),
       ).resolves.toBe(0);
     });
   });
@@ -657,11 +623,10 @@ describe('AtomicQueueService - Concurrent Processing Tests', () => {
 
       await QueueService.addToQueue('socket1', 'user1');
 
-      const workerId = AtomicQueueService.generateWorkerId(generateTestJobId());
       // Claim the user (removes from queue, sets claim key with TTL)
       const claimed = await AtomicQueueService.claimUsersFromQueue(
         { ...TEST_CONFIG, batchSize: 1 },
-        workerId,
+        'mock-workerId',
       );
       expect(claimed).toHaveLength(1);
       // User is not in queue now
@@ -696,11 +661,10 @@ describe('AtomicQueueService - Concurrent Processing Tests', () => {
 
       await QueueService.addToQueue('socket1', 'user1');
 
-      const workerId = AtomicQueueService.generateWorkerId(generateTestJobId());
       // Claim the user
       const claimed = await AtomicQueueService.claimUsersFromQueue(
         { ...TEST_CONFIG, batchSize: 1 },
-        workerId,
+        'mock-workerId',
       );
       expect(claimed).toHaveLength(1);
 
@@ -735,11 +699,10 @@ describe('AtomicQueueService - Concurrent Processing Tests', () => {
 
       await QueueService.addToQueue('socket1', 'user1');
 
-      const workerId = AtomicQueueService.generateWorkerId(generateTestJobId());
       // Claim the user
       const claimed = await AtomicQueueService.claimUsersFromQueue(
         { ...TEST_CONFIG, batchSize: 1 },
-        workerId,
+        'mock-workerId',
       );
       expect(claimed).toHaveLength(1);
 

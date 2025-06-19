@@ -54,9 +54,7 @@ const processQueue = async (
 }> => {
   // Using performance.now() for high-precision metrics about job duration
   const startTime = performance.now();
-  const workerId =
-    job.data?.workerId ||
-    AtomicQueueService.generateWorkerId(job.id || 'unknown');
+  const workerId = job.data.workerId;
 
   let claimedUsers: QueueUser[] = [];
 

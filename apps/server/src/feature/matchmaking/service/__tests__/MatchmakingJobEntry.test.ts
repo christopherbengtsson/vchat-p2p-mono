@@ -44,6 +44,10 @@ describe('MatchMakingJobEntry Integration Tests', () => {
     id: 'test-job-123',
     queueName: 'test-queue',
     updateProgress: vi.fn(),
+    updateData: vi.fn(),
+    data: {
+      workerId: 'test-worker-1',
+    },
   } as unknown as Job;
 
   beforeAll(() => {

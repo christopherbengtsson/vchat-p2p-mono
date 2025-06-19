@@ -30,7 +30,7 @@ const create = (
       }
 
       // Add worker context to job processing
-      job.data.workerId = workerId;
+      job.updateData({ workerId });
 
       await handler(job);
     },

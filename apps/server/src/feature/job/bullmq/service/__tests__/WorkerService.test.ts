@@ -118,8 +118,16 @@ describe('WorkerService - Multi-Worker Support Tests', () => {
     });
 
     it('should process jobs with correct handlers', async () => {
-      const job1 = { name: 'test:job1', data: { test: 'data1' } };
-      const job2 = { name: 'test:job2', data: { test: 'data2' } };
+      const job1 = {
+        name: 'test:job1',
+        data: { test: 'data1' },
+        updateData: vi.fn(),
+      };
+      const job2 = {
+        name: 'test:job2',
+        data: { test: 'data2' },
+        updateData: vi.fn(),
+      };
 
       await jobProcessor(job1);
       await jobProcessor(job2);
@@ -141,17 +149,17 @@ describe('WorkerService - Multi-Worker Support Tests', () => {
       const error = new Error('Handler failed');
       (mockHandlers[0].handler as Mock).mockRejectedValueOnce(error);
 
-      const job = { name: 'test:job1', data: {} };
+      const job = { name: 'test:job1', data: {}, updateData: vi.fn() };
 
       await expect(jobProcessor(job)).rejects.toThrow('Handler failed');
     });
 
     it('should handle multiple concurrent jobs correctly', async () => {
       const jobs = [
-        { name: 'test:job1', data: { id: 1 } },
-        { name: 'test:job2', data: { id: 2 } },
-        { name: 'test:job1', data: { id: 3 } },
-        { name: 'test:job3', data: { id: 4 } },
+        { name: 'test:job1', data: { id: 1 }, updateData: vi.fn() },
+        { name: 'test:job2', data: { id: 2 }, updateData: vi.fn() },
+        { name: 'test:job1', data: { id: 3 }, updateData: vi.fn() },
+        { name: 'test:job3', data: { id: 4 }, updateData: vi.fn() },
       ];
 
       // Process all jobs concurrently
@@ -177,9 +185,9 @@ describe('WorkerService - Multi-Worker Support Tests', () => {
       const jobProcessor = workerCall[1] as (job: any) => Promise<void>;
 
       // Test each handler
-      await jobProcessor({ name: 'job:a', data: {} });
-      await jobProcessor({ name: 'job:b', data: {} });
-      await jobProcessor({ name: 'job:c', data: {} });
+      await jobProcessor({ name: 'job:a', data: {}, updateData: vi.fn() });
+      await jobProcessor({ name: 'job:b', data: {}, updateData: vi.fn() });
+      await jobProcessor({ name: 'job:c', data: {}, updateData: vi.fn() });
 
       expect(handlers[0].handler).toHaveBeenCalledTimes(1);
       expect(handlers[1].handler).toHaveBeenCalledTimes(1);
@@ -205,7 +213,7 @@ describe('WorkerService - Multi-Worker Support Tests', () => {
       const workerCall = vi.mocked(Worker).mock.calls[0];
       const jobProcessor = workerCall[1] as (job: any) => Promise<void>;
 
-      await jobProcessor({ name: 'single:job', data: {} });
+      await jobProcessor({ name: 'single:job', data: {}, updateData: vi.fn() });
 
       expect(singleHandler[0].handler).toHaveBeenCalledTimes(1);
     });
@@ -224,7 +232,11 @@ describe('WorkerService - Multi-Worker Support Tests', () => {
       const workerCall = vi.mocked(Worker).mock.calls[0];
       const jobProcessor = workerCall[1] as (job: any) => Promise<void>;
 
-      await jobProcessor({ name: 'duplicate:job', data: {} });
+      await jobProcessor({
+        name: 'duplicate:job',
+        data: {},
+        updateData: vi.fn(),
+      });
 
       expect(handler1).not.toHaveBeenCalled();
       expect(handler2).toHaveBeenCalledTimes(1);
