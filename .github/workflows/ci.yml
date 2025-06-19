@@ -12,14 +12,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Clean redis-memory-server cache
-        run: rm -rf node_modules/.cache/redis-memory-server apps/server/node_modules/.cache/redis-memory-server
-
-      - name: List redis-memory-server cache
-        run: |
-          ls -l node_modules/.cache/redis-memory-server || true
-          ls -l apps/server/node_modules/.cache/redis-memory-server || true
-
       - uses: pnpm/action-setup@v4
         name: Install pnpm
         with:
