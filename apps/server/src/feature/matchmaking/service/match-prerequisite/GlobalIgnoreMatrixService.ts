@@ -349,17 +349,12 @@ const getMatrixStats = async (): Promise<MatrixStats> => {
  */
 const buildMatrixFromDatabase = async (): Promise<number> => {
   const startTime = performance.now();
-  log.info('[GlobalIgnoreMatrix] Starting matrix build from database');
 
   try {
     const redis = RedisClient.get();
 
     // Get all ignore relationships from database
     const allIgnorePairs = await SupabaseService.getAllIgnorePairs();
-    log.info(
-      { totalPairs: allIgnorePairs.length },
-      '[GlobalIgnoreMatrix] Fetched ignore pairs from database',
-    );
 
     if (allIgnorePairs.length === 0) {
       // No ignore relationships - create empty set with TTL
