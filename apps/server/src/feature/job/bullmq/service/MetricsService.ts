@@ -8,11 +8,9 @@ const getBullMQPrometheusMetrics = async (
   try {
     const allMetrics: string[] = [];
 
-    // Export metrics from each queue
     for (const { queues } of BullMQBootstrapService.bullMQInstances) {
       for (const [queueName, queue] of queues) {
         try {
-          log.debug(`Exporting Prometheus metrics for queue: ${queueName}`);
           const queueMetrics =
             await queue.exportPrometheusMetrics(globalVariables);
 
@@ -24,12 +22,10 @@ const getBullMQPrometheusMetrics = async (
             { error, queueName },
             `Failed to export metrics for queue: ${queueName}`,
           );
-          // Continue with other queues even if one fails
         }
       }
     }
 
-    // Combine all queue metrics
     return allMetrics.join('\n');
   } catch (error) {
     log.error({ error }, 'Failed to get BullMQ instances for metrics export');

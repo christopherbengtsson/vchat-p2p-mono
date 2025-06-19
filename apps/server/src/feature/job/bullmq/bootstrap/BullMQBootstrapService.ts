@@ -39,7 +39,6 @@ const shutdown = async (instances: BullMQInstances): Promise<void> => {
 const initialize = async (): Promise<void> => {
   log.info('Initializing BullMQ...');
 
-  // Validate Redis configuration for production
   try {
     await RedisValidation.validateRedisConfig(RedisClient.get());
   } catch (error) {
@@ -49,12 +48,10 @@ const initialize = async (): Promise<void> => {
     );
   }
 
-  // Flatten all queue configs from all features
   const allQueueConfigs = featureConfigs.flat();
 
   const results = await Promise.all(
     allQueueConfigs.map<Promise<BullMQInstances>>(async (config) => {
-      // Extract handlers from scheduler configs
       const handlers: WorkerHandler[] = [];
 
       for (const scheduler of config.schedulers) {

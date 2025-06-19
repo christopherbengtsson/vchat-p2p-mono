@@ -13,27 +13,25 @@ const getBullMQConnection = (isWorker = false): ConnectionOptions => {
     _connectionConfig.port = redisClient.options.port;
   }
 
-  // BullMQ-specific configuration based on component type
   const baseConfig = {
     ..._connectionConfig,
-    // Use exponential backoff with min 1s, max 20s as recommended
     retryStrategy: (times: number) =>
-      Math.max(Math.min(Math.exp(times), 20000), 1000),
+      Math.max(Math.min(Math.exp(times), 20_000), 1000),
   };
 
   if (isWorker) {
     // Worker-specific configuration for reliability
     return {
       ...baseConfig,
-      maxRetriesPerRequest: null, // Critical: Workers need unlimited retries
-      enableOfflineQueue: true, // Workers should wait for reconnection
+      maxRetriesPerRequest: null,
+      enableOfflineQueue: true,
     };
   } else {
     // Queue-specific configuration for fast failure
     return {
       ...baseConfig,
-      maxRetriesPerRequest: 3, // Queues should fail fast
-      enableOfflineQueue: false, // Queues should not queue commands offline
+      maxRetriesPerRequest: 3,
+      enableOfflineQueue: false,
     };
   }
 };

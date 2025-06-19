@@ -77,7 +77,6 @@ const _determineOutcome = (
 };
 
 const _calculateDurationSeconds = (result: MatchmakingJobResult): number => {
-  // Convert from milliseconds (from performance.now()) to seconds for Prometheus convention
   const durationMs = result.earlyReturnDuration ?? result.completeDuration ?? 0;
   return durationMs / 1000;
 };

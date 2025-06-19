@@ -11,18 +11,17 @@ const init = async (
   handlers: WorkerHandler[],
 ): Promise<{ queue: Queue; workers: Worker[] }> => {
   try {
+    const queueConfig = false;
     const queue = new Queue(config.queueName, {
-      connection: ConnectionConfig.getBullMQConnection(false), // Queue configuration
+      connection: ConnectionConfig.getBullMQConnection(queueConfig),
     });
 
-    // Add error handler for queue
     queue.on('error', (err) => {
       log.error({ err, queueName: config.queueName }, 'Queue error');
     });
 
     await SchedulerService.setup(queue, config);
 
-    // Create multiple workers if specified
     const workerCount = config.type === 'job' ? (config.workerCount ?? 1) : 1;
     const workers: Worker[] = [];
 

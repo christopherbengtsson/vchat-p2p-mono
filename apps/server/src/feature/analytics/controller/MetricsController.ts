@@ -12,12 +12,8 @@ import { ServerConfigService } from '../../../common/config/service/ServerConfig
 const register = (app: Express) => {
   app.get(HttpRoutePaths[HttpRoute.METRICS], async (_req, res) => {
     try {
-      // Get standard Prometheus metrics from the global registry
-      // This includes Node.js default metrics and BullMQ prom-client metrics
-
       const standardMetrics = await promRegister.metrics();
 
-      // Get BullMQ native Prometheus metrics with global labels
       const globalVariables = {
         env: ServerConfigService.getConfig().config.env,
       };
@@ -28,11 +24,9 @@ const register = (app: Express) => {
         bullmqNativeMetrics =
           await MetricsService.getBullMQPrometheusMetrics(globalVariables);
       } catch (error) {
-        // Log the error but continue with just standard metrics
         log.error({ error }, 'Failed to get BullMQ native metrics');
       }
 
-      // Combine metrics using string concatenation
       // Registry.merge() only works with Registry instances, not string outputs
       const metricsToInclude = [standardMetrics, bullmqNativeMetrics].filter(
         (metrics) => metrics && metrics.trim().length > 0,

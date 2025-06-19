@@ -17,10 +17,10 @@ const create = (
     ? `${queueName}-worker-${workerNumber}`
     : queueName;
 
+  const workerConfig = true;
   const worker = new Worker(
     queueName,
     async (job) => {
-      // Add worker context to job processing
       log.debug(`BullMQ worker '${workerId}' picked up job '${job.id}'`);
 
       const handler = handlerMap.get(job.name);
@@ -29,26 +29,24 @@ const create = (
         throw CustomError.badState(`No handler found for job: ${job.name}`);
       }
 
+      // Add worker context to job processing
       job.data.workerId = workerId;
+
       await handler(job);
     },
     {
-      connection: ConnectionConfig.getBullMQConnection(true), // Worker configuration
+      connection: ConnectionConfig.getBullMQConnection(workerConfig),
       maxStalledCount: 3,
-      concurrency: 100, // Increased from 1 for better throughput
+      concurrency: 100,
     },
   );
 
-  // Add error handler for worker
   worker.on('error', (err) => {
     log.error({ err, workerId, queueName }, 'Worker error');
   });
-
-  // Add other useful event handlers
   worker.on('failed', (job, err) => {
     log.warn({ jobId: job?.id, err, workerId, queueName }, 'Job failed');
   });
-
   worker.on('stalled', (jobId) => {
     log.warn({ jobId, workerId, queueName }, 'Job stalled');
   });

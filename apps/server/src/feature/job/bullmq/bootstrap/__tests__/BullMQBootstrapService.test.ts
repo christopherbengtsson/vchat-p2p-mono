@@ -3,7 +3,6 @@ import { BullMQBootstrapService } from '../BullMQBootstrapService.js';
 import { QueueService } from '../../../../matchmaking/service/queue/QueueService.js';
 import { SupabaseService } from '../../../../../common/service/SupabaseService.js';
 
-// Mock the external dependencies that MatchmakingJobEntry needs
 vi.mock('../../../../../common/service/SupabaseService.js');
 vi.mock('../../../../socket-io/server/SocketServer.js', () => ({
   SocketServer: {
@@ -22,17 +21,14 @@ describe('BullMQBootstrapService', () => {
   });
 
   beforeEach(() => {
-    // Mock SupabaseService to return no ignored pairs
     vi.mocked(SupabaseService.getIgnoredPairs).mockResolvedValue([]);
 
-    // Mock Redis cache operations for IgnoredUsersService
     globalThis.redisClient.hmget = vi.fn().mockResolvedValue([null, null]); // Cache miss by default
     globalThis.redisClient.hmset = vi.fn().mockResolvedValue('OK');
     globalThis.redisClient.expire = vi.fn().mockResolvedValue(1);
   });
 
   afterEach(async () => {
-    // Clean up BullMQ instances after each test
     if (BullMQBootstrapService.bullMQInstances) {
       for (const instance of BullMQBootstrapService.bullMQInstances) {
         await BullMQBootstrapService.shutdown(instance);

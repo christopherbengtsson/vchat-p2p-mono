@@ -260,9 +260,11 @@ const completeUserProcessing = async (
 };
 
 /**
- * Recovers lost users: users who are not in the queue and have no claim key.
- * Checks socket connection status and match assignments before recovering.
- * This should be run periodically as a background job.
+ * Recovers users who want matchmaking but were lost due to system failures or crashes.
+ * Identifies users in ALL_KNOWN_USERS_KEY who aren't in queue or being processed.
+ * Re-adds still-connected users without match assignments back to queue.
+ * Removes disconnected users or those with active matches from tracking.
+ * Runs periodically to ensure queue consistency and prevent stranded users.
  */
 const recoverLostUsers = async (): Promise<{
   recovered: string[];
