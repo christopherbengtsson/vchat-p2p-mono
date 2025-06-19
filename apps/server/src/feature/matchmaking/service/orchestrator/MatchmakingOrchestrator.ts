@@ -15,6 +15,7 @@ import { TimeUtils } from '../../util/TimeUtils.js';
 import type { Match } from '../../model/Match.js';
 
 const _recordMatchMetrics = (matches: Match[]) => {
+  const exitTimeSeconds = TimeUtils.getCurrentTimeAsScore();
   const queueName = ServerConfigService.getConfig().config.serverRegion;
 
   for (const match of matches) {
@@ -22,9 +23,8 @@ const _recordMatchMetrics = (matches: Match[]) => {
     const user1EntryTime = match.user1.score;
     const user2EntryTime = match.user2.score;
 
-    const exitTimeSeconds = TimeUtils.getCurrentTimeAsScore();
-    const user1DurationSeconds = exitTimeSeconds - user1EntryTime;
-    const user2DurationSeconds = exitTimeSeconds - user2EntryTime;
+    const user1DurationSeconds = Math.max(0, exitTimeSeconds - user1EntryTime);
+    const user2DurationSeconds = Math.max(0, exitTimeSeconds - user2EntryTime);
 
     MatchmakingMetricsService.recordQueueExit(
       queueName,
