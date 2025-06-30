@@ -5,6 +5,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/common/components/ui/card';
+import { OrDivider } from '@/common/components/or-divider/OrDivider';
 import { EmailLoginFormContainer } from './EmailLoginFormContainer';
 import { FastLoginContainer } from './FastLoginContainer';
 
@@ -21,14 +22,7 @@ export function AuthFormContainer() {
         <div className="w-full max-w-sm flex flex-col items-center gap-4">
           <EmailLoginFormContainer />
 
-          <div className="relative w-full m-4">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t"></span>
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-card px-2 text-muted-foreground">or</span>
-            </div>
-          </div>
+          <OrDivider />
 
           <FastLoginContainer />
         </div>

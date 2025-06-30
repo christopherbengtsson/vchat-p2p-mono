@@ -2,16 +2,16 @@ import { lazy, useState } from 'react';
 import { createBrowserRouter, type RouteObject } from 'react-router';
 import { RouterProvider } from 'react-router/dom';
 import { withFaroRouterInstrumentation } from '@grafana/faro-react';
-import { LayoutContainer } from './common/layout/container/LayoutContainer';
-import { AuthenticatedRoutesContainer } from './features/auth/container/AuthenticatedRoutesContainer';
 import { DevRoutePath, RoutePath } from './RoutePath';
+import { ErrorBoundary } from './common/components/error-boundary/ErrorBoundary';
+import { LayoutContainer } from './common/layout/container/LayoutContainer';
+import { AuthHandlerContainer } from './features/auth/container/AuthHandlerContainer';
 import { TermsOfServicePage } from './features/consent/page/TermsOfServicePage';
 import { AuthPage } from './features/auth/page/AuthPage';
 import { UserBannedPage } from './features/user-report/page/UserBannedPage';
 import { HomePage } from './features/home/page/HomePage';
 import { QueuePage } from './features/call/page/QueuePage';
 import { InCallPage } from './features/call/in-call/page/InCallPage';
-import { ErrorBoundary } from './common/components/error-boundary/ErrorBoundary';
 
 const DevMenu = lazy(() =>
   import('./features/dev/DevMenu').then(({ DevMenu }) => ({
@@ -69,7 +69,7 @@ const router = createBrowserRouter([
         element: <UserBannedPage />,
       },
       {
-        element: <AuthenticatedRoutesContainer />,
+        element: <AuthHandlerContainer />,
         children: [
           {
             index: true,

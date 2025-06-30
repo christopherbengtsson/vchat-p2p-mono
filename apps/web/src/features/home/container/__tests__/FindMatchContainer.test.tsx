@@ -37,6 +37,10 @@ describe('FindMatchContainer', () => {
     connected: true,
   };
 
+  const mockContentModerationStore = {
+    modelStatus: 'ready',
+  };
+
   let getMediaPermissionsSpy: MockInstance;
   let requestAudioAndVideoStreamSpy: MockInstance;
 
@@ -44,6 +48,7 @@ describe('FindMatchContainer', () => {
     vi.spyOn(useRootStore, 'useRootStore').mockReturnValue({
       socketStore: mockSocketStore,
       mediaStore: mockMediaStore,
+      contentModerationStore: mockContentModerationStore,
     } as unknown as RootStore);
 
     getMediaPermissionsSpy = vi
@@ -73,12 +78,43 @@ describe('FindMatchContainer', () => {
         connected: false,
       },
       mediaStore: mockMediaStore,
+      contentModerationStore: mockContentModerationStore,
     } as unknown as RootStore);
 
     render(<FindMatchContainer />);
     expect(
       screen.getByRole('button', { name: 'Connecting...' }),
     ).toBeDisabled();
+  });
+
+  it('should render loading state when model is not ready', async () => {
+    const user = userEvent.setup();
+
+    const useRootStoreSpy = vi.spyOn(useRootStore, 'useRootStore');
+
+    useRootStoreSpy.mockReturnValue({
+      socketStore: mockSocketStore,
+      mediaStore: mockMediaStore,
+      contentModerationStore: {
+        modelStatus: 'loading',
+      },
+    } as unknown as RootStore);
+
+    render(<FindMatchContainer />);
+
+    expect(
+      screen.getByRole('button', { name: 'Find match' }),
+    ).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Find match' }));
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole('button', { name: 'Loading...' }),
+      ).toBeInTheDocument();
+    });
+
+    expect(screen.getByRole('button', { name: 'Loading...' })).toBeDisabled();
   });
 
   it('should navigate to call page when permissions are granted', async () => {
