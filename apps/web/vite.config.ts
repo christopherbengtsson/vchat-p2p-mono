@@ -77,8 +77,9 @@ export default defineConfig(({ mode }) => ({
           // Monitoring
           monitoring: ['@grafana/faro-react', '@grafana/faro-web-tracing'],
 
-          // Content moderation
-          'content-moderation': ['@tensorflow/tfjs', 'nsfwjs'],
+          // Content moderation - split into core and models
+          'content-moderation-core': ['nsfwjs'],
+          'content-moderation-tf': ['@tensorflow/tfjs'],
         },
       },
     },

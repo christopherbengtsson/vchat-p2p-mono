@@ -1,12 +1,22 @@
 import { CustomError, Maybe } from '@mono/common-dto';
-import * as tf from '@tensorflow/tfjs';
-import * as nsfwjs from 'nsfwjs';
+import type * as tf from '@tensorflow/tfjs';
+import type * as nsfwjs from 'nsfwjs';
 import { ModelLoadOptions } from '../model/ModelLoadOptions';
 
-const MODEL_PATH = `${import.meta.env.VITE_BASE_URL}/model/mobilenet_v2/model.json`;
+const MODEL_PATH = `${import.meta.env.VITE_SUPABASE_URL}${import.meta.env.VITE_SUPABASE_NSFW_MODEL_BUCKET_PATH}`;
 const INDEXEDDB_KEY = 'nsfwjs-model-cache';
 const MODEL_VERSION_KEY = 'nsfwjs-model-version';
 const CURRENT_VERSION = '2.4.0'; // TODO: should be configurable
+
+type TFModule = typeof tf;
+type NSFWJSModule = typeof nsfwjs;
+
+const _importTensorFlow = async (): Promise<TFModule> => {
+  return await import('@tensorflow/tfjs');
+};
+const _importNSFWJS = async (): Promise<NSFWJSModule> => {
+  return await import('nsfwjs');
+};
 
 const modelState: {
   instance: Maybe<nsfwjs.NSFWJS>;
@@ -16,13 +26,13 @@ const modelState: {
   loadingPromise: null,
 };
 
-const clearCacheIfNeeded = async (): Promise<void> => {
+const clearCacheIfNeeded = async (tfModule: TFModule): Promise<void> => {
   try {
     const storedVersion = localStorage.getItem(MODEL_VERSION_KEY);
     if (storedVersion !== CURRENT_VERSION) {
-      const models = await tf.io.listModels();
+      const models = await tfModule.io.listModels();
       if (models[`indexeddb://${INDEXEDDB_KEY}`]) {
-        await tf.io.removeModel(`indexeddb://${INDEXEDDB_KEY}`);
+        await tfModule.io.removeModel(`indexeddb://${INDEXEDDB_KEY}`);
         console.debug('Outdated NSFW model cleared');
       }
     }
@@ -32,15 +42,20 @@ const clearCacheIfNeeded = async (): Promise<void> => {
 };
 
 const loadFromCache = async (
+  tfModule: TFModule,
+  nsfwjsModule: NSFWJSModule,
   options: ModelLoadOptions,
 ): Promise<Maybe<nsfwjs.NSFWJS>> => {
   try {
-    const models = await tf.io.listModels();
+    const models = await tfModule.io.listModels();
 
     if (models[`indexeddb://${INDEXEDDB_KEY}`]) {
       console.debug('Loading NSFW model from IndexedDB cache');
 
-      const model = await nsfwjs.load(`indexeddb://${INDEXEDDB_KEY}`, options);
+      const model = await nsfwjsModule.load(
+        `indexeddb://${INDEXEDDB_KEY}`,
+        options,
+      );
       localStorage.setItem(MODEL_VERSION_KEY, CURRENT_VERSION);
 
       return model;
@@ -52,11 +67,12 @@ const loadFromCache = async (
 };
 
 const loadFromNetwork = async (
+  nsfwjsModule: NSFWJSModule,
   options: ModelLoadOptions,
 ): Promise<nsfwjs.NSFWJS> => {
   console.debug('Loading NSFW model from network');
 
-  const model = await nsfwjs.load(MODEL_PATH, options);
+  const model = await nsfwjsModule.load(MODEL_PATH, options);
 
   try {
     await model.model.save(`indexeddb://${INDEXEDDB_KEY}`);
@@ -83,16 +99,21 @@ const load = async (options: ModelLoadOptions = {}): Promise<nsfwjs.NSFWJS> => {
     const startTime = performance.now();
 
     try {
-      tf.enableProdMode();
+      const [tfModule, nsfwjsModule] = await Promise.all([
+        _importTensorFlow(),
+        _importNSFWJS(),
+      ]);
 
-      await clearCacheIfNeeded();
+      tfModule.enableProdMode();
 
-      const cachedModel = await loadFromCache(options);
+      await clearCacheIfNeeded(tfModule);
+
+      const cachedModel = await loadFromCache(tfModule, nsfwjsModule, options);
       if (cachedModel) {
         return cachedModel;
       }
 
-      return await loadFromNetwork(options);
+      return await loadFromNetwork(nsfwjsModule, options);
     } catch (err) {
       console.error('Failed to load NSFW model:', err);
       modelState.loadingPromise = null;
