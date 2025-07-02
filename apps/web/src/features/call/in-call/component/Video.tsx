@@ -1,4 +1,5 @@
 import { observer } from 'mobx-react';
+import clsx from 'clsx';
 import { BsCameraVideoOff } from 'react-icons/bs';
 import { TypographyP } from '@/common/components/typography/Typography';
 
@@ -16,16 +17,24 @@ export const Video = observer(function Video({
   isPortrait,
 }: Props) {
   return (
-    <div className="relative flex justify-center w-full h-full">
+    <div className="relative flex justify-center items-center w-full h-full">
       <video
         ref={videoRef}
-        className={`${
-          isPortrait ? 'w-auto h-full' : 'w-full h-auto'
-        } ${isLocal ? 'z-10' : 'z-0'}`}
         autoPlay
         playsInline
-        aria-label={`${isLocal ? 'Your video' : "Partner's video"}`}
+        controls={false}
+        preload="none"
         muted={isLocal}
+        aria-label={`${isLocal ? 'Your video' : "Partner's video"}`}
+        data-testid={isLocal ? 'local-video-element' : 'remote-video-element'}
+        className={clsx(
+          'object-contain',
+          isLocal ? 'z-10' : 'z-0',
+          isPortrait ? 'aspect-4/3' : 'aspect-video', // aspect-video is 16/9
+          isPortrait
+            ? 'h-full w-auto max-w-full' // Portrait: fill height, maintain aspect ratio
+            : 'w-full h-auto max-h-full', // Landscape: fill width, maintain aspect ratio
+        )}
       />
 
       {!videoEnabled && (

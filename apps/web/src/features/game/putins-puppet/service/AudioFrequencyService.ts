@@ -1,8 +1,9 @@
 import { PitchDetector } from 'pitchy';
 
+// Audio processing constants optimized for pitch-to-position mapping control
 const FTT_SIZE = 2048;
 const SMOOTHING_FACTOR = 0.85;
-const MIN_VOLUME_DECIBELS = -20;
+const MIN_VOLUME_DECIBELS = -30; // Sensitive enough for consistent pitch detection across microphone types
 
 export class AudioFrequencyService {
   private audioContext: AudioContext;
@@ -11,9 +12,10 @@ export class AudioFrequencyService {
   private detector: PitchDetector<Float32Array>;
   private input: Float32Array;
 
+  // Optimized for smooth pitch-to-position mapping (humming/vocal tones control player height)
   static readonly MAX_FREQUENCY = 800;
   static readonly PITCH_THRESHOLD = 0;
-  static readonly CLARITY_THRESHOLD = 0.8;
+  static readonly CLARITY_THRESHOLD = 0.25;
 
   constructor(stream: MediaStream) {
     this.audioContext = new AudioContext();
@@ -36,6 +38,14 @@ export class AudioFrequencyService {
       this.input,
       this.audioContext.sampleRate,
     );
+
+    // Debug logging in development
+    if (import.meta.env.DEV && (pitch > 0 || clarity > 0)) {
+      console.debug(
+        `Audio Debug - Pitch: ${pitch.toFixed(2)}, Clarity: ${clarity.toFixed(2)}`,
+      );
+    }
+
     return [pitch, clarity];
   }
 

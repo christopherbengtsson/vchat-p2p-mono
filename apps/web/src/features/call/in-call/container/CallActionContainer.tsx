@@ -23,10 +23,10 @@ export const CallActionContainer = observer(function CallActionContainer() {
   return (
     <div
       className={cn(
-        'absolute left-1/2 transform -translate-x-1/2 flex space-x-4 z-50',
+        'absolute left-1/2 transform -translate-x-1/2 flex space-x-4 py-2 px-4 backdrop-blur-sm z-50',
         IS_DARK_MODE
-          ? 'bottom-8'
-          : 'bottom-0 bg-muted-foreground p-10 pb-4 pt-4 rounded-t-lg',
+          ? 'bottom-8 bg-background/50 rounded-sm'
+          : 'bottom-0 bg-muted-foreground/50 rounded-t-sm',
       )}
     >
       <ToggleCameraButton

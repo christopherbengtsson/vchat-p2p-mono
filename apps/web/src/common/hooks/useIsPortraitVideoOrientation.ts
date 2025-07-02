@@ -12,8 +12,19 @@ export const useIsPortraitVideoOrientation = (
 
     const handleLoadedMetadata = () => {
       const { videoWidth, videoHeight } = videoElement;
-      setIsPortrait(videoHeight > videoWidth);
+
+      // More precise aspect ratio detection
+      const aspectRatio = videoWidth / videoHeight;
+
+      // Consider portrait if aspect ratio < 1.2 (accounts for 4:3 ≈ 1.33 being "portrait-ish" for video calls)
+      // Standard portrait is < 1.0, but 4:3 (1.33) is closer to portrait than 16:9 (1.78)
+      setIsPortrait(aspectRatio < 1.2);
     };
+
+    // Check immediately if metadata is already loaded
+    if (videoElement.readyState >= 1) {
+      handleLoadedMetadata();
+    }
 
     videoElement.addEventListener('loadedmetadata', handleLoadedMetadata);
 
