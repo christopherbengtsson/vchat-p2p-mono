@@ -4,23 +4,35 @@
 
 ## Run Locally
 
-`pnpm install`
+### Prerequisites
 
-### NodeJS server
+- Node
+- pnpm
+- redis (Just install redis with homebrew)
 
-`pnpm run server dev`
+Install dependencies:
 
-### Redis (debug)
+```zsh
+pnpm install
+```
 
-- Run in foreground: `redis-server`
+Build local libraries:
 
-- Run in background: `brew services start redis`
-- Check status: `brew services info redis`
-- Stop background: `brew services stop redis`
+```zsh
+pnpm --filter "./packages/*" build
+```
 
-### Web app
+Run server:
 
-`pnpm run web dev`
+```zsh
+pnpm run server dev
+```
+
+Run client:
+
+```zsh
+pnpm run web dev
+```
 
 # Monitoring
 
