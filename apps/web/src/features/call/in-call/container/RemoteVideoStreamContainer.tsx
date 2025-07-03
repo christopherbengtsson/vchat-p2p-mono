@@ -1,6 +1,6 @@
 import { observer } from 'mobx-react';
 import { NSFWModelStatus } from '@/stores/model/NSFWModelStatus';
-import { NSFWOverlayContainer } from '../content-moderation/container/NSFWOverlayContainer';
+import { NSFWOverlayContainer } from '../../../content-moderation/container/NSFWOverlayContainer';
 import { UserVideoContainer } from './UserVideoContainer';
 
 interface Props {

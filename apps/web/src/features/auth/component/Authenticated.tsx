@@ -2,7 +2,7 @@ import { Outlet } from 'react-router';
 import { observer } from 'mobx-react';
 import { useEffect } from 'react';
 import { autorun } from 'mobx';
-import { useLoadNSFWModel } from '../../call/in-call/content-moderation/hooks/useLoadNSFWModel';
+import { useLoadNSFWModel } from '../../content-moderation/hooks/useLoadNSFWModel';
 
 interface Props {
   connected: boolean;

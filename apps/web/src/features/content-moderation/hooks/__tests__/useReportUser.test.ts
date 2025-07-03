@@ -4,8 +4,8 @@ import { NavigateFunction } from 'react-router';
 import { DatabaseService } from '@mono/common-supabase';
 import { BanDuration, Maybe } from '@mono/common-dto';
 import { VChatSocket } from '@mono/fe-dto';
+import { TestWithQueryContext } from '@/testUtils';
 import { useReportUser } from '../useReportUser';
-import { TestWithQueryContext } from '../../../../testUtils';
 import { InCallService } from '../../../call/in-call/service/InCallService';
 
 vi.mock('../../../call/in-call/service/InCallService', () => ({

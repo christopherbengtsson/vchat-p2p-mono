@@ -8,7 +8,7 @@ import { LayoutContainer } from './common/layout/container/LayoutContainer';
 import { AuthHandlerContainer } from './features/auth/container/AuthHandlerContainer';
 import { TermsOfServicePage } from './features/consent/page/TermsOfServicePage';
 import { AuthPage } from './features/auth/page/AuthPage';
-import { UserBannedPage } from './features/user-report/page/UserBannedPage';
+import { UserBannedPage } from './features/content-moderation/page/UserBannedPage';
 import { HomePage } from './features/home/page/HomePage';
 import { QueuePage } from './features/call/page/QueuePage';
 import { InCallPage } from './features/call/in-call/page/InCallPage';

@@ -5,9 +5,9 @@ import { TypographyP } from '@/common/components/typography/Typography';
 import { OrDivider } from '@/common/components/or-divider/OrDivider';
 import { Button } from '@/common/components/ui/button';
 import { DrawerDialog } from '@/common/components/drawer-dialog/DrawerDialog';
-import { useNSFWDetection } from '../hooks/useNSFWDetection';
-import { ReportContainer } from '../../../../user-report/container/ReportContainer';
 import { BackdropBlur } from '../component/BackdropBlur';
+import { useNSFWDetection } from '../hooks/useNSFWDetection';
+import { ReportContainer } from './ReportContainer';
 
 interface Props {
   videoRef: React.RefObject<HTMLVideoElement | null>;

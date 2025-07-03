@@ -1,7 +1,7 @@
 import { observer } from 'mobx-react';
 import { FeatureFlagUtil } from '@/common/utils/FeatureFlagUtil';
 import { useRootStore } from '@/stores/hooks/useRootStore';
-import { ReportContainer } from '@/features/user-report/container/ReportContainer';
+import { ReportContainer } from '@/features/content-moderation/container/ReportContainer';
 import { GameInitiatorContainer } from '@/features/game/game-invite/container/GameInitiatorContainer';
 import { useCallStore } from '../../context/useCallStore';
 import { useVideoStreams } from '../hooks/useVideoStreams';

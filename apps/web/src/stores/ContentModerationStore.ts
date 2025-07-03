@@ -1,5 +1,5 @@
 import { action, observable } from 'mobx';
-import { ContentModerationConfig } from '../features/call/in-call/content-moderation/model/ContentModerationConfig';
+import { ContentModerationConfig } from '../features/content-moderation/model/ContentModerationConfig';
 import type { NSFWModelStatus } from './model/NSFWModelStatus';
 
 export class ContentModerationStore {
