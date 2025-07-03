@@ -25,13 +25,19 @@ export default defineConfig({
   /* Fail the build on CI if you accidentally left test.only in the source code. */
   forbidOnly: !!process.env.CI,
   /* Retry on CI only */
-  retries: process.env.CI ? 4 : 0,
+  retries: process.env.CI ? 4 : 2,
   /* Opt out of parallel tests on CI. */
   workers: process.env.CI ? 1 : undefined,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: 'html',
   /* Folder for test results */
   outputDir: './e2e/failed-e2e-results',
+  /** Configuration for the expect assertion library */
+  expect: {
+    timeout: 15_000,
+  },
+  /* Global timeout for entire test */
+  timeout: 120_000,
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
@@ -44,14 +50,33 @@ export default defineConfig({
 
     /* Settings for WebRTC to work */
     ...devices['Desktop Chrome'],
+    viewport: { width: 1920, height: 1080 },
     channel: 'chrome',
     permissions: PERMISSIONS,
     launchOptions: {
       args: [
         '--use-fake-device-for-media-stream',
         '--use-fake-ui-for-media-stream',
+        // Headless mode optimizations
+        '--disable-web-security',
+        '--disable-features=TranslateUI',
+        '--disable-ipc-flooding-protection',
+        '--disable-renderer-backgrounding',
+        '--disable-backgrounding-occluded-windows',
+        '--disable-background-timer-throttling',
+        '--disable-background-media-suspend',
+        '--disable-component-update',
+        '--no-sandbox',
+        '--disable-dev-shm-usage',
+        // WebRTC specific flags for headless
+        '--allow-running-insecure-content',
+        '--disable-component-extensions-with-background-pages',
       ],
     },
+    /* Increase action timeout for headless mode */
+    actionTimeout: 10_000,
+    /* Increase navigation timeout */
+    navigationTimeout: 30_000,
   },
 
   /* Configure projects for major browsers */

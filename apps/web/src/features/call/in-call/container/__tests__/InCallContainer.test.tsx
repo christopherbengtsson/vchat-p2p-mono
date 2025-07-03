@@ -1,5 +1,5 @@
 import type { MockInstance } from 'vitest';
-import { act, cleanup, render, screen } from '@testing-library/react';
+import { act, cleanup, render, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { toast } from 'sonner';
 import { Assert, InviteData } from '@mono/common-dto';
@@ -35,7 +35,9 @@ vi.mock('@/features/game/game-engine/container/GameEngineContainer', () => ({
     <div data-testid="mock-game-engine-container">GameEngineContainer</div>
   )),
 }));
+
 vi.mock('@mono/common-supabase');
+
 vi.mock('@/common/clients/supabase', () => ({
   SupabaseClient: {
     instance: {
@@ -88,6 +90,7 @@ describe('InCallContainer', () => {
       getAudioTracks: vi.fn().mockReturnValue([{ enabled: true }]),
       getTracks: vi.fn().mockReturnValue([{ stop: vi.fn() }]),
     } as any;
+    rootStore.contentModerationStore.modelStatus = 'ready';
 
     callStore = new CallStore(routerState);
 
@@ -272,6 +275,145 @@ describe('InCallContainer', () => {
       expect(screen.getByText('Wanna play a game?')).toBeVisible();
       expect(screen.getByRole('button', { name: 'Accept' })).toBeVisible();
       expect(screen.getByRole('button', { name: 'Decline' })).toBeVisible();
+    });
+  });
+
+  describe('content moderation', () => {
+    it('should show dialog when partner sends NSFW content', async () => {
+      renderTestee();
+
+      // Initially, no NSFW overlay should be present
+      expect(
+        screen.queryByTestId('nsfw-warning-overlay'),
+      ).not.toBeInTheDocument();
+
+      // Simulate NSFW content detection
+      act(() => {
+        rootStore.contentModerationStore.handleNSFWDetection({
+          probability: 1,
+          timestamp: Date.now(),
+        });
+      });
+
+      // The NSFW overlay should now be visible
+      await waitFor(() =>
+        expect(
+          screen.queryByTestId('nsfw-warning-overlay'),
+        ).toBeInTheDocument(),
+      );
+    });
+
+    it('should be possible to report NSFW content', async () => {
+      const user = userEvent.setup();
+      renderTestee();
+
+      // Simulate NSFW content detection
+      act(() => {
+        rootStore.contentModerationStore.handleNSFWDetection({
+          probability: 0.9,
+          timestamp: Date.now(),
+        });
+      });
+
+      // The NSFW overlay should be visible
+      await waitFor(() =>
+        expect(
+          screen.queryByTestId('nsfw-warning-overlay'),
+        ).toBeInTheDocument(),
+      );
+
+      // Find and click the Report button
+      const reportButton = screen.getByRole('button', {
+        name: /block and report/i,
+      });
+      await user.click(reportButton);
+
+      expect(mockCloseFn).toHaveBeenCalledOnce();
+      expect(rootStore.contentModerationStore.remoteStreamNSFW).toBe(false);
+    });
+
+    it('should allow continuing the call after NSFW detection', async () => {
+      const user = userEvent.setup();
+      renderTestee();
+
+      // Simulate NSFW content detection
+      act(() => {
+        rootStore.contentModerationStore.handleNSFWDetection({
+          probability: 0.8,
+          timestamp: Date.now(),
+        });
+      });
+
+      // The NSFW overlay should be visible
+      await waitFor(() =>
+        expect(
+          screen.queryByTestId('nsfw-warning-overlay'),
+        ).toBeInTheDocument(),
+      );
+
+      // Find and click the Continue button
+      const continueButton = screen.getByRole('button', { name: /continue/i });
+      await user.click(continueButton);
+
+      await waitFor(() =>
+        expect(
+          screen.queryByTestId('nsfw-warning-overlay'),
+        ).not.toBeInTheDocument(),
+      );
+
+      expect(rootStore.contentModerationStore.ignoreDetectedNSFW).toBe(true);
+    });
+
+    it('should end call when selecting "End Call" after NSFW detection', async () => {
+      const user = userEvent.setup();
+      renderTestee();
+
+      // Simulate NSFW content detection
+      act(() => {
+        rootStore.contentModerationStore.handleNSFWDetection({
+          probability: 0.9,
+          timestamp: Date.now(),
+        });
+      });
+
+      // The NSFW overlay should be visible
+      await waitFor(() =>
+        expect(
+          screen.queryByTestId('nsfw-warning-overlay'),
+        ).toBeInTheDocument(),
+      );
+
+      // Find and click the End Call button
+      const endCallButton = screen.getByRole('button', { name: /end call/i });
+      await user.click(endCallButton);
+
+      // Verify that the call was ended and NSFW state was reset
+      expect(mockCloseFn).toHaveBeenCalled();
+      expect(rootStore.contentModerationStore.remoteStreamNSFW).toBe(false);
+    });
+
+    it('should not show NSFW overlay when model status is error', async () => {
+      renderTestee();
+
+      // Set model status to error
+      act(() => {
+        rootStore.contentModerationStore.setModelStatus('error');
+      });
+
+      // Simulate NSFW content detection
+      act(() => {
+        rootStore.contentModerationStore.handleNSFWDetection({
+          probability: 1,
+          timestamp: Date.now(),
+        });
+      });
+
+      // The NSFW overlay should not be visible due to error status
+      await waitFor(() =>
+        expect(
+          screen.queryByTestId('nsfw-warning-overlay'),
+        ).not.toBeInTheDocument(),
+      );
     });
   });
 });

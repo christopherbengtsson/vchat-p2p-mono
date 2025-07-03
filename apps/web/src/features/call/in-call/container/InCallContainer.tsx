@@ -1,16 +1,22 @@
 import { observer } from 'mobx-react';
 import { FeatureFlagUtil } from '@/common/utils/FeatureFlagUtil';
 import { useRootStore } from '@/stores/hooks/useRootStore';
-import { ReportContainer } from '@/features/user-report/container/ReportContainer';
+import { ReportContainer } from '@/features/content-moderation/container/ReportContainer';
 import { GameInitiatorContainer } from '@/features/game/game-invite/container/GameInitiatorContainer';
 import { useCallStore } from '../../context/useCallStore';
 import { useVideoStreams } from '../hooks/useVideoStreams';
+import { useCallActions } from '../hooks/useCallActions';
 import { UserVideoContainer } from './UserVideoContainer';
 import { CallActionContainer } from './CallActionContainer';
+import { RemoteVideoStreamContainer } from './RemoteVideoStreamContainer';
 
 export const InCallContainer = observer(function InCallPage() {
-  const { mediaStore, authStore } = useRootStore();
+  const rootStore = useRootStore();
+  const { mediaStore, authStore, socketStore, contentModerationStore } =
+    rootStore;
   const callStore = useCallStore();
+  const { endCall } = useCallActions(socketStore, callStore, mediaStore);
+
   const isGameEnabled = FeatureFlagUtil.isGamesEnabled();
   const { localVideoRef, remoteVideoRef } = useVideoStreams({
     localStream: mediaStore.localCallStream,
@@ -29,9 +35,12 @@ export const InCallContainer = observer(function InCallPage() {
         />
       </div>
 
-      <UserVideoContainer
-        videoRef={remoteVideoRef}
-        videoEnabled={callStore.remoteVideoEnabled}
+      <RemoteVideoStreamContainer
+        remoteVideoRef={remoteVideoRef}
+        remoteVideoEnabled={callStore.remoteVideoEnabled}
+        contentModerationEnabled={contentModerationStore.config.enabled}
+        modelStatus={contentModerationStore.modelStatus}
+        onEndCall={endCall}
       />
 
       <CallActionContainer />

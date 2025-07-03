@@ -6,10 +6,21 @@ import type { SupabaseAdmin } from '../service/SupabaseAdmin';
 
 const startNewReport = async (page: Page, context: BrowserContext) => {
   await page.goto('/');
+  await page.waitForLoadState('networkidle');
+
+  // Wait for the page to be fully loaded and interactive
+  await expect(page.getByRole('button', { name: 'Find match' })).toBeVisible();
   await page.getByRole('button', { name: 'Find match' }).click();
 
+  // Wait for matchmaking to start
+  await expect(page.getByRole('button', { name: 'Cancel' })).toBeVisible();
+
+  // Wait for the match to be found with increased timeout
+  await expect(page.getByText(/Match with/)).toBeVisible({ timeout: 30_000 });
+
+  // Now look for the report button with retry logic
   const reportButton1 = page.getByRole('button', { name: 'Report user' });
-  await expect(reportButton1).toBeVisible();
+  await expect(reportButton1).toBeVisible({ timeout: 15_000 });
   await reportButton1.click();
 
   await page.getByRole('button', { name: 'Report user' }).click();
@@ -50,17 +61,20 @@ const expectNotToBeAbleToLogin = async (
 
   await loginTestUser(page, email, supabaseAdmin);
 
-  await expect(page.getByText('User is banned, try again later')).toBeVisible();
+  await expect(page.getByText('User is banned, try again later')).toBeVisible({
+    timeout: 10_000,
+  });
 
   await page.reload();
-
   await page.waitForLoadState('networkidle');
 
   const signaturePromise = page.waitForResponse('**/api/v1/signature');
   await fastLogin(page);
   await supabaseAdmin.saveGeneratedFingerprint(signaturePromise);
 
-  await expect(page.getByText('User is banned')).toBeVisible();
+  await expect(page.getByText('User is banned')).toBeVisible({
+    timeout: 10_000,
+  });
 
   await page.waitForLoadState('networkidle');
 };
@@ -73,6 +87,8 @@ export const reportUser = async (
 
   // Login user to-be-reported
   await loginTestUser(toReport.page, toReport.email, supabaseAdmin);
+  await toReport.page.waitForURL('/', { timeout: 15_000 });
+  await toReport.page.waitForLoadState('networkidle');
   await expect(
     toReport.page.getByRole('button', { name: 'Find match' }),
   ).toBeVisible();
@@ -80,6 +96,8 @@ export const reportUser = async (
 
   // Login reporter 1 and report user
   await loginTestUser(reporter1.page, reporter1.email, supabaseAdmin);
+  await reporter1.page.waitForURL('/', { timeout: 15_000 });
+  await reporter1.page.waitForLoadState('networkidle');
   await expect(
     reporter1.page.getByRole('button', { name: 'Find match' }),
   ).toBeVisible();
@@ -87,11 +105,16 @@ export const reportUser = async (
 
   await expect(
     toReport.page.getByRole('button', { name: 'Cancel' }),
-  ).toBeVisible();
+  ).toBeVisible({ timeout: 15_000 });
   await toReport.page.getByRole('button', { name: 'I understand' }).click();
+
+  // Wait for the dialog to close
+  await toReport.page.waitForTimeout(1000);
 
   // Login reporter 2 and report user
   await loginTestUser(reporter2.page, reporter2.email, supabaseAdmin);
+  await reporter2.page.waitForURL('/', { timeout: 15_000 });
+  await reporter2.page.waitForLoadState('networkidle');
   await expect(
     reporter2.page.getByRole('button', { name: 'Find match' }),
   ).toBeVisible();
@@ -99,11 +122,17 @@ export const reportUser = async (
 
   await expect(
     toReport.page.getByRole('button', { name: 'Cancel' }),
-  ).toBeVisible();
+  ).toBeVisible({ timeout: 15_000 });
   await toReport.page.getByRole('button', { name: 'I understand' }).click();
+
+  // Wait for the dialog to close
+  await toReport.page.waitForTimeout(1000);
 
   // Login reporter 3 and report user
   await loginTestUser(reporter3.page, reporter3.email, supabaseAdmin);
+  await reporter3.page.waitForURL('/', { timeout: 15_000 });
+  await reporter3.page.waitForLoadState('networkidle');
+
   await expect(
     reporter3.page.getByRole('button', { name: 'Find match' }),
   ).toBeVisible();

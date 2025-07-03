@@ -76,6 +76,10 @@ export default defineConfig(({ mode }) => ({
 
           // Monitoring
           monitoring: ['@grafana/faro-react', '@grafana/faro-web-tracing'],
+
+          // Content moderation - split into core and models
+          'content-moderation-core': ['nsfwjs'],
+          'content-moderation-tf': ['@tensorflow/tfjs'],
         },
       },
     },
@@ -93,6 +97,7 @@ export default defineConfig(({ mode }) => ({
     include: ['**/*.test.{tsx,ts}'],
     setupFiles: ['./src/testSetup.ts'],
     env: loadEnv(mode, process.cwd(), ''),
+    css: true,
     exclude: [
       '**/e2e/**',
       '**/node_modules/**',

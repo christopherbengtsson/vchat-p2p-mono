@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { observer } from 'mobx-react';
 import { useRootStore } from '@/stores/hooks/useRootStore';
@@ -15,8 +15,11 @@ const FIND_MATCH_ROUTER_STATE: CallLocation = {
 };
 
 export const FindMatchContainer = observer(function FindMatchContainer() {
-  const { socketStore } = useRootStore();
+  const [userClicked, setUserClicked] = useState(false);
+
   const navigate = useNavigate();
+
+  const { socketStore, contentModerationStore } = useRootStore();
   const {
     startingMedia,
     permissionDialogOpen,
@@ -30,6 +33,8 @@ export const FindMatchContainer = observer(function FindMatchContainer() {
   }, [navigate]);
 
   const handleFindMatch = useCallback(async () => {
+    setUserClicked(true);
+
     const { success } = await checkAndRequestMedia();
 
     if (success) {
@@ -47,6 +52,8 @@ export const FindMatchContainer = observer(function FindMatchContainer() {
         onClick={handleFindMatch}
         startingMedia={startingMedia}
         connecting={!socketStore.connected}
+        modelStatus={contentModerationStore.modelStatus}
+        showLoadingState={userClicked}
       />
 
       <PermissionsDialog

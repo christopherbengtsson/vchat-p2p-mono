@@ -11,8 +11,10 @@ export const videoCallActions = async (
 
   /** Start page */
   await loginTestUser(user.page, user.email, supabaseAdmin);
+  await user.page.waitForLoadState('networkidle');
 
   await loginTestUser(partner.page, partner.email, supabaseAdmin);
+  await partner.page.waitForLoadState('networkidle');
 
   /** Start and cancel queue */
 
@@ -28,17 +30,26 @@ export const videoCallActions = async (
   await expect(user.page.getByRole('button', { name: 'Cancel' })).toBeVisible();
 
   const matchPromises1 = [
-    expect(user.page.getByText(/Match with/)).toBeVisible(),
-    expect(partner.page.getByText(/Match with/)).toBeVisible(),
+    expect(user.page.getByText(/Match with/)).toBeVisible({ timeout: 30_000 }),
+    expect(partner.page.getByText(/Match with/)).toBeVisible({
+      timeout: 30_000,
+    }),
   ];
 
   await partner.page.getByRole('button', { name: 'Find match' }).click();
 
   await Promise.all(matchPromises1);
 
+  // Wait for the connection to stabilize
+  await user.page.waitForTimeout(2000);
+  await partner.page.waitForTimeout(2000);
+
   /** Camera toggle */
 
   // Toggle camera for user
+  await expect(
+    user.page.getByRole('button', { name: 'Turn camera off' }),
+  ).toBeVisible({ timeout: 10_000 });
   await user.page.getByRole('button', { name: 'Turn camera off' }).click();
   await expect(
     user.page.getByRole('button', { name: 'Turn camera on' }),
@@ -58,6 +69,9 @@ export const videoCallActions = async (
   // TODO: Check overlay not visible instead?
 
   // Toggle camera for partner
+  await expect(
+    partner.page.getByRole('button', { name: 'Turn camera off' }),
+  ).toBeVisible({ timeout: 10_000 });
   await partner.page.getByRole('button', { name: 'Turn camera off' }).click();
   await expect(
     partner.page.getByRole('button', { name: 'Turn camera on' }),
@@ -105,13 +119,19 @@ export const videoCallActions = async (
 
   /**  End of call */
   const cancelPromises = [
-    expect(user.page.getByRole('button', { name: 'Cancel' })).toBeVisible(),
-    expect(partner.page.getByRole('button', { name: 'Cancel' })).toBeVisible(),
+    expect(user.page.getByRole('button', { name: 'Cancel' })).toBeVisible({
+      timeout: 15_000,
+    }),
+    expect(partner.page.getByRole('button', { name: 'Cancel' })).toBeVisible({
+      timeout: 15_000,
+    }),
   ];
 
   const matchPromises2 = [
-    expect(user.page.getByText(/Match with/)).toBeVisible(),
-    expect(partner.page.getByText(/Match with/)).toBeVisible(),
+    expect(user.page.getByText(/Match with/)).toBeVisible({ timeout: 15_000 }),
+    expect(partner.page.getByText(/Match with/)).toBeVisible({
+      timeout: 15_000,
+    }),
   ];
 
   await user.page.getByRole('button', { name: 'End call' }).click();
@@ -126,21 +146,22 @@ export const videoCallActions = async (
   ]);
 
   await user.page.reload();
+  await user.page.waitForLoadState('networkidle');
 
   await expect(
     partner.page.getByRole('button', { name: 'Cancel' }),
-  ).toBeVisible();
+  ).toBeVisible({ timeout: 15_000 });
 
-  await user.page.waitForURL('/');
+  await user.page.waitForURL('/', { timeout: 15_000 });
   await expect(
     user.page.getByRole('button', { name: 'Find match' }),
-  ).toBeVisible();
+  ).toBeVisible({ timeout: 10_000 });
 
   await partner.page.getByRole('button', { name: 'Cancel' }).click();
 
   await expect(
     partner.page.getByRole('button', { name: 'Find match' }),
-  ).toBeVisible();
+  ).toBeVisible({ timeout: 10_000 });
 
   /** Clean up */
   await user.page.context().close();

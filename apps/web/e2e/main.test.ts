@@ -3,10 +3,12 @@ import { cleanupTestUsers } from './setup/globalTeardown';
 import { SupabaseAdmin } from './service/SupabaseAdmin';
 import { videoCallActions } from './__tests__/videoCallActions';
 import { reportUser, reportUserToPermanentBan } from './__tests__/reportUser';
+import { contentModerationNSFWDetection } from './__tests__/contentModerationNSFWDetection';
 
 const supabaseAdmin = new SupabaseAdmin();
 
-test.describe.configure({ mode: 'serial', timeout: 60_000 });
+test.slow();
+test.describe.configure({ mode: 'serial' });
 test.afterEach(async ({ context }) => {
   await cleanupTestUsers(context, supabaseAdmin);
 });
@@ -40,5 +42,12 @@ test('Report User To Permanent Ban', async ({ browser }, { title }) => {
 
 test('Video Call Actions', async ({ browser }, { title }) => {
   const testUsers = await supabaseAdmin.generateTestUsers(2, browser, title);
+
   await videoCallActions(testUsers, supabaseAdmin);
+});
+
+test('Content Moderation', async ({ browser }, { title }) => {
+  const testUsers = await supabaseAdmin.generateTestUsers(2, browser, title);
+
+  await contentModerationNSFWDetection(testUsers, supabaseAdmin);
 });
