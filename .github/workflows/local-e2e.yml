@@ -2,7 +2,6 @@ name: Local E2E
 
 on:
   workflow_dispatch:
-  push:
 
 jobs:
   mono-local-e2e:
