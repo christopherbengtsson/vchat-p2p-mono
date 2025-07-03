@@ -70,8 +70,4 @@ export const contentModerationNSFWDetection = async (
     partner.page.getByRole('button', { name: 'Cancel' }),
   ).toBeVisible();
   await partner.page.getByRole('button', { name: 'I understand' }).click();
-
-  // getByRole('button', { name: 'End call' })
-  // getByRole('button', { name: 'Continue call' })
-  // getByRole('button', { name: 'Close' })
 };

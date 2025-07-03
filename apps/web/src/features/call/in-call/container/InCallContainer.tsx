@@ -38,6 +38,7 @@ export const InCallContainer = observer(function InCallPage() {
       <RemoteVideoStreamContainer
         remoteVideoRef={remoteVideoRef}
         remoteVideoEnabled={callStore.remoteVideoEnabled}
+        contentModerationEnabled={contentModerationStore.config.enabled}
         modelStatus={contentModerationStore.modelStatus}
         onEndCall={endCall}
       />

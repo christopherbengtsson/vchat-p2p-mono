@@ -51,7 +51,12 @@ export const NSFWOverlayContainer = observer(
       resetNSFWState();
     }, [onEndCall, resetNSFWState]);
 
-    if (!remoteStreamNSFW || modelStatus === 'error') {
+    if (
+      !remoteStreamNSFW ||
+      modelStatus === 'error' ||
+      !config.enabled ||
+      modelStatus !== 'ready'
+    ) {
       return null;
     }
 

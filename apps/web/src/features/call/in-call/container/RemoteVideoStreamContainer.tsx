@@ -8,13 +8,20 @@ interface Props {
   remoteVideoEnabled: boolean;
   onEndCall: VoidFunction;
   modelStatus: NSFWModelStatus;
+  contentModerationEnabled: boolean;
 }
 
 export const RemoteVideoStreamContainer = observer(
-  ({ remoteVideoRef, remoteVideoEnabled, modelStatus, onEndCall }: Props) => {
+  ({
+    remoteVideoRef,
+    remoteVideoEnabled,
+    modelStatus,
+    onEndCall,
+    contentModerationEnabled,
+  }: Props) => {
     return (
       <>
-        {modelStatus === 'ready' && (
+        {modelStatus === 'ready' && contentModerationEnabled && (
           <NSFWOverlayContainer
             videoRef={remoteVideoRef}
             videoEnabled={remoteVideoEnabled}
