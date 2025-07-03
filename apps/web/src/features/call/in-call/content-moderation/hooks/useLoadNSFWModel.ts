@@ -6,7 +6,10 @@ import { NSFWModelService } from '../service/NSFWModelService';
 export const useLoadNSFWModel = () => {
   const load = useCallback(async () => {
     try {
-      await NSFWModelService.load();
+      const contentModerationConfig = contentModerationStore.config;
+      if (contentModerationConfig.enabled) {
+        await NSFWModelService.load();
+      }
       contentModerationStore.setModelStatus('ready');
     } catch {
       contentModerationStore.setModelStatus('error');

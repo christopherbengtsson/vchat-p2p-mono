@@ -6,6 +6,7 @@ import { ContentModerationService } from '../service/ContentModerationService';
 interface In {
   videoRef: React.RefObject<HTMLVideoElement | null>;
   videoEnabled: boolean;
+  nsfwEnabled: boolean;
   modelStatus: NSFWModelStatus;
   intervalMs: number;
   detectionThreshold: number;
@@ -20,6 +21,7 @@ interface In {
 export const useNSFWDetection = ({
   videoRef,
   videoEnabled,
+  nsfwEnabled,
   modelStatus,
   intervalMs,
   detectionThreshold,
@@ -35,6 +37,7 @@ export const useNSFWDetection = ({
     if (
       !video ||
       !videoEnabled ||
+      !nsfwEnabled ||
       modelStatus !== 'ready' ||
       ignoreDetectedNSFW ||
       remoteStreamNSFW
@@ -61,6 +64,7 @@ export const useNSFWDetection = ({
   }, [
     videoRef,
     videoEnabled,
+    nsfwEnabled,
     modelStatus,
     ignoreDetectedNSFW,
     remoteStreamNSFW,
@@ -72,6 +76,7 @@ export const useNSFWDetection = ({
     if (
       !videoRef.current ||
       !videoEnabled ||
+      !nsfwEnabled ||
       modelStatus !== 'ready' ||
       ignoreDetectedNSFW ||
       remoteStreamNSFW
@@ -95,5 +100,6 @@ export const useNSFWDetection = ({
     ignoreDetectedNSFW,
     remoteStreamNSFW,
     modelStatus,
+    nsfwEnabled,
   ]);
 };

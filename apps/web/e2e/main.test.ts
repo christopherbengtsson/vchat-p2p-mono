@@ -47,12 +47,7 @@ test('Video Call Actions', async ({ browser }, { title }) => {
 });
 
 test('Content Moderation', async ({ browser }, { title }) => {
-  const originalNSFWThreshold = process.env.VITE_NSFW_THRESHOLD;
-  process.env.VITE_NSFW_THRESHOLD = '0.01';
-
   const testUsers = await supabaseAdmin.generateTestUsers(2, browser, title);
 
   await contentModerationNSFWDetection(testUsers, supabaseAdmin);
-
-  process.env.VITE_NSFW_THRESHOLD = originalNSFWThreshold;
 });

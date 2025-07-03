@@ -4,6 +4,7 @@ import type { NSFWModelStatus } from './model/NSFWModelStatus';
 
 export class ContentModerationStore {
   @observable accessor config: ContentModerationConfig = {
+    enabled: import.meta.env.VITE_NSFW_ENABLED !== 'false',
     threshold: parseFloat(import.meta.env.VITE_NSFW_THRESHOLD) || 0.8,
     analysisIntervalMs: 2000,
   };

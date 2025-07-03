@@ -22,6 +22,7 @@ export const Video = observer(function Video({
         className={`${
           isPortrait ? 'w-auto h-full' : 'w-full h-auto'
         } ${isLocal ? 'z-10' : 'z-0'}`}
+        data-testid={isLocal ? 'local-video-element' : 'remote-video-element'}
         autoPlay
         playsInline
         aria-label={`${isLocal ? 'Your video' : "Partner's video"}`}

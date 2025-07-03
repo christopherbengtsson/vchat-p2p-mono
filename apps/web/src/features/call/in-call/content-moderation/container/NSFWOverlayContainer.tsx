@@ -34,6 +34,7 @@ export const NSFWOverlayContainer = observer(
       videoRef,
       videoEnabled,
       modelStatus,
+      nsfwEnabled: config.enabled,
       intervalMs: config.analysisIntervalMs,
       detectionThreshold: config.threshold,
       remoteStreamNSFW,

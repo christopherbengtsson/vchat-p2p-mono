@@ -1,8 +1,25 @@
-import { expect } from '@playwright/test';
+import { expect, Page } from '@playwright/test';
 import { TestUser } from '../model/TestUser';
 import { SupabaseAdmin } from '../service/SupabaseAdmin';
 import { loginTestUser } from '../utils/loginTestUser';
 import { hijackRemoteVideoStream } from '../utils/hijackRemoteVideoStream';
+
+const waitForModelFetch = async (page: Page) => {
+  await page.waitForResponse(
+    (response) => response.url().endsWith('/model.json'),
+    { timeout: 20_000 },
+  );
+};
+
+const enableContentModeration = async (page: Page) => {
+  await page.evaluate(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (window as any).rootStore.contentModerationStore.setConfig({
+      enabled: true,
+      threshold: 0.01,
+    });
+  });
+};
 
 export const contentModerationNSFWDetection = async (
   testUsers: TestUser[],
@@ -12,8 +29,12 @@ export const contentModerationNSFWDetection = async (
 
   /** Start page */
   await loginTestUser(user.page, user.email, supabaseAdmin);
+  await enableContentModeration(user.page);
+  await waitForModelFetch(user.page);
 
   await loginTestUser(partner.page, partner.email, supabaseAdmin);
+  await enableContentModeration(partner.page);
+  await waitForModelFetch(partner.page);
 
   /** Start call and match */
 
