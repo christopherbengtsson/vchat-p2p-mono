@@ -1,2 +1,10 @@
 /// <reference types="vite/client" />
-declare const APP_VERSION: string;
+import { RootStore } from './stores/RootStore';
+
+declare global {
+  const APP_VERSION: string;
+
+  interface Window {
+    rootStore: RootStore;
+  }
+}

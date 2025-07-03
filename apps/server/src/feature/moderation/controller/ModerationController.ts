@@ -13,7 +13,11 @@ const register = (
     wrapHandler(async (partnerUserId, _userId) => {
       socket.to(partnerUserId).emit('user-reported');
 
-      void IgnoredUsersService.clearUsersIgnoreCache([partnerUserId]); // TODO: Add prio BullMQ job instead?
+      /**
+       * TODO: Add prio BullMQ job instead?
+       * TODO: We need immidiate cache update for ignored users, otherwise users can directly re-match
+       */
+      void IgnoredUsersService.clearUsersIgnoreCache([partnerUserId]);
       /**
        * user 1 ignores, added to queue
        * user 2 ignores, added to queue

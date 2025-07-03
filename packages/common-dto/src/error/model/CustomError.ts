@@ -8,65 +8,92 @@ export class CustomError extends Error {
     return error instanceof CustomError;
   }
 
-  static fromError = (error: unknown): CustomError =>
+  static fromError = (error: unknown, options?: ErrorOptions): CustomError =>
     CustomError.isCustomError(error)
       ? error
-      : CustomError.internal(isError(error) ? error.message : String(error));
+      : CustomError.internal(
+          isError(error) ? error.message : String(error),
+          options,
+        );
 
-  static unauthorized(message?: string): CustomError {
-    return new CustomError(CustomErrorType.UNAUTHORIZED, message);
+  static unauthorized(message?: string, options?: ErrorOptions): CustomError {
+    return new CustomError(CustomErrorType.UNAUTHORIZED, message, options);
   }
 
-  static notFound(message?: string): CustomError {
-    return new CustomError(CustomErrorType.NOT_FOUND, message);
+  static notFound(message?: string, options?: ErrorOptions): CustomError {
+    return new CustomError(CustomErrorType.NOT_FOUND, message, options);
   }
 
-  static gone(message?: string): CustomError {
-    return new CustomError(CustomErrorType.GONE, message);
+  static gone(message?: string, options?: ErrorOptions): CustomError {
+    return new CustomError(CustomErrorType.GONE, message, options);
   }
 
-  static badState(message?: string): CustomError {
-    return new CustomError(CustomErrorType.BAD_STATE, message);
+  static badState(message?: string, options?: ErrorOptions): CustomError {
+    return new CustomError(CustomErrorType.BAD_STATE, message, options);
   }
 
-  static badRequest(message?: string): CustomError {
-    return new CustomError(CustomErrorType.BAD_REQUEST, message);
+  static badRequest(message?: string, options?: ErrorOptions): CustomError {
+    return new CustomError(CustomErrorType.BAD_REQUEST, message, options);
   }
 
-  static conflict(message?: string): CustomError {
-    return new CustomError(CustomErrorType.CONFLICT, message);
+  static conflict(message?: string, options?: ErrorOptions): CustomError {
+    return new CustomError(CustomErrorType.CONFLICT, message, options);
   }
 
-  static internal(message?: string): CustomError {
-    return new CustomError(CustomErrorType.SERVER_ERROR, message);
+  static internal(message?: string, options?: ErrorOptions): CustomError {
+    return new CustomError(CustomErrorType.SERVER_ERROR, message, options);
   }
 
-  static unhandledClientError(message?: string): CustomError {
-    return new CustomError(CustomErrorType.UNHANDLED_CLIENT_ERROR, message);
+  static unhandledClientError(
+    message?: string,
+    options?: ErrorOptions,
+  ): CustomError {
+    return new CustomError(
+      CustomErrorType.UNHANDLED_CLIENT_ERROR,
+      message,
+      options,
+    );
   }
 
-  static forbidden(message?: string): CustomError {
-    return new CustomError(CustomErrorType.FORBIDDEN, message);
+  static forbidden(message?: string, options?: ErrorOptions): CustomError {
+    return new CustomError(CustomErrorType.FORBIDDEN, message, options);
   }
 
-  static cancelled(message?: string): CustomError {
-    return new CustomError(CustomErrorType.CANCELLED, message);
+  static cancelled(message?: string, options?: ErrorOptions): CustomError {
+    return new CustomError(CustomErrorType.CANCELLED, message, options);
   }
 
-  static timeout(message?: string): CustomError {
-    return new CustomError(CustomErrorType.TIMEOUT, message);
+  static timeout(message?: string, options?: ErrorOptions): CustomError {
+    return new CustomError(CustomErrorType.TIMEOUT, message, options);
   }
 
-  static tooManyRequests(message?: string): CustomError {
-    return new CustomError(CustomErrorType.TOO_MANY_REQUESTS, message);
+  static tooManyRequests(
+    message?: string,
+    options?: ErrorOptions,
+  ): CustomError {
+    return new CustomError(CustomErrorType.TOO_MANY_REQUESTS, message, options);
   }
 
-  static authenticationFailed(message?: string): CustomError {
-    return new CustomError(CustomErrorType.AUTHENTICATION_FAILED, message);
+  static authenticationFailed(
+    message?: string,
+    options?: ErrorOptions,
+  ): CustomError {
+    return new CustomError(
+      CustomErrorType.AUTHENTICATION_FAILED,
+      message,
+      options,
+    );
   }
 
-  static httpCommunication(message?: string): CustomError {
-    return new CustomError(CustomErrorType.HTTP_COMMUNICATION, message);
+  static httpCommunication(
+    message?: string,
+    options?: ErrorOptions,
+  ): CustomError {
+    return new CustomError(
+      CustomErrorType.HTTP_COMMUNICATION,
+      message,
+      options,
+    );
   }
 
   // These methods safely checks the error type of unknown error.
@@ -140,8 +167,8 @@ export class CustomError extends Error {
 
   type: CustomErrorType;
 
-  constructor(type: CustomErrorType, message?: string) {
-    super(message);
+  constructor(type: CustomErrorType, message?: string, options?: ErrorOptions) {
+    super(message || type, options);
     this.type = type;
 
     Object.setPrototypeOf(this, CustomError.prototype);

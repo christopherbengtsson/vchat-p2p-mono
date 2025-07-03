@@ -18,6 +18,9 @@ export const loginTestUser = async (
     throw new Error('User already logged in');
   }
 
+  // Wait for form to be fully loaded
+  await page.waitForSelector('input[name="email"]', { timeout: 10_000 });
+
   await page.getByRole('textbox', { name: 'email' }).fill(email);
   await page.getByRole('textbox', { name: 'password' }).fill(user.password);
   await page.getByRole('button', { name: 'Login with email' }).click();

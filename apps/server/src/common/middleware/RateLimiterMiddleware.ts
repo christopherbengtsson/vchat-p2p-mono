@@ -10,8 +10,8 @@ const getRateLimiter = () => {
     rateLimiter = new RateLimiterRedis({
       storeClient: RedisClient.get(),
       keyPrefix: 'api-rate-limit-middleware', // Prefix for Redis keys to avoid collisions.
-      points: 2, // Number of points (requests) allowed...
-      duration: 1, // ...per duration in seconds (1 second by default)
+      points: 10, // Number of points (requests) allowed...
+      duration: 3, // ...per duration in seconds (1 second by default)
     });
   }
   return rateLimiter;

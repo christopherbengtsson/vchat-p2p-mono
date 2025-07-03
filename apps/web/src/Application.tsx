@@ -5,12 +5,15 @@ import { Toaster } from 'sonner';
 import { Routes } from './Routes';
 import { RootStore } from './stores/RootStore';
 import { RootStoreProvider } from './stores/context/RootStoreProvider';
+import { useDevWindowStore } from './stores/hooks/useDevWindowStore';
 
 const queryClient = new QueryClient();
 
 export function Application() {
   const storeRef = useRef(new RootStore());
   const store = storeRef.current;
+
+  useDevWindowStore(store);
 
   return (
     <FaroErrorBoundary>

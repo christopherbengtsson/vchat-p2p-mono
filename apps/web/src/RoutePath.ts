@@ -11,13 +11,15 @@ export enum RoutePath {
   CALL = '/call',
   IN_CALL = '/call/:roomId',
   BANNED = '/banned',
+  ERROR = '/error',
 }
 
 export enum RouteParamKey {
-  BAN_TYPE = 'type',
+  BAN_TYPE = 'ban_type',
+  ERROR_CODE = 'error_code',
 }
 
 export enum RouteParamValue {
-  BAN_TYPE_TEMPORARY = 'temporary',
-  BAN_TYPE_PERMANENT = 'permanent',
+  BAN_TYPE_TEMPORARY = 'ban_type_temporary',
+  BAN_TYPE_PERMANENT = 'ban_type_permanent',
 }
