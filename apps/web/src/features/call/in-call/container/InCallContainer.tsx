@@ -1,12 +1,14 @@
 import { observer } from 'mobx-react';
+import clsx from 'clsx';
 import { FeatureFlagUtil } from '@/common/utils/FeatureFlagUtil';
 import { useRootStore } from '@/stores/hooks/useRootStore';
 import { ReportContainer } from '@/features/content-moderation/container/ReportContainer';
 import { GameInitiatorContainer } from '@/features/game/game-invite/container/GameInitiatorContainer';
 import { useCallStore } from '../../context/useCallStore';
+import { Video } from '../component/Video';
 import { useVideoStreams } from '../hooks/useVideoStreams';
+import { useVideoAspectRatio } from '../hooks/useVideoAspectRatio';
 import { useCallActions } from '../hooks/useCallActions';
-import { UserVideoContainer } from './UserVideoContainer';
 import { CallActionContainer } from './CallActionContainer';
 import { RemoteVideoStreamContainer } from './RemoteVideoStreamContainer';
 
@@ -23,12 +25,24 @@ export const InCallContainer = observer(function InCallPage() {
     remoteStream: callStore.remoteStream,
   });
 
+  const { isPortrait, isSquare, shouldUseObjectCover } =
+    useVideoAspectRatio(localVideoRef);
+
   return (
     <>
       <ReportContainer />
 
-      <div className="absolute top-4 right-4 w-auto h-auto max-w-32 md:max-w-64 rounded-lg overflow-hidden shadow-lg">
-        <UserVideoContainer
+      <div
+        className={clsx(
+          'absolute top-4 right-4 rounded-lg overflow-hidden shadow-lg',
+          isSquare
+            ? 'w-[20vw] max-w-32 min-w-20 aspect-square' // Square videos
+            : isPortrait
+              ? 'w-[15vw] max-w-24 min-w-16 aspect-[3/4]' // Portrait videos (taller)
+              : 'w-[25vw] max-w-48 min-w-32 aspect-video', // Landscape videos (16:9)
+        )}
+      >
+        <Video
           videoRef={localVideoRef}
           videoEnabled={mediaStore.localVideoEnabled}
           isLocal
@@ -38,6 +52,7 @@ export const InCallContainer = observer(function InCallPage() {
       <RemoteVideoStreamContainer
         remoteVideoRef={remoteVideoRef}
         remoteVideoEnabled={callStore.remoteVideoEnabled}
+        shouldUseObjectCover={shouldUseObjectCover}
         contentModerationEnabled={contentModerationStore.config.enabled}
         modelStatus={contentModerationStore.modelStatus}
         onEndCall={endCall}

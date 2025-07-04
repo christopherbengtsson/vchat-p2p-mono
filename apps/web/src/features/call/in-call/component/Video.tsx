@@ -4,20 +4,24 @@ import { BsCameraVideoOff } from 'react-icons/bs';
 import { TypographyP } from '@/common/components/typography/Typography';
 
 interface Props {
-  videoRef?: React.RefObject<HTMLVideoElement | null>;
+  videoRef: React.RefObject<HTMLVideoElement | null>;
   isLocal?: boolean;
   videoEnabled: boolean;
-  isPortrait: boolean;
+  shouldUseObjectCover?: boolean;
+  className?: string;
 }
 
 export const Video = observer(function Video({
   videoRef,
   isLocal,
   videoEnabled,
-  isPortrait,
+  className,
+  shouldUseObjectCover = false,
 }: Props) {
   return (
-    <div className="relative flex justify-center items-center w-full h-full">
+    <div
+      className={clsx('relative flex justify-center items-center', className)}
+    >
       <video
         ref={videoRef}
         autoPlay
@@ -28,18 +32,18 @@ export const Video = observer(function Video({
         aria-label={`${isLocal ? 'Your video' : "Partner's video"}`}
         data-testid={isLocal ? 'local-video-element' : 'remote-video-element'}
         className={clsx(
-          'object-contain',
+          'w-full h-full',
+          shouldUseObjectCover ? 'object-cover' : 'object-contain',
           isLocal ? 'z-10' : 'z-0',
-          isPortrait ? 'aspect-4/3' : 'aspect-video', // aspect-video is 16/9
-          isPortrait
-            ? 'h-full w-auto max-w-full' // Portrait: fill height, maintain aspect ratio
-            : 'w-full h-auto max-h-full', // Landscape: fill width, maintain aspect ratio
         )}
       />
 
       {!videoEnabled && (
         <div
-          className={`absolute inset-0 flex items-center justify-center ${isLocal ? 'z-10 shadow-video-off' : 'z-0'}`}
+          className={clsx(
+            'absolute inset-0 flex items-center justify-center',
+            isLocal ? 'z-10 shadow-video-off' : 'z-0',
+          )}
         >
           <BsCameraVideoOff
             className={`text-white ${isLocal ? 'text-xl' : 'text-4xl'}`}
