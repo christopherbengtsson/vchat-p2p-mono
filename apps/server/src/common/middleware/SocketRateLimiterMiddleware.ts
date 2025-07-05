@@ -27,7 +27,7 @@ const use = (socket: Socket, next: (err?: CustomError) => void) => {
     .catch(() => {
       log.warn('[io rate limiter]: Too many requests');
       next(
-        new CustomError(CustomErrorType.TOO_MANY_REQUESTS, 'Too many requests'),
+        new CustomError(CustomErrorType.TOO_MANY_REQUESTS, 'Too many requests'), // TODO: Can't throw here
       );
     });
 };
