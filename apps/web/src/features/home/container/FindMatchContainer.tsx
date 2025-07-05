@@ -6,9 +6,9 @@ import { RoutePath } from '@/RoutePath';
 import { CallLocation } from '@/features/call/queue/model/CallLocationState';
 import { PermissionsDialog } from '../component/PermissionsDialog';
 import { FindMatchButton } from '../component/FindMatchButton';
-import { ContentModerationUnavailableDialog } from '../component/ContentModerationUnavailableDialog';
-import { useContentModerationAvailability } from '../hooks/useContentModerationAvailability';
 import { useMediaPermissions } from '../hooks/useMediaPermissions';
+import { ContentModerationUnavailableDialog } from '../../content-moderation/component/ContentModerationUnavailableDialog';
+import { useContentModerationAvailability } from '../../content-moderation/hooks/useContentModerationAvailability';
 
 const FIND_MATCH_ROUTER_STATE: CallLocation = {
   state: {
