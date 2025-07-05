@@ -2,7 +2,7 @@ import { PitchDetector } from 'pitchy';
 
 const FTT_SIZE = 2048;
 const SMOOTHING_FACTOR = 0.85;
-const MIN_VOLUME_DECIBELS = -20;
+const MIN_VOLUME_DECIBELS = -30;
 
 export class AudioFrequencyService {
   private audioContext: AudioContext;
@@ -36,6 +36,7 @@ export class AudioFrequencyService {
       this.input,
       this.audioContext.sampleRate,
     );
+
     return [pitch, clarity];
   }
 

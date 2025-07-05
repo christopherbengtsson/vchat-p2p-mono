@@ -1,7 +1,7 @@
 import { observer } from 'mobx-react';
 import { NSFWModelStatus } from '@/stores/model/NSFWModelStatus';
+import { Video } from '../component/Video';
 import { NSFWOverlayContainer } from '../../../content-moderation/container/NSFWOverlayContainer';
-import { UserVideoContainer } from './UserVideoContainer';
 
 interface Props {
   remoteVideoRef: React.RefObject<HTMLVideoElement | null>;
@@ -9,6 +9,7 @@ interface Props {
   onEndCall: VoidFunction;
   modelStatus: NSFWModelStatus;
   contentModerationEnabled: boolean;
+  shouldUseObjectCover: boolean;
 }
 
 export const RemoteVideoStreamContainer = observer(
@@ -18,6 +19,7 @@ export const RemoteVideoStreamContainer = observer(
     modelStatus,
     onEndCall,
     contentModerationEnabled,
+    shouldUseObjectCover,
   }: Props) => {
     return (
       <>
@@ -29,9 +31,11 @@ export const RemoteVideoStreamContainer = observer(
           />
         )}
 
-        <UserVideoContainer
+        <Video
           videoRef={remoteVideoRef}
           videoEnabled={remoteVideoEnabled}
+          className="w-full h-full"
+          shouldUseObjectCover={shouldUseObjectCover}
         />
       </>
     );

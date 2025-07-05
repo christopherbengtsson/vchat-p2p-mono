@@ -117,6 +117,61 @@ describe('FindMatchContainer', () => {
     expect(screen.getByRole('button', { name: 'Loading...' })).toBeDisabled();
   });
 
+  it('should display content moderation warning if model is not available', async () => {
+    const user = userEvent.setup();
+    const useRootStoreSpy = vi.spyOn(useRootStore, 'useRootStore');
+
+    useRootStoreSpy.mockReturnValue({
+      socketStore: mockSocketStore,
+      mediaStore: mockMediaStore,
+      contentModerationStore: {
+        modelStatus: 'error',
+      },
+    } as unknown as RootStore);
+
+    render(<FindMatchContainer />);
+
+    await user.click(screen.getByRole('button', { name: 'Find match' }));
+
+    expect(
+      await screen.findByText(
+        /Content Moderation is unavailable at the moment/,
+      ),
+    ).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Cancel' }));
+    expect(getMediaPermissionsSpy).not.toHaveBeenCalled();
+    expect(requestAudioAndVideoStreamSpy).not.toHaveBeenCalled();
+  });
+
+  it('should proceed to media check when content moderation is unavailable', async () => {
+    const user = userEvent.setup();
+    const useRootStoreSpy = vi.spyOn(useRootStore, 'useRootStore');
+
+    useRootStoreSpy.mockReturnValue({
+      socketStore: mockSocketStore,
+      mediaStore: mockMediaStore,
+      contentModerationStore: {
+        modelStatus: 'error',
+      },
+    } as unknown as RootStore);
+
+    render(<FindMatchContainer />);
+
+    await user.click(screen.getByRole('button', { name: 'Find match' }));
+
+    expect(
+      await screen.findByText(
+        /Content Moderation is unavailable at the moment/,
+      ),
+    ).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Continue anyway' }));
+
+    expect(getMediaPermissionsSpy).toHaveBeenCalled();
+    expect(requestAudioAndVideoStreamSpy).toHaveBeenCalled();
+  });
+
   it('should navigate to call page when permissions are granted', async () => {
     const user = userEvent.setup();
     render(<FindMatchContainer />);
