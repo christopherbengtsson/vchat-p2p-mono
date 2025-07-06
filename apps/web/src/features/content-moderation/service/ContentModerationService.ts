@@ -1,16 +1,44 @@
 import { AnalysisResult } from '../model/AnalysisResult';
 import { NSFWModelService } from './NSFWModelService';
 
+const convertToImageData = (
+  element: HTMLImageElement | HTMLVideoElement | HTMLCanvasElement,
+): ImageData => {
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+
+  if (!ctx) {
+    throw new Error('Could not get 2D context from canvas');
+  }
+
+  let width: number;
+  let height: number;
+
+  if (element instanceof HTMLVideoElement) {
+    width = element.videoWidth;
+    height = element.videoHeight;
+  } else if (element instanceof HTMLImageElement) {
+    width = element.naturalWidth;
+    height = element.naturalHeight;
+  } else {
+    width = element.width;
+    height = element.height;
+  }
+
+  canvas.width = width;
+  canvas.height = height;
+  ctx.drawImage(element, 0, 0);
+
+  return ctx.getImageData(0, 0, width, height);
+};
+
 const analyzeImage = async (
   imageElement: HTMLImageElement | HTMLVideoElement | HTMLCanvasElement,
   threshold: number,
 ): Promise<AnalysisResult> => {
   try {
-    const topTwoGuesses = 2;
-    const predictions = await NSFWModelService.get().classify(
-      imageElement,
-      topTwoGuesses,
-    );
+    const imageData = convertToImageData(imageElement);
+    const predictions = await NSFWModelService.classify(imageData);
 
     const nsfwCategories = ['Porn', 'Sexy'];
     const nsfwPredictions = predictions.filter((p) =>

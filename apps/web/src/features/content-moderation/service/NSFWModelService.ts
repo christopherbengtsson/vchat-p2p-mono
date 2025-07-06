@@ -1,155 +1,109 @@
 import { CustomError, Maybe } from '@mono/common-dto';
-import type * as tf from '@tensorflow/tfjs';
 import type * as nsfwjs from 'nsfwjs';
 import { ModelLoadOptions } from '../model/ModelLoadOptions';
 
-const MODEL_PATH = `${import.meta.env.VITE_SUPABASE_URL}${import.meta.env.VITE_SUPABASE_NSFW_MODEL_BUCKET_PATH}`;
-const INDEXEDDB_KEY = 'nsfwjs-model-cache';
-const MODEL_VERSION_KEY = 'nsfwjs-model-version';
-const CURRENT_VERSION = '2.4.0'; // TODO: should be configurable
-
-type TFModule = typeof tf;
-type NSFWJSModule = typeof nsfwjs;
-
-const _importTensorFlow = async (): Promise<TFModule> => {
-  return await import('@tensorflow/tfjs');
-};
-const _importNSFWJS = async (): Promise<NSFWJSModule> => {
-  return await import('nsfwjs');
-};
-
-const modelState: {
-  instance: Maybe<nsfwjs.NSFWJS>;
-  loadingPromise: Maybe<Promise<nsfwjs.NSFWJS>>;
+const workerState: {
+  worker: Maybe<Worker>;
+  loadingPromise: Maybe<Promise<void>>;
+  modelLoaded: boolean;
 } = {
-  instance: null,
+  worker: null,
   loadingPromise: null,
+  modelLoaded: false,
 };
 
-const clearCacheIfNeeded = async (tfModule: TFModule): Promise<void> => {
-  try {
-    const storedVersion = localStorage.getItem(MODEL_VERSION_KEY);
-    if (storedVersion !== CURRENT_VERSION) {
-      const models = await tfModule.io.listModels();
-      if (models[`indexeddb://${INDEXEDDB_KEY}`]) {
-        await tfModule.io.removeModel(`indexeddb://${INDEXEDDB_KEY}`);
-        console.debug('Outdated NSFW model cleared');
+const createWorker = (): Worker => {
+  return new Worker(new URL('../worker/NSFWModelWorker.ts', import.meta.url), {
+    type: 'module',
+  });
+};
+
+const sendWorkerMessage = <T>(
+  worker: Worker,
+  message: Record<string, unknown>,
+): Promise<T> => {
+  return new Promise((resolve, reject) => {
+    const requestId = Math.random().toString(36).substring(2);
+
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data.requestId === requestId) {
+        worker.removeEventListener('message', handleMessage);
+
+        if (event.data.type === 'SUCCESS') {
+          resolve(event.data.payload);
+        } else {
+          reject(new Error(event.data.payload));
+        }
       }
-    }
-  } catch (err) {
-    console.warn('Failed to clear cached model:', err);
-  }
+    };
+
+    worker.addEventListener('message', handleMessage);
+    worker.postMessage({ ...message, requestId });
+  });
 };
 
-const loadFromCache = async (
-  tfModule: TFModule,
-  nsfwjsModule: NSFWJSModule,
-  options: ModelLoadOptions,
-): Promise<Maybe<nsfwjs.NSFWJS>> => {
-  try {
-    const models = await tfModule.io.listModels();
-
-    if (models[`indexeddb://${INDEXEDDB_KEY}`]) {
-      console.debug('Loading NSFW model from IndexedDB cache');
-
-      const model = await nsfwjsModule.load(
-        `indexeddb://${INDEXEDDB_KEY}`,
-        options,
-      );
-      localStorage.setItem(MODEL_VERSION_KEY, CURRENT_VERSION);
-
-      return model;
-    }
-  } catch (err) {
-    console.warn('Failed to load model from cache:', err);
-  }
-  return null;
-};
-
-const loadFromNetwork = async (
-  nsfwjsModule: NSFWJSModule,
-  options: ModelLoadOptions,
-): Promise<nsfwjs.NSFWJS> => {
-  console.debug('Loading NSFW model from network');
-
-  const model = await nsfwjsModule.load(MODEL_PATH, options);
-
-  try {
-    await model.model.save(`indexeddb://${INDEXEDDB_KEY}`);
-    localStorage.setItem(MODEL_VERSION_KEY, CURRENT_VERSION);
-
-    console.debug('NSFW model cached successfully');
-  } catch (err) {
-    console.warn('Failed to cache model:', err);
+const load = async (options: ModelLoadOptions = {}): Promise<void> => {
+  if (workerState.modelLoaded) {
+    return;
   }
 
-  return model;
-};
-
-const load = async (options: ModelLoadOptions = {}): Promise<nsfwjs.NSFWJS> => {
-  if (modelState.instance) {
-    return modelState.instance;
+  if (workerState.loadingPromise) {
+    return workerState.loadingPromise;
   }
 
-  if (modelState.loadingPromise) {
-    return modelState.loadingPromise;
-  }
-
-  const loadModelTask = async (): Promise<nsfwjs.NSFWJS> => {
-    const startTime = performance.now();
-
+  const loadModelTask = async (): Promise<void> => {
     try {
-      const [tfModule, nsfwjsModule] = await Promise.all([
-        _importTensorFlow(),
-        _importNSFWJS(),
-      ]);
-
-      tfModule.enableProdMode();
-
-      await clearCacheIfNeeded(tfModule);
-
-      const cachedModel = await loadFromCache(tfModule, nsfwjsModule, options);
-      if (cachedModel) {
-        return cachedModel;
+      if (!workerState.worker) {
+        workerState.worker = createWorker();
       }
 
-      return await loadFromNetwork(nsfwjsModule, options);
+      await sendWorkerMessage(workerState.worker, {
+        type: 'LOAD_MODEL',
+        payload: { options },
+      });
+
+      workerState.modelLoaded = true;
     } catch (err) {
       console.error('Failed to load NSFW model:', err);
-      modelState.loadingPromise = null;
-
+      workerState.loadingPromise = null;
       throw err;
-    } finally {
-      console.debug(
-        `NSFW model loaded in ${(performance.now() - startTime).toFixed(2)} ms`,
-      );
     }
   };
 
-  modelState.loadingPromise = loadModelTask().then((model) => {
-    modelState.instance = model;
-    return model;
-  });
-
-  return modelState.loadingPromise;
+  workerState.loadingPromise = loadModelTask();
+  return workerState.loadingPromise;
 };
 
-const get = (): nsfwjs.NSFWJS => {
-  if (!modelState.instance) {
+const classify = async (
+  imageData: ImageData,
+): Promise<nsfwjs.PredictionType[]> => {
+  if (!workerState.worker || !workerState.modelLoaded) {
     throw CustomError.badState('NSFW model not loaded.');
   }
 
-  return modelState.instance;
+  return await sendWorkerMessage<nsfwjs.PredictionType[]>(workerState.worker, {
+    type: 'CLASSIFY_IMAGE',
+    payload: { imageData },
+  });
 };
 
 const reset = async (): Promise<void> => {
-  modelState.instance = null;
-  modelState.loadingPromise = null;
+  if (workerState.worker) {
+    await sendWorkerMessage(workerState.worker, {
+      type: 'RESET_MODEL',
+    });
+
+    workerState.worker.terminate();
+    workerState.worker = null;
+  }
+
+  workerState.modelLoaded = false;
+  workerState.loadingPromise = null;
 };
 
 export const NSFWModelService = {
   load,
-  get,
+  classify,
 
   /** For testing purposes only */
   reset,
