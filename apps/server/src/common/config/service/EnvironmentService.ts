@@ -49,11 +49,18 @@ const loadSecrets = (
     adminUiPassword: processEnv.ADMIN_UI_PASSWORD || '',
   };
 
+  const capServer: InputEnvironmentSecrets['capServer'] = {
+    baseUrl: processEnv.CAP_SERVER_BASE_URL || '',
+    siteKey: processEnv.CAP_SITE_KEY || '',
+    secretKey: processEnv.CAP_SECRET_KEY || '',
+  };
+
   return {
     server,
     redis,
     supabase,
     socketIo,
+    capServer,
   };
 };
 

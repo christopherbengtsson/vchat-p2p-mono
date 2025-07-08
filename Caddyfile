@@ -17,11 +17,13 @@
 	}
 
 	route {
-		reverse_proxy /socket.io/* {$CADDY_PROXY_ADDRESS} {
+		reverse_proxy /socket.io/* {$CADDY_BE_PROXY_ADDRESS} {
 			lb_policy cookie
 		}
 
-		reverse_proxy /api/v1/* {$CADDY_PROXY_ADDRESS}
+		reverse_proxy /api/v1/captcha/* {$CADDY_CAP_PROXY_ADDRESS}
+
+		reverse_proxy /api/v1/* {$CADDY_BE_PROXY_ADDRESS}
 
 		@not_proxy {
 			not path /socket.io/*

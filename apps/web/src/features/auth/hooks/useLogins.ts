@@ -33,6 +33,8 @@ export const useLogins = () => {
     onError: (error) => {
       if (CustomError.isCustomError(error)) {
         toast.error(error.message);
+      } else if (error.code === 'user_banned') {
+        toast.error('User is banned, try again later');
       } else if (error.message) {
         toast.error(error.message);
       } else {

@@ -52,6 +52,8 @@ services:
     depends_on:
       redis:
         condition: service_healthy
+      cap:
+        condition: service_started
     restart: unless-stopped
     logging:
       driver: 'json-file'
@@ -77,7 +79,8 @@ services:
     environment:
       - CADDY_EMAIL=${CADDY_EMAIL}
       - CADDY_DOMAIN=${CADDY_DOMAIN}
-      - CADDY_PROXY_ADDRESS=backend:8000
+      - CADDY_BE_PROXY_ADDRESS=backend:8000
+      - CADDY_CAP_PROXY_ADDRESS=cap:3000
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile
       - caddy_data:/data
@@ -130,9 +133,43 @@ services:
     depends_on:
       - backend
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.2'
+        reservations:
+          memory: 128M
+          cpus: '0.1'
+
+  cap:
+    image: tiago2/cap:latest
+    ports:
+      - '8001:3000'
+    environment:
+      - ADMIN_KEY=${CAP_ADMIN_KEY}
+      - ENABLE_ASSETS_SERVER=false
+      - CORS_ORIGIN=${FRONTEND_DOMAIN}
+    volumes:
+      - cap_data:/usr/src/app/.data
+    restart: unless-stopped
+    logging:
+      driver: 'json-file'
+      options:
+        max-size: '10m'
+        max-file: '3'
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.2'
+        reservations:
+          memory: 128M
+          cpus: '0.1'
 
 volumes:
   redis_data:
   caddy_data:
     external: true
   caddy_config:
+  cap_data:

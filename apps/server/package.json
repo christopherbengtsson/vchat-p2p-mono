@@ -9,8 +9,10 @@
   "type": "module",
   "packageManager": "pnpm@9.8.0",
   "scripts": {
-    "dev": "./dev-server-with-redis.sh",
+    "dev": "pnpm run dev:deps && npm run dev:server",
     "dev:server": "tsx watch src/index.ts | npx pino-pretty",
+    "dev:deps": "docker compose -f docker-compose-dev.yml up -d",
+    "dev:stop": "docker compose -f docker-compose-dev.yml down",
     "debug": "tsx --inspect-brk src/index.ts | npx pino-pretty",
     "build": "tsc -p tsconfig.build.json",
     "start": "node dist/index.js",

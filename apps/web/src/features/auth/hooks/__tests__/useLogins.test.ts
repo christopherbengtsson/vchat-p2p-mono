@@ -5,9 +5,9 @@ import type { AuthError } from '@supabase/supabase-js';
 import { ClientAuthService } from '@mono/fe-supabase';
 import { DatabaseService } from '@mono/common-supabase';
 import { CustomError, CustomErrorType } from '@mono/common-dto';
+import { axiosClient } from '@/common/clients/axios';
+import { TestWithQueryContext } from '@/testUtils';
 import { useLogins } from '../useLogins';
-import { TestWithQueryContext } from '../../../../testUtils';
-import { axiosClient } from '../../../../common/clients/axios';
 
 const axiosMock = new AxiosMockAdapter(axiosClient, {
   onNoMatch: 'throwException',
@@ -21,6 +21,9 @@ describe('useLogins', () => {
   beforeEach(() => {
     vi.spyOn(ClientAuthService, 'loginAnonymously').mockResolvedValue();
     vi.spyOn(ClientAuthService, 'loginWithEmail').mockResolvedValue();
+    vi.spyOn(DatabaseService, 'isBlacklisted').mockResolvedValue({
+      data: null,
+    } as any);
     axiosMock.onPost('/signature').reply(200, {
       fingerprint: 'fingerprint',
     });

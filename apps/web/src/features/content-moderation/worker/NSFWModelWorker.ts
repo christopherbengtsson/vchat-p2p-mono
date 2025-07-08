@@ -101,8 +101,10 @@ const setStoredVersion = async (version: string): Promise<void> => {
 const clearCacheIfNeeded = async (tfModule: TFModule): Promise<void> => {
   try {
     const storedVersion = await getStoredVersion();
+
     if (storedVersion !== CURRENT_VERSION) {
       const models = await tfModule.io.listModels();
+
       if (models[`indexeddb://${INDEXEDDB_KEY}`]) {
         await tfModule.io.removeModel(`indexeddb://${INDEXEDDB_KEY}`);
         console.debug('Outdated NSFW model cleared');
@@ -128,6 +130,7 @@ const loadFromCache = async (
         `indexeddb://${INDEXEDDB_KEY}`,
         options,
       );
+
       await setStoredVersion(CURRENT_VERSION);
 
       return model;
@@ -135,6 +138,7 @@ const loadFromCache = async (
   } catch (err) {
     console.warn('Failed to load model from cache:', err);
   }
+
   return null;
 };
 
@@ -145,10 +149,10 @@ const loadFromNetwork = async (
 ): Promise<nsfwjs.NSFWJS> => {
   console.debug('Loading NSFW model from network');
 
-  const model = await nsfwjsModule.load(MODEL_PATH, options);
+  const nsfw = await nsfwjsModule.load(MODEL_PATH, options);
 
   try {
-    await model.model.save(`indexeddb://${INDEXEDDB_KEY}`);
+    await nsfw.model.save(`indexeddb://${INDEXEDDB_KEY}`);
     await setStoredVersion(CURRENT_VERSION);
 
     console.debug('NSFW model cached successfully');
@@ -156,7 +160,7 @@ const loadFromNetwork = async (
     console.warn('Failed to cache model:', err);
   }
 
-  return model;
+  return nsfw;
 };
 
 const loadModel = async (
@@ -299,5 +303,4 @@ self.addEventListener(
   },
 );
 
-// Export for TypeScript types
 export type { WorkerMessage, WorkerResponse };

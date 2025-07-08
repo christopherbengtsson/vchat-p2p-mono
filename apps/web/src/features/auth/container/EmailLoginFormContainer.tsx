@@ -1,7 +1,9 @@
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { Mail } from 'lucide-react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
 import { z } from 'zod';
+import { toast } from 'sonner';
 import {
   Form,
   FormControl,
@@ -12,6 +14,7 @@ import {
 import { Input } from '@/common/components/ui/input';
 import { Button } from '@/common/components/ui/button';
 import { LoadingSpinner } from '@/common/components/loading-spinner/LoadingSpinner';
+import { useCaptcha } from '../../captcha/hooks/useCaptcha';
 import { useLogins } from '../hooks/useLogins';
 
 const formSchema = z.object({
@@ -23,6 +26,8 @@ const formSchema = z.object({
 
 export function EmailLoginFormContainer() {
   const { loginWithEmailMutation } = useLogins();
+  const { solveAndVerifyCaptcha, captchaLoading } = useCaptcha();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     defaultValues: {
@@ -30,11 +35,26 @@ export function EmailLoginFormContainer() {
       password: '',
     },
     resolver: zodResolver(formSchema),
-    disabled: loginWithEmailMutation.isPending,
+    disabled:
+      isSubmitting || loginWithEmailMutation.isPending || captchaLoading,
   });
 
-  const handleSubmit = (credentials: z.infer<typeof formSchema>) => {
-    loginWithEmailMutation.mutate(credentials);
+  const handleSubmit = async (credentials: z.infer<typeof formSchema>) => {
+    setIsSubmitting(true);
+
+    const captchaResult = await solveAndVerifyCaptcha();
+
+    if (!captchaResult.success) {
+      setIsSubmitting(false);
+      toast.error(captchaResult.errorMessage);
+      return;
+    }
+
+    loginWithEmailMutation.mutate(credentials, {
+      onSettled: () => {
+        setIsSubmitting(false);
+      },
+    });
   };
 
   return (
@@ -80,10 +100,12 @@ export function EmailLoginFormContainer() {
         type="submit"
         form="profile-form"
         variant="secondary"
-        disabled={loginWithEmailMutation.isPending}
+        disabled={
+          isSubmitting || loginWithEmailMutation.isPending || captchaLoading
+        }
         className="mt-8 w-full"
       >
-        {loginWithEmailMutation.isPending ? (
+        {isSubmitting || loginWithEmailMutation.isPending || captchaLoading ? (
           <LoadingSpinner />
         ) : (
           <>

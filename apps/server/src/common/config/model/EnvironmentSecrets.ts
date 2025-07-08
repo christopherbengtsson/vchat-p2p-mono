@@ -23,6 +23,12 @@ export const EnvironmentSecretsSchema = z.object({
     adminUiUsername: z.string(),
     adminUiPassword: z.string(),
   }),
+
+  capServer: z.object({
+    baseUrl: z.url(),
+    siteKey: z.string(),
+    secretKey: z.string(),
+  }),
 });
 
 export type EnvironmentSecrets = z.infer<typeof EnvironmentSecretsSchema>;
