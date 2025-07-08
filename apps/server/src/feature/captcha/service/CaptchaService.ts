@@ -40,13 +40,7 @@ const verifyCaptchaToken = async (token: string): Promise<boolean> => {
       CaptchaMetricsService.recordVerificationDuration(duration);
       CaptchaMetricsService.recordVerificationFailure('http_error');
 
-      log.error(
-        {
-          status: response.status,
-          statusText: response.statusText,
-        },
-        'Cap.js verification request failed',
-      );
+      log.error('Cap.js verification request failed');
       throw new CustomError(
         CustomErrorType.BAD_REQUEST,
         `Captcha verification request failed: ${response.status}`,
