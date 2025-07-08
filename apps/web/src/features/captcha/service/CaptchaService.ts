@@ -40,19 +40,23 @@ const verifyCaptchaToken = async (
   token: string,
 ): Promise<CaptchaVerificationResult> => {
   try {
-    const { statusText, data } = await axiosClient.post<{ success: boolean }>(
+    const response = await axiosClient.post<{ success: boolean }>(
       '/captcha/verify',
       {
         token,
       },
     );
 
-    if (statusText !== 'OK') {
+    if (!response.status || response.status < 200 || response.status >= 300) {
       return {
         success: false,
-        error: CustomError.badRequest(`Verification failed`),
+        error: CustomError.badRequest(
+          `Verification failed with status ${response.status}`,
+        ),
       };
     }
+
+    const { data } = response;
 
     return {
       success: data.success || false,

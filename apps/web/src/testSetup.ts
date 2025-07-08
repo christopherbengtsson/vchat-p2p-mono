@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import '@testing-library/jest-dom/vitest';
 
 vi.mock(
@@ -10,6 +11,23 @@ vi.mock(
     },
   }),
 );
+
+// Global mock for @cap.js/widget used across multiple CAPTCHA tests
+vi.mock('@cap.js/widget', () => {
+  const mockCap = {
+    solve: vi.fn(),
+    reset: vi.fn(),
+  };
+  const mockCapConstructor = vi.fn(() => mockCap);
+
+  // Make mock available globally for tests
+  (global as any).mockCap = mockCap;
+  (global as any).mockCapConstructor = mockCapConstructor;
+
+  return {
+    default: mockCapConstructor,
+  };
+});
 
 // Mocks ResizeObserver to allow testing containers and hooks using ResizeObserver
 global.ResizeObserver = vi.fn().mockImplementation(() => ({

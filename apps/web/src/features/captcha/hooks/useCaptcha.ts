@@ -29,7 +29,7 @@ export const useCaptcha = (options: CaptchaOptions = {}) => {
   const {
     enabled = import.meta.env.VITE_CAPTCHA_ENABLED !== 'false',
     apiEndpoint = import.meta.env.DEV
-      ? `http://localhost:8001/${import.meta.env.VITE_CAP_SITE_KEY}/`
+      ? `http://localhost:8001/api/v1/captcha/${import.meta.env.VITE_CAP_SITE_KEY}/`
       : `${import.meta.env.VITE_SERVER_URL}/api/v1/captcha/${import.meta.env.VITE_CAP_SITE_KEY}/`,
   } = options;
 
@@ -65,6 +65,24 @@ export const useCaptcha = (options: CaptchaOptions = {}) => {
       }));
     }
   }, [apiEndpoint, enabled]);
+
+  const cleanupCaptcha = useCallback(() => {
+    if (capInstanceRef.current) {
+      try {
+        CaptchaService.resetCaptcha(capInstanceRef.current);
+        capInstanceRef.current = null;
+
+        setState((prevState) => ({
+          ...prevState,
+          isReady: false,
+          token: null,
+          error: null,
+        }));
+      } catch (error) {
+        console.error('Error cleaning up captcha instance:', error);
+      }
+    }
+  }, []);
 
   const solveCaptcha = useCallback(async (): Promise<CaptchaResult> => {
     if (!capInstanceRef.current) {
@@ -189,10 +207,14 @@ export const useCaptcha = (options: CaptchaOptions = {}) => {
     }, [solveCaptcha, state.isReady]);
 
   useEffect(() => {
-    if (enabled && !capInstanceRef.current) {
+    if (enabled) {
       initializeCaptcha();
     }
-  }, [initializeCaptcha, enabled]);
+
+    return () => {
+      cleanupCaptcha();
+    };
+  }, [initializeCaptcha, enabled, cleanupCaptcha]);
 
   if (!enabled) {
     return noOpCaptcha;

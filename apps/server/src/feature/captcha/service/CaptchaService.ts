@@ -16,6 +16,7 @@ const verifyCaptchaToken = async (token: string): Promise<boolean> => {
     const serverConfig = ServerConfigService.getConfig();
     const captchaBaseUrl = serverConfig.secrets.capServer.baseUrl;
     const captchaSiteKey = serverConfig.secrets.capServer.siteKey;
+
     const verifyEndpoint = `${captchaBaseUrl}/${captchaSiteKey}/siteverify`;
 
     const payload: CaptchaVerificationRequest = {
@@ -46,8 +47,6 @@ const verifyCaptchaToken = async (token: string): Promise<boolean> => {
     }
 
     const result: CaptchaVerificationResponse = await response.json();
-
-    log.info({ success: result.success }, 'Captcha verification result');
 
     return result.success;
   } catch (error) {
