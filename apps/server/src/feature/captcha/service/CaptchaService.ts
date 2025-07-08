@@ -1,6 +1,7 @@
 import { CustomError, CustomErrorType } from '@mono/common-dto';
 import { log } from '../../../common/util/logger.js';
 import { ServerConfigService } from '../../../common/config/service/ServerConfigService.js';
+import { CaptchaMetricsService } from './CaptchaMetricsService.js';
 
 interface CaptchaVerificationRequest {
   secret: string;
@@ -12,6 +13,8 @@ interface CaptchaVerificationResponse {
 }
 
 const verifyCaptchaToken = async (token: string): Promise<boolean> => {
+  const startTime = performance.now();
+
   try {
     const serverConfig = ServerConfigService.getConfig();
     const captchaBaseUrl = serverConfig.secrets.capServer.baseUrl;
@@ -33,6 +36,10 @@ const verifyCaptchaToken = async (token: string): Promise<boolean> => {
     });
 
     if (!response.ok) {
+      const duration = (performance.now() - startTime) / 1000;
+      CaptchaMetricsService.recordVerificationDuration(duration);
+      CaptchaMetricsService.recordVerificationFailure('http_error');
+
       log.error(
         {
           status: response.status,
@@ -47,9 +54,25 @@ const verifyCaptchaToken = async (token: string): Promise<boolean> => {
     }
 
     const result: CaptchaVerificationResponse = await response.json();
+    const duration = (performance.now() - startTime) / 1000;
+
+    CaptchaMetricsService.recordVerificationDuration(duration);
+
+    if (result.success) {
+      CaptchaMetricsService.recordVerificationSuccess();
+    } else {
+      CaptchaMetricsService.recordVerificationFailure('invalid_token');
+    }
 
     return result.success;
   } catch (error) {
+    const duration = (performance.now() - startTime) / 1000;
+    CaptchaMetricsService.recordVerificationDuration(duration);
+
+    if (!(error instanceof CustomError)) {
+      CaptchaMetricsService.recordVerificationFailure('network_error');
+    }
+
     log.error(
       {
         error: error instanceof Error ? error.message : error,
