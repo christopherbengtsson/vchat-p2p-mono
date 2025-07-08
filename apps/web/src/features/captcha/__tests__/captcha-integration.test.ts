@@ -23,6 +23,13 @@ describe('CAPTCHA Integration Tests', () => {
   let mockCap: any;
   let mockCapConstructor: any;
 
+  beforeAll(() => {
+    vi.stubGlobal('navigator', {
+      ...navigator,
+      hardwareConcurrency: 2, // Mocking hardwareConcurrency for Cap.js testing
+    });
+  });
+
   beforeEach(() => {
     mockAxios = new MockAdapter(axiosClient);
     mockCap = (global as any).mockCap;
@@ -40,6 +47,10 @@ describe('CAPTCHA Integration Tests', () => {
   afterEach(() => {
     mockAxios.restore();
     vi.restoreAllMocks();
+  });
+
+  afterAll(() => {
+    vi.unstubAllGlobals();
   });
 
   describe('Full CAPTCHA Flow', () => {
@@ -250,8 +261,8 @@ describe('CAPTCHA Integration Tests', () => {
       });
 
       expect(mockCapConstructor).toHaveBeenCalledWith({
-        apiEndpoint: 'http://localhost:8001/api/v1/captcha/test-site-key/',
-        workerThreads: 2,
+        apiEndpoint: 'http://localhost:8001/test-site-key/',
+        workers: 2,
       });
 
       // Reset for production test
@@ -266,13 +277,12 @@ describe('CAPTCHA Integration Tests', () => {
 
       expect(mockCapConstructor).toHaveBeenCalledWith({
         apiEndpoint: 'https://api.example.com/api/v1/captcha/test-site-key/',
-        workerThreads: 2,
+        workers: 2,
       });
     });
 
     it('should respect custom configuration options', async () => {
       const customOptions = {
-        apiEndpoint: 'https://custom-captcha.example.com/api/',
         enabled: true,
       };
 
@@ -283,8 +293,8 @@ describe('CAPTCHA Integration Tests', () => {
       });
 
       expect(mockCapConstructor).toHaveBeenCalledWith({
-        apiEndpoint: customOptions.apiEndpoint,
-        workerThreads: 2,
+        apiEndpoint: 'https://api.example.com/api/v1/captcha/test-site-key/',
+        workers: 2,
       });
     });
   });

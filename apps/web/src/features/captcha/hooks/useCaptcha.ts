@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import Cap from '@cap.js/widget';
 import { CustomError } from '@mono/common-dto';
 import { CaptchaService } from '../service/CaptchaService';
+import { CaptchaUtil } from '../util/CaptchaUtil';
 import { SolveAndVerifyCaptcha } from '../model/SolveAndVerifyCaptcha';
 import { CaptchaResult } from '../model/CaptchaResult';
 import { useNoOpCaptcha } from './useNoOpCaptcha';
@@ -14,7 +15,6 @@ interface CaptchaState {
 }
 
 interface CaptchaOptions {
-  apiEndpoint?: string;
   enabled?: boolean;
 }
 
@@ -26,12 +26,8 @@ const INITIAL_STATE: CaptchaState = {
 };
 
 export const useCaptcha = (options: CaptchaOptions = {}) => {
-  const {
-    enabled = import.meta.env.VITE_CAPTCHA_ENABLED !== 'false',
-    apiEndpoint = import.meta.env.DEV
-      ? `http://localhost:8001/api/v1/captcha/${import.meta.env.VITE_CAP_SITE_KEY}/`
-      : `${import.meta.env.VITE_SERVER_URL}/api/v1/captcha/${import.meta.env.VITE_CAP_SITE_KEY}/`,
-  } = options;
+  const { enabled = import.meta.env.VITE_CAPTCHA_ENABLED !== 'false' } =
+    options;
 
   const [state, setState] = useState<CaptchaState>(INITIAL_STATE);
   const capInstanceRef = useRef<Cap | null>(null);
@@ -48,8 +44,9 @@ export const useCaptcha = (options: CaptchaOptions = {}) => {
 
       console.debug('Initializing captcha instance');
 
-      capInstanceRef.current =
-        CaptchaService.createCaptchaInstance(apiEndpoint);
+      capInstanceRef.current = CaptchaService.createCaptchaInstance(
+        CaptchaUtil.getApiEndpoint(),
+      );
 
       setState((prevState) => ({
         ...prevState,
@@ -64,7 +61,7 @@ export const useCaptcha = (options: CaptchaOptions = {}) => {
         isReady: false,
       }));
     }
-  }, [apiEndpoint, enabled]);
+  }, [enabled]);
 
   const cleanupCaptcha = useCallback(() => {
     if (capInstanceRef.current) {

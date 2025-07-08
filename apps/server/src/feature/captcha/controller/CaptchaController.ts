@@ -11,8 +11,8 @@ import { CaptchaService } from '../service/CaptchaService.js';
 const register = (app: Express) => {
   app.post(
     HttpRoutePaths[HttpRoute.CAPTCHA_VERIFY],
-    RateLimiterMiddleware.use,
     ApiKeyMiddleware.use,
+    RateLimiterMiddleware.use,
     async (req, res) => {
       try {
         const { token } = req.body;

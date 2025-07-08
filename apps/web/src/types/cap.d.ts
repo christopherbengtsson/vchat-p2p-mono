@@ -5,7 +5,7 @@ declare module '@cap.js/widget' {
 
   export interface CapOptions {
     apiEndpoint: string;
-    workerThreads?: number;
+    workers?: number;
   }
 
   export interface CapEventDetail {

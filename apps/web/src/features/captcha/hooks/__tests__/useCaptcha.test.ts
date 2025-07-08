@@ -118,23 +118,21 @@ describe('useCaptcha', () => {
       });
 
       expect(CaptchaService.createCaptchaInstance).toHaveBeenCalledWith(
-        'http://localhost:8001/api/v1/captcha/test-site-key/',
+        'http://localhost:8001/test-site-key/',
       );
     });
 
-    it('should use custom apiEndpoint when provided', async () => {
-      const customEndpoint = 'https://custom.example.com/captcha/';
+    it('should use prod endpoint in non DEV mode', async () => {
+      vi.stubEnv('DEV', false);
 
-      const { result } = renderHook(() =>
-        useCaptcha({ apiEndpoint: customEndpoint }),
-      );
+      const { result } = renderHook(() => useCaptcha());
 
       await waitFor(() => {
         expect(result.current.isReady).toBe(true);
       });
 
       expect(CaptchaService.createCaptchaInstance).toHaveBeenCalledWith(
-        customEndpoint,
+        'https://example.com/api/v1/captcha/test-site-key/',
       );
     });
 
@@ -404,28 +402,6 @@ describe('useCaptcha', () => {
       expect(consoleErrorSpy).toHaveBeenCalled();
 
       consoleErrorSpy.mockRestore();
-    });
-  });
-
-  describe('memoization', () => {
-    it('should memoize initialization callback', async () => {
-      const { result, rerender } = renderHook(
-        ({ apiEndpoint }) => useCaptcha({ apiEndpoint }),
-        { initialProps: { apiEndpoint: 'https://example.com' } },
-      );
-
-      await waitFor(
-        () => {
-          expect(result.current?.isReady).toBe(true);
-        },
-        { timeout: 2000 },
-      );
-
-      const initialCallback = result.current?.solveAndVerifyCaptcha;
-
-      rerender({ apiEndpoint: 'https://example.com' });
-
-      expect(result.current?.solveAndVerifyCaptcha).toBe(initialCallback);
     });
   });
 });

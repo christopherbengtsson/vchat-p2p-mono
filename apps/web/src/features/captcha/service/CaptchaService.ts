@@ -7,7 +7,7 @@ import { CaptchaVerificationResult } from '../model/CaptchaVerificationResult';
 const createCaptchaInstance = (apiEndpoint: string): Cap => {
   return new Cap({
     apiEndpoint,
-    workerThreads: 2,
+    workers: navigator.hardwareConcurrency || 2,
   });
 };
 
@@ -40,26 +40,15 @@ const verifyCaptchaToken = async (
   token: string,
 ): Promise<CaptchaVerificationResult> => {
   try {
-    const response = await axiosClient.post<{ success: boolean }>(
+    const { data } = await axiosClient.post<{ success: boolean }>(
       '/captcha/verify',
       {
         token,
       },
     );
 
-    if (!response.status || response.status < 200 || response.status >= 300) {
-      return {
-        success: false,
-        error: CustomError.badRequest(
-          `Verification failed with status ${response.status}`,
-        ),
-      };
-    }
-
-    const { data } = response;
-
     return {
-      success: data.success || false,
+      success: data.success ?? false,
       error: data.success
         ? undefined
         : CustomError.badState('Captcha verification failed'),

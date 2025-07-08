@@ -11,6 +11,13 @@ describe('CaptchaService', () => {
   let mockCap: any;
   let mockCapConstructor: any;
 
+  beforeAll(() => {
+    vi.stubGlobal('navigator', {
+      ...navigator,
+      hardwareConcurrency: 2, // Mocking hardwareConcurrency for Cap.js testing
+    });
+  });
+
   beforeEach(() => {
     mockAxios = new MockAdapter(axiosClient);
     mockCap = (global as any).mockCap;
@@ -23,6 +30,10 @@ describe('CaptchaService', () => {
     vi.restoreAllMocks();
   });
 
+  afterAll(() => {
+    vi.unstubAllGlobals();
+  });
+
   describe('createCaptchaInstance', () => {
     it('should create a new Cap instance with correct configuration', () => {
       const apiEndpoint = 'https://example.com/captcha';
@@ -31,7 +42,7 @@ describe('CaptchaService', () => {
 
       expect(mockCapConstructor).toHaveBeenCalledWith({
         apiEndpoint,
-        workerThreads: 2,
+        workers: 2,
       });
       expect(instance).toBe(mockCap);
     });
@@ -46,11 +57,11 @@ describe('CaptchaService', () => {
       expect(mockCapConstructor).toHaveBeenCalledTimes(2);
       expect(mockCapConstructor).toHaveBeenNthCalledWith(1, {
         apiEndpoint: endpoint1,
-        workerThreads: 2,
+        workers: 2,
       });
       expect(mockCapConstructor).toHaveBeenNthCalledWith(2, {
         apiEndpoint: endpoint2,
-        workerThreads: 2,
+        workers: 2,
       });
     });
   });

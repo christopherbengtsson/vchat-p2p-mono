@@ -24,6 +24,13 @@ describe('CAPTCHA Error Scenarios', () => {
   let mockCap: any;
   let mockCapConstructor: any;
 
+  beforeAll(() => {
+    vi.stubGlobal('navigator', {
+      ...navigator,
+      hardwareConcurrency: 2, // Mocking hardwareConcurrency for Cap.js testing
+    });
+  });
+
   beforeEach(() => {
     mockAxios = new MockAdapter(axiosClient);
     consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(noop);
@@ -43,6 +50,10 @@ describe('CAPTCHA Error Scenarios', () => {
     mockAxios.restore();
     consoleErrorSpy.mockRestore();
     vi.restoreAllMocks();
+  });
+
+  afterAll(() => {
+    vi.unstubAllGlobals();
   });
 
   describe('Cap.js Widget Failures', () => {
@@ -365,24 +376,7 @@ describe('CAPTCHA Error Scenarios', () => {
 
       expect(mockCapConstructor).toHaveBeenCalledWith({
         apiEndpoint: expect.stringContaining('/'),
-        workerThreads: 2,
-      });
-    });
-
-    it('should handle invalid API endpoint configuration', async () => {
-      const invalidEndpoint = 'not-a-valid-url';
-
-      const { result } = renderHook(() =>
-        useCaptcha({ apiEndpoint: invalidEndpoint }),
-      );
-
-      await waitFor(() => {
-        expect(result.current?.isReady).toBe(true);
-      });
-
-      expect(mockCapConstructor).toHaveBeenCalledWith({
-        apiEndpoint: invalidEndpoint,
-        workerThreads: 2,
+        workers: 2,
       });
     });
 
