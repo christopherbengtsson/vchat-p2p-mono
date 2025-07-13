@@ -32,7 +32,7 @@ describe('RateLimiterMiddleware', () => {
       {} as any,
     );
 
-    RateLimiterMiddleware.use(
+    RateLimiterMiddleware.use()(
       mockRequest as Request,
       mockResponse as Response,
       nextFunction,
@@ -52,7 +52,7 @@ describe('RateLimiterMiddleware', () => {
       new Error('Rate limit exceeded'),
     );
 
-    RateLimiterMiddleware.use(
+    RateLimiterMiddleware.use()(
       mockRequest as Request,
       mockResponse as Response,
       nextFunction,

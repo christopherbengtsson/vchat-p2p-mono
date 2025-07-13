@@ -6,7 +6,6 @@ import { CustomError, type Maybe } from '@mono/common-dto';
 import type { ServerConfig } from '../../../common/config/model/ServerConfig.js';
 import { log } from '../../../common/util/logger.js';
 import { RedisClient } from '../../../common/client/RedisClient.js';
-import { SocketRateLimiterMiddleware } from '../../../common/middleware/SocketRateLimiterMiddleware.js';
 import { SocketIoBootstrapService } from '../service/SocketIoBoostrapService.js';
 
 let _io: Maybe<SocketIoServer>;
@@ -35,8 +34,6 @@ const init = async (httpServer: Server, serverConfig: ServerConfig) => {
   /** Middlewares */
   // Apply helmet to the Socket.IO engine's underlying HTTP server
   io.engine.use(helmet());
-  // Apply rate limiting per IP
-  io.use(SocketRateLimiterMiddleware.use);
 
   /** Bootstrap */
   await SocketIoBootstrapService.bootstrap(io);

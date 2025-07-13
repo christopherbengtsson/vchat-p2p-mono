@@ -9,11 +9,20 @@ import { MetricsService } from '../../job/bullmq/service/MetricsService.js';
 import { log } from '../../../common/util/logger.js';
 import { ServerConfigService } from '../../../common/config/service/ServerConfigService.js';
 import { RateLimiterMiddleware } from '../../../common/middleware/RateLimiterMiddleware.js';
+import type { RateLimitOptions } from '../../../common/middleware/model/RateLimitOptions.js';
+
+const rateLimitOptions: RateLimitOptions = {
+  points: process.env.NODE_ENV === 'development' ? 60 : 30,
+  duration: 60,
+  blockDuration: 300,
+  keyPrefix: 'metrics',
+  execEvenly: false,
+};
 
 const register = (app: Express) => {
   app.get(
     HttpRoutePaths[HttpRoute.METRICS],
-    RateLimiterMiddleware.use,
+    RateLimiterMiddleware.use(rateLimitOptions),
     async (_req, res) => {
       try {
         const standardMetrics = await promRegister.metrics();

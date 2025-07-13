@@ -7,11 +7,20 @@ import {
 import { RateLimiterMiddleware } from '../../../common/middleware/RateLimiterMiddleware.js';
 import { ApiKeyMiddleware } from '../../../common/middleware/ApiKeyMiddleware.js';
 import { FingerprintService } from '../service/FingerprintService.js';
+import type { RateLimitOptions } from '../../../common/middleware/model/RateLimitOptions.js';
+
+const rateLimitOptions: RateLimitOptions = {
+  points: process.env.NODE_ENV === 'development' ? 20 : 10,
+  duration: 300,
+  blockDuration: 600,
+  keyPrefix: 'signature',
+  execEvenly: true,
+};
 
 const register = (app: Express) => {
   app.post(
     HttpRoutePaths[HttpRoute.SIGNATURE],
-    RateLimiterMiddleware.use,
+    RateLimiterMiddleware.use(rateLimitOptions),
     ApiKeyMiddleware.use,
     (req, res) => {
       const browserSignature = req.body.browserSignature;

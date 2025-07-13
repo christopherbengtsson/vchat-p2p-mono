@@ -13,7 +13,7 @@ vi.mock('../../../../common/util/logger.js', () => ({
 }));
 vi.mock('../../../../common/middleware/RateLimiterMiddleware.js', () => ({
   RateLimiterMiddleware: {
-    use: vi.fn((_req, _res, next) => next()),
+    use: vi.fn().mockReturnValue(vi.fn((_req, _res, next) => next())),
   },
 }));
 vi.mock('../../../../common/middleware/ApiKeyMiddleware.js', () => ({

@@ -12,6 +12,15 @@ import { ModerationController } from '../../../../moderation/controller/Moderati
 import { RoomManagementController } from '../../../../room-management/controller/RoomManagementController.js';
 import { SignalingController } from '../../../../signaling/controller/SignalingController.js';
 import { nspEmitters } from '../../api/namespaceEmitter.js';
+import type { RateLimitOptions } from '../../../../../common/middleware/model/RateLimitOptions.js';
+
+const rateLimitOptions: RateLimitOptions = {
+  points: process.env.NODE_ENV === 'development' ? 120 : 80,
+  duration: 60,
+  blockDuration: 300,
+  keyPrefix: 'video-chat-namespace',
+  execEvenly: false,
+};
 
 const initNspControllers = (socket: VChatSocket) => {
   SignalingController.register(socket, wrapSocketHandler);
@@ -31,13 +40,14 @@ const bootstrap = (io: Server) => {
   const videoChat = io.of(SocketNamespace.VIDEO_CHAT);
   const emitSocketCount = nspEmitters(videoChat).connectionsCount;
 
-  videoChat.use(SocketRateLimiterMiddleware.use);
   videoChat.use((socket, next) =>
     ValidateJwtMiddleware.use(
       socket.request as IncomingMessage,
       next as NextFunction,
     ),
   );
+
+  videoChat.use(SocketRateLimiterMiddleware.use(rateLimitOptions));
 
   videoChat.on('connection', (socket: VChatSocket) => {
     setupListeners(socket, emitSocketCount);

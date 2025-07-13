@@ -5,9 +5,9 @@ import type {
   BrowserSignature,
   DeviceSignature,
   Fingerprint,
-  Maybe,
 } from '@mono/common-dto';
 import { log } from '../../../common/util/logger.js';
+import { HeadersUtil } from '../../../common/util/HeadersUtil.js';
 
 const uaFallback = {
   device: {
@@ -46,22 +46,6 @@ const getDeviceSignature = (
 };
 
 /**
- * Extracts the client's IP address from the 'x-forwarded-for' header.
- * @param headers Incoming HTTP headers from the request.
- * @returns The extracted IP address or undefined if the header is not present.
- */
-const extractIpFromHeaders = (
-  headers: IncomingHttpHeaders,
-): string | undefined => {
-  const forwardedFor = headers['x-forwarded-for'] as Maybe<string>;
-  if (forwardedFor) {
-    // The 'x-forwarded-for' header can contain a list of IPs; the first one is usually the client's.
-    return forwardedFor.split(',')[0].trim();
-  }
-  return undefined;
-};
-
-/**
  * Generates a unique fingerprint string based on browser signature, device signature, and IP address.
  * @param browserSignature The signature provided by the browser.
  * @param headers Incoming HTTP headers from the request.
@@ -76,7 +60,7 @@ const generate = (
   const deviceSignature = getDeviceSignature(browserSignature, headers);
 
   // Use requestIp if provided (e.g., from Express req.ip), otherwise try to extract from headers.
-  const ip = requestIp ?? extractIpFromHeaders(headers);
+  const ip = requestIp ?? HeadersUtil.extractIpFromHeaders(headers);
 
   if (!ip) {
     log.warn(

@@ -5,6 +5,15 @@ import { SocketNamespace } from '@mono/common-dto';
 import type { ServerConfig } from '../../../../../common/config/model/ServerConfig.js';
 import { RedisClient } from '../../../../../common/client/RedisClient.js';
 import { SocketRateLimiterMiddleware } from '../../../../../common/middleware/SocketRateLimiterMiddleware.js';
+import type { RateLimitOptions } from '../../../../../common/middleware/model/RateLimitOptions.js';
+
+const rateLimitOptions: RateLimitOptions = {
+  points: process.env.NODE_ENV === 'development' ? 60 : 30,
+  duration: 60,
+  blockDuration: 600,
+  keyPrefix: 'admin-ui-namespace',
+  execEvenly: true,
+};
 
 const bootstrap = (io: Server, serverConfig: ServerConfig) => {
   const adminNamespace = io.of(SocketNamespace.ADMIN_UI);
@@ -23,7 +32,7 @@ const bootstrap = (io: Server, serverConfig: ServerConfig) => {
     serverId: `${hostname()}#${process.pid}`,
   });
 
-  adminNamespace.use(SocketRateLimiterMiddleware.use);
+  adminNamespace.use(SocketRateLimiterMiddleware.use(rateLimitOptions));
   adminNamespace.use((_socket, next) => {
     next();
   });

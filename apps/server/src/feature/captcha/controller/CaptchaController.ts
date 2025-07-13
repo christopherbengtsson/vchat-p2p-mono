@@ -7,12 +7,21 @@ import {
 import { RateLimiterMiddleware } from '../../../common/middleware/RateLimiterMiddleware.js';
 import { ApiKeyMiddleware } from '../../../common/middleware/ApiKeyMiddleware.js';
 import { CaptchaService } from '../service/CaptchaService.js';
+import type { RateLimitOptions } from '../../../common/middleware/model/RateLimitOptions.js';
+
+const rateLimitOptions: RateLimitOptions = {
+  points: process.env.NODE_ENV === 'development' ? 30 : 10,
+  duration: 300,
+  blockDuration: 900,
+  keyPrefix: 'captcha-verify',
+  execEvenly: true,
+};
 
 const register = (app: Express) => {
   app.post(
     HttpRoutePaths[HttpRoute.CAPTCHA_VERIFY],
     ApiKeyMiddleware.use,
-    RateLimiterMiddleware.use,
+    RateLimiterMiddleware.use(rateLimitOptions),
     async (req, res) => {
       try {
         const { token } = req.body;
