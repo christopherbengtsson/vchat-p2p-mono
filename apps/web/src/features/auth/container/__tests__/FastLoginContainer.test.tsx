@@ -15,7 +15,7 @@ describe('FastLoginContainer', () => {
     vi.clearAllMocks();
   });
 
-  it('should not be possible to login as anonymous', async () => {
+  it('should be possible to login as anonymous', async () => {
     const user = userEvent.setup();
     render(<FastLoginContainer />, { wrapper: TestWithQueryContext });
 

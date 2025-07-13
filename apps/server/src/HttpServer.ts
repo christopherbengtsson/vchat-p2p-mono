@@ -5,6 +5,7 @@ import helmet from 'helmet';
 import { HealthController } from './feature/analytics/controller/HealthController.js';
 import { MetricsController } from './feature/analytics/controller/MetricsController.js';
 import { SignatureController } from './feature/moderation/controller/SignatureController.js';
+import { CaptchaController } from './feature/captcha/controller/CaptchaController.js';
 
 const init = () => {
   const app = express();
@@ -20,6 +21,7 @@ const init = () => {
   HealthController.register(app);
   MetricsController.register(app);
   SignatureController.register(app);
+  CaptchaController.register(app);
 
   return http.createServer(app);
 };

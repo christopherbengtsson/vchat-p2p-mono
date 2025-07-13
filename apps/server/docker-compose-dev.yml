@@ -1,0 +1,55 @@
+# Docker Compose for Local Development Dependencies
+# Only includes Redis and Cap.js - backend runs via pnpm
+services:
+  redis:
+    image: redis:7.4-alpine
+    ports:
+      - '6379:6379'
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_dev_data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+        reservations:
+          memory: 256M
+          cpus: '0.2'
+
+  cap:
+    image: tiago2/cap:latest
+    ports:
+      - '8001:3000'
+    environment:
+      - ADMIN_KEY=dev_admin_key_at_least_30_characters_long
+      - ENABLE_ASSETS_SERVER=false
+      - CORS_ORIGIN=${CAP_CORS_ORIGINS}
+    volumes:
+      - cap_dev_data:/usr/src/app/.data
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:8001/health']
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.2'
+        reservations:
+          memory: 128M
+          cpus: '0.1'
+
+volumes:
+  redis_dev_data:
+  cap_dev_data:

@@ -2,6 +2,8 @@ import { Link } from 'react-router';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
+import { toast } from 'sonner';
+import { useState } from 'react';
 import { Checkbox } from '@/common/components/ui/checkbox';
 import {
   Form,
@@ -15,6 +17,7 @@ import {
 import { FastLoginButton } from '../component/FastLoginButton';
 import { useLogins } from '../hooks/useLogins';
 import { RoutePath } from '../../../RoutePath';
+import { useCaptcha } from '../../captcha/hooks/useCaptcha';
 
 const FormSchema = z.object({
   termsOfService: z.boolean().refine((val) => val, {
@@ -24,6 +27,8 @@ const FormSchema = z.object({
 
 export function FastLoginContainer() {
   const { loginAnonymouslyMutation } = useLogins();
+  const { solveAndVerifyCaptcha, captchaLoading } = useCaptcha();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -32,14 +37,32 @@ export function FastLoginContainer() {
     },
   });
 
-  const onSubmit = () => {
-    loginAnonymouslyMutation.mutate();
+  const onSubmit = async () => {
+    setIsSubmitting(true);
+
+    const captchaResult = await solveAndVerifyCaptcha();
+
+    if (!captchaResult.success) {
+      setIsSubmitting(false);
+      toast.error(captchaResult.errorMessage);
+      return;
+    }
+
+    loginAnonymouslyMutation.mutate(undefined, {
+      onSettled: () => {
+        setIsSubmitting(false);
+      },
+    });
   };
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <FastLoginButton isLoading={loginAnonymouslyMutation.isPending} />
+        <FastLoginButton
+          isLoading={
+            isSubmitting || loginAnonymouslyMutation.isPending || captchaLoading
+          }
+        />
         <FormField
           control={form.control}
           name="termsOfService"

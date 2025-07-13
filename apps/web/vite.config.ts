@@ -74,6 +74,9 @@ export default defineConfig(({ mode }) => ({
           // WebRTC and networking
           networking: ['socket.io-client', '@supabase/supabase-js'],
 
+          // Captcha/Security
+          captcha: ['@cap.js/widget'],
+
           // Styling utilities
           styling: ['class-variance-authority', 'clsx', 'tailwind-merge'],
 

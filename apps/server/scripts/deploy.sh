@@ -141,6 +141,16 @@ health_check() {
                 ((retries += HEALTH_CHECK_INTERVAL))
             done
             ;;
+        "cap")
+            while [[ $retries -lt $MAX_HEALTH_CHECK_RETRIES ]]; do
+                if curl -f -s --max-time 3 http://localhost:8001/health >/dev/null 2>&1; then
+                    echo -e " ${GREEN}✓${NC} (${retries}s)"
+                    return 0
+                fi
+                sleep $HEALTH_CHECK_INTERVAL
+                ((retries += HEALTH_CHECK_INTERVAL))
+            done
+            ;;
         *)
             # Generic container health check
             while [[ $retries -lt $MAX_HEALTH_CHECK_RETRIES ]]; do
@@ -184,7 +194,7 @@ get_service_dependencies() {
     else
         # Fallback: basic grep-based parsing (less reliable)
         case "$service" in
-            "backend") echo "redis" ;;
+            "backend") echo "redis cap" ;;
             "caddy") echo "backend" ;;
             "alloy") echo "backend" ;;
             *) echo "" ;;
@@ -248,7 +258,9 @@ rolling_update() {
                 
                 # Scale up to 2 instances to start new one with latest image
                 docker compose up -d --scale backend=2 backend
-                sleep 5
+                
+                # Wait for new container to start (give it a moment to initialize)
+                sleep 2
                 
                 # Wait for new instance to be healthy
                 echo -e "     ${BLUE}ℹ${NC} Waiting for new instance to be healthy..."
