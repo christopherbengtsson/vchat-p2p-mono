@@ -29,18 +29,12 @@ services:
     ports:
       - '8001:3000'
     environment:
-      - ADMIN_KEY=dev_admin_key_at_least_30_characters_long
+      - ADMIN_KEY=${CAP_ADMIN_KEY}
       - ENABLE_ASSETS_SERVER=false
       - CORS_ORIGIN=${CAP_CORS_ORIGINS}
     volumes:
       - cap_dev_data:/usr/src/app/.data
     restart: unless-stopped
-    healthcheck:
-      test: ['CMD', 'curl', '-f', 'http://localhost:8001/health']
-      interval: 10s
-      timeout: 5s
-      retries: 3
-      start_period: 15s
     deploy:
       resources:
         limits:

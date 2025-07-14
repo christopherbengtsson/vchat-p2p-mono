@@ -28,9 +28,7 @@ describe('useCaptcha', () => {
     vi.stubEnv('VITE_CAP_SITE_KEY', 'test-site-key');
 
     // Setup CaptchaService mocks
-    vi.mocked(CaptchaService.createCaptchaInstance).mockReturnValue(
-      mockCap as any,
-    );
+    vi.mocked(CaptchaService.init).mockReturnValue(mockCap as any);
     vi.mocked(CaptchaService.solveCaptcha).mockResolvedValue({
       token: 'test-token',
       success: true,
@@ -103,42 +101,12 @@ describe('useCaptcha', () => {
         expect(result.current.isReady).toBe(true);
       });
 
-      expect(CaptchaService.createCaptchaInstance).toHaveBeenCalledWith(
-        'https://example.com/api/v1/captcha/test-site-key/',
-      );
-    });
-
-    it('should use development endpoint in DEV mode', async () => {
-      vi.stubEnv('DEV', true);
-
-      const { result } = renderHook(() => useCaptcha());
-
-      await waitFor(() => {
-        expect(result.current.isReady).toBe(true);
-      });
-
-      expect(CaptchaService.createCaptchaInstance).toHaveBeenCalledWith(
-        'http://localhost:8001/test-site-key/',
-      );
-    });
-
-    it('should use prod endpoint in non DEV mode', async () => {
-      vi.stubEnv('DEV', false);
-
-      const { result } = renderHook(() => useCaptcha());
-
-      await waitFor(() => {
-        expect(result.current.isReady).toBe(true);
-      });
-
-      expect(CaptchaService.createCaptchaInstance).toHaveBeenCalledWith(
-        'https://example.com/api/v1/captcha/test-site-key/',
-      );
+      expect(CaptchaService.init).toHaveBeenCalledOnce();
     });
 
     it('should handle initialization errors', async () => {
       const error = new Error('Initialization failed');
-      vi.mocked(CaptchaService.createCaptchaInstance).mockImplementation(() => {
+      vi.mocked(CaptchaService.init).mockImplementation(() => {
         throw error;
       });
 
@@ -158,21 +126,18 @@ describe('useCaptcha', () => {
         expect(result.current.isReady).toBe(true);
       });
 
-      const callCount = vi.mocked(CaptchaService.createCaptchaInstance).mock
-        .calls.length;
+      const callCount = vi.mocked(CaptchaService.init).mock.calls.length;
 
       // Trigger re-render
       rerender();
 
-      expect(
-        vi.mocked(CaptchaService.createCaptchaInstance),
-      ).toHaveBeenCalledTimes(callCount);
+      expect(vi.mocked(CaptchaService.init)).toHaveBeenCalledTimes(callCount);
     });
   });
 
   describe('solveAndVerifyCaptcha', () => {
     it('should return error when not ready', async () => {
-      vi.mocked(CaptchaService.createCaptchaInstance).mockImplementation(() => {
+      vi.mocked(CaptchaService.init).mockImplementation(() => {
         throw new Error('Not ready');
       });
 
@@ -341,7 +306,7 @@ describe('useCaptcha', () => {
     });
 
     it('should handle reset when instance is null', async () => {
-      vi.mocked(CaptchaService.createCaptchaInstance).mockImplementation(() => {
+      vi.mocked(CaptchaService.init).mockImplementation(() => {
         throw new Error('No instance');
       });
 

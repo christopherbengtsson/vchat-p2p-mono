@@ -20,6 +20,7 @@ const to = (envConfigInput: {
       config: envConfigInput.config,
       secrets: envConfigInput.secrets,
     });
+
     return parsedServerConfig;
   } catch (error: unknown) {
     log.fatal(

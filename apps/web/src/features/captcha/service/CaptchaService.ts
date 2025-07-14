@@ -4,9 +4,9 @@ import { axiosClient } from '@/common/clients/axios';
 import { CaptchaResult } from '../model/CaptchaResult';
 import { CaptchaVerificationResult } from '../model/CaptchaVerificationResult';
 
-const createCaptchaInstance = (apiEndpoint: string): Cap => {
+const init = (): Cap => {
   return new Cap({
-    apiEndpoint,
+    apiEndpoint: `${import.meta.env.VITE_CAPTCHA_SERVER_URL}/${import.meta.env.VITE_CAP_SITE_KEY}/`,
     workers: navigator.hardwareConcurrency || 2,
   });
 };
@@ -62,7 +62,7 @@ const verifyCaptchaToken = async (
 };
 
 export const CaptchaService = {
-  createCaptchaInstance,
+  init,
   solveCaptcha,
   resetCaptcha,
   verifyCaptchaToken,

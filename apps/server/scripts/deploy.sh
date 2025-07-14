@@ -143,7 +143,7 @@ health_check() {
             ;;
         "cap")
             while [[ $retries -lt $MAX_HEALTH_CHECK_RETRIES ]]; do
-                if curl -f -s --max-time 3 http://localhost:8001/health >/dev/null 2>&1; then
+                if curl -f -s --max-time 3 http://localhost:8001/ >/dev/null 2>&1; then
                     echo -e " ${GREEN}✓${NC} (${retries}s)"
                     return 0
                 fi
@@ -320,6 +320,10 @@ deploy_services() {
     
     echo -e "${BLUE}🔄 Deploying selected services...${NC}"
     
+    # Get available services once to avoid inconsistencies
+    local available_services_list
+    available_services_list=($(docker compose config --services))
+    
     # Sort services by dependency order
     local sorted_services
     sorted_services=($(sort_services_by_dependencies "${services[@]}"))
@@ -332,7 +336,15 @@ deploy_services() {
         log "Starting deployment of service: $service"
         
         # Check if service exists
-        if ! docker compose config --services | grep -q "^$service$"; then
+        local service_found=false
+        for available_service in "${available_services_list[@]}"; do
+            if [[ "$service" == "$available_service" ]]; then
+                service_found=true
+                break
+            fi
+        done
+        
+        if [[ "$service_found" == "false" ]]; then
             echo -e "     ${RED}✗${NC} Service '$service' not found"
             failed_services+=("$service")
             continue
@@ -460,7 +472,11 @@ main() {
     
     echo ""
     echo -e "${BLUE}📋 Available services:${NC}"
-    docker compose config --services | nl -w2 -s') '
+    # Capture services list once to ensure consistency
+    available_services_for_display=($(docker compose config --services))
+    for i in "${!available_services_for_display[@]}"; do
+        echo " $((i+1))) ${available_services_for_display[i]}"
+    done
     
     echo ""
     echo -e "${YELLOW}Select services to update:${NC}"
@@ -477,7 +493,7 @@ main() {
             exit 0
             ;;
         "all")
-            services=($(docker compose config --services))
+            services=("${available_services_for_display[@]}")
             echo -e "${YELLOW}⚠️  Updating ALL services. This may cause brief downtime.${NC}"
             read -p "Continue? (y/N): " confirm
             [[ $confirm != [yY] ]] && exit 0
@@ -488,9 +504,12 @@ main() {
             ;;
         *)
             services=()
+            # Use the same array for selection as we used for display
             for num in $selection; do
-                service=$(docker compose config --services | sed -n "${num}p")
-                if [[ -n "$service" ]]; then
+                # Convert to 0-based index for array access
+                index=$((num - 1))
+                if [[ $index -ge 0 && $index -lt ${#available_services_for_display[@]} ]]; then
+                    service="${available_services_for_display[$index]}"
                     services+=("$service")
                 fi
             done

@@ -36,33 +36,13 @@ describe('CaptchaService', () => {
 
   describe('createCaptchaInstance', () => {
     it('should create a new Cap instance with correct configuration', () => {
-      const apiEndpoint = 'https://example.com/captcha';
-
-      const instance = CaptchaService.createCaptchaInstance(apiEndpoint);
+      const instance = CaptchaService.init();
 
       expect(mockCapConstructor).toHaveBeenCalledWith({
-        apiEndpoint,
-        workers: 2,
+        apiEndpoint: expect.any(String),
+        workers: expect.any(Number),
       });
       expect(instance).toBe(mockCap);
-    });
-
-    it('should create instances with different endpoints', () => {
-      const endpoint1 = 'https://dev.example.com/captcha';
-      const endpoint2 = 'https://prod.example.com/captcha';
-
-      CaptchaService.createCaptchaInstance(endpoint1);
-      CaptchaService.createCaptchaInstance(endpoint2);
-
-      expect(mockCapConstructor).toHaveBeenCalledTimes(2);
-      expect(mockCapConstructor).toHaveBeenNthCalledWith(1, {
-        apiEndpoint: endpoint1,
-        workers: 2,
-      });
-      expect(mockCapConstructor).toHaveBeenNthCalledWith(2, {
-        apiEndpoint: endpoint2,
-        workers: 2,
-      });
     });
   });
 

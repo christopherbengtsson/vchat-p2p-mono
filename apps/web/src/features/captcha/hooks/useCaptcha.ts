@@ -2,7 +2,6 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import Cap from '@cap.js/widget';
 import { CustomError } from '@mono/common-dto';
 import { CaptchaService } from '../service/CaptchaService';
-import { CaptchaUtil } from '../util/CaptchaUtil';
 import { SolveAndVerifyCaptcha } from '../model/SolveAndVerifyCaptcha';
 import { CaptchaResult } from '../model/CaptchaResult';
 import { useNoOpCaptcha } from './useNoOpCaptcha';
@@ -44,9 +43,7 @@ export const useCaptcha = (options: CaptchaOptions = {}) => {
 
       console.debug('Initializing captcha instance');
 
-      capInstanceRef.current = CaptchaService.createCaptchaInstance(
-        CaptchaUtil.getApiEndpoint(),
-      );
+      capInstanceRef.current = CaptchaService.init();
 
       setState((prevState) => ({
         ...prevState,
