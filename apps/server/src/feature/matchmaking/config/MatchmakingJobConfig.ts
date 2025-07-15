@@ -23,7 +23,7 @@ const MATCHMAKING_INTERVAL =
 export const matchmakingConfig: QueueConfig[] = [
   {
     type: 'job',
-    queueName: 'matchmaking',
+    queueName: '{matchmaking}',
     workerCount: MATCHMAKING_JOB_CONFIG.WORKER_COUNT,
     schedulers: [
       {
@@ -52,7 +52,7 @@ export const matchmakingConfig: QueueConfig[] = [
   },
   {
     type: 'cleanup',
-    queueName: 'matchmaking-cleanup',
+    queueName: '{matchmaking-cleanup}',
     schedulers: [
       {
         schedulerId: 'expired-matches-cleanup',
@@ -130,7 +130,7 @@ export const matchmakingConfig: QueueConfig[] = [
   },
   {
     type: 'maintenance',
-    queueName: 'ignore-system-maintenance',
+    queueName: '{ignore-system-maintenance}',
     schedulers: [
       {
         schedulerId: 'optimize-bloom-filter',
@@ -194,7 +194,7 @@ export const matchmakingConfig: QueueConfig[] = [
   },
   {
     type: 'monitoring',
-    queueName: 'ignore-system-monitoring',
+    queueName: '{ignore-system-monitoring}',
     schedulers: [
       {
         schedulerId: 'ignore-cache-health-check',

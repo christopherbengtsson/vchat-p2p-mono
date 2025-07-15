@@ -8,7 +8,7 @@
 
 - Node
 - pnpm
-- redis (Just install redis with homebrew)
+- Docker + docker compose
 
 Install dependencies:
 

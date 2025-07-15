@@ -2,10 +2,12 @@
 # Only includes Redis and Cap.js - backend runs via pnpm
 services:
   redis:
-    image: redis:7.4-alpine
+    image: docker.dragonflydb.io/dragonflydb/dragonfly:latest
+    ulimits:
+      memlock: -1
     ports:
       - '6379:6379'
-    command: redis-server --appendonly yes
+    command: --cluster_mode=emulated --lock_on_hashtags --default_lua_flags=allow-undeclared-keys
     volumes:
       - redis_dev_data:/data
     restart: unless-stopped

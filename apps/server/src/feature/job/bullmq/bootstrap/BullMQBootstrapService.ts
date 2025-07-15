@@ -4,8 +4,6 @@ import type { BullMQInstances } from '../model/BullMQInstances.js';
 import type { WorkerHandler } from '../model/WorkerHandler.js';
 import { QueueService } from '../service/QueueService.js';
 import { matchmakingConfig } from '../../../matchmaking/config/MatchmakingJobConfig.js';
-import { RedisValidation } from '../config/RedisValidation.js';
-import { RedisClient } from '../../../../common/client/RedisClient.js';
 
 const featureConfigs = [matchmakingConfig] as const;
 
@@ -38,15 +36,6 @@ const shutdown = async (instances: BullMQInstances): Promise<void> => {
 
 const initialize = async (): Promise<void> => {
   log.info('Initializing BullMQ...');
-
-  try {
-    await RedisValidation.validateRedisConfig(RedisClient.get());
-  } catch (error) {
-    log.warn(
-      { error },
-      'Redis configuration validation failed, continuing with initialization',
-    );
-  }
 
   const allQueueConfigs = featureConfigs.flat();
 
