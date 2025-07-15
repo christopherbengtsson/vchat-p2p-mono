@@ -23,11 +23,11 @@ services:
     deploy:
       resources:
         limits:
-          memory: 2.8G
-          cpus: '1.3'
+          memory: 1.5G
+          cpus: '1.0'
         reservations:
-          memory: 1.8G
-          cpus: '0.4'
+          memory: 1.0G
+          cpus: '0.5'
 
   backend:
     image: bengostar/vchat-service:latest
@@ -71,11 +71,11 @@ services:
     deploy:
       resources:
         limits:
-          memory: 2.2G
-          cpus: '1.2'
+          memory: 2.0G
+          cpus: '0.5'
         reservations:
-          memory: 1.4G
-          cpus: '0.6'
+          memory: 1.5G
+          cpus: '0.25'
 
   caddy:
     image: caddy:latest
@@ -107,10 +107,10 @@ services:
     deploy:
       resources:
         limits:
-          memory: 256M
+          memory: 128M
           cpus: '0.2'
         reservations:
-          memory: 128M
+          memory: 64M
           cpus: '0.1'
 
   alloy:
@@ -144,10 +144,10 @@ services:
     deploy:
       resources:
         limits:
-          memory: 256M
-          cpus: '0.2'
-        reservations:
           memory: 128M
+          cpus: '0.15'
+        reservations:
+          memory: 64M
           cpus: '0.1'
 
   cap:
@@ -169,10 +169,10 @@ services:
     deploy:
       resources:
         limits:
-          memory: 256M
-          cpus: '0.2'
-        reservations:
           memory: 128M
+          cpus: '0.15'
+        reservations:
+          memory: 64M
           cpus: '0.1'
 
 volumes:
