@@ -158,6 +158,7 @@ services:
       - ADMIN_KEY=${CAP_ADMIN_KEY}
       - ENABLE_ASSETS_SERVER=false
       - CORS_ORIGIN=${CAP_CORS_ORIGINS}
+      - RATELIMIT_IP_HEADER=X-Forwarded-For
     volumes:
       - cap_data:/usr/src/app/.data
     restart: unless-stopped
