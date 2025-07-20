@@ -1,4 +1,3 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { CustomError, CustomErrorType } from '@mono/common-dto';
 import { CaptchaService } from '../CaptchaService.js';
 import { ServerConfigService } from '../../../../common/config/service/ServerConfigService.js';
