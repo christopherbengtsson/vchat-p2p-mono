@@ -4,13 +4,14 @@ import { LoadingSpinner } from '@/common/components/loading-spinner/LoadingSpinn
 
 interface Props {
   isLoading: boolean;
+  loadingText: string;
 }
 
-export function FastLoginButton({ isLoading }: Props) {
+export function FastLoginButton({ isLoading, loadingText }: Props) {
   return (
     <Button type="submit" className="w-full" disabled={isLoading}>
       {isLoading ? <LoadingSpinner /> : <Zap className="mr-2 h-4 w-4" />}
-      {isLoading ? 'Logging in...' : 'Fast login'}
+      {isLoading ? loadingText : 'Fast login'}
     </Button>
   );
 }

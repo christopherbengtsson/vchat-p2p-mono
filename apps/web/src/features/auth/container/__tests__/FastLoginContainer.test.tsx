@@ -17,7 +17,9 @@ describe('FastLoginContainer', () => {
 
   it('should be possible to login as anonymous', async () => {
     const user = userEvent.setup();
-    render(<FastLoginContainer />, { wrapper: TestWithQueryContext });
+    render(<FastLoginContainer capRef={null as any} />, {
+      wrapper: TestWithQueryContext,
+    });
 
     await user.click(screen.getByRole('checkbox'));
     await user.click(screen.getByRole('button', { name: 'Fast login' }));
@@ -27,7 +29,9 @@ describe('FastLoginContainer', () => {
 
   it('should not be possible to login as anonymous without accepting terms of service', async () => {
     const user = userEvent.setup();
-    render(<FastLoginContainer />, { wrapper: TestWithQueryContext });
+    render(<FastLoginContainer capRef={null as any} />, {
+      wrapper: TestWithQueryContext,
+    });
 
     await user.click(screen.getByRole('button', { name: 'Fast login' }));
 

@@ -11,7 +11,7 @@ const init = (): Cap => {
   });
 };
 
-const solveCaptcha = async (cap: Cap): Promise<CaptchaResult> => {
+const solve = async (cap: Cap): Promise<CaptchaResult> => {
   try {
     const solution = await cap.solve();
 
@@ -20,6 +20,8 @@ const solveCaptcha = async (cap: Cap): Promise<CaptchaResult> => {
       success: true,
     };
   } catch (error) {
+    console.error('Captcha solve error:', error);
+
     return {
       token: '',
       success: false,
@@ -28,7 +30,7 @@ const solveCaptcha = async (cap: Cap): Promise<CaptchaResult> => {
   }
 };
 
-const resetCaptcha = (cap: Cap): void => {
+const reset = (cap: Cap): void => {
   try {
     cap.reset();
   } catch (error) {
@@ -36,9 +38,7 @@ const resetCaptcha = (cap: Cap): void => {
   }
 };
 
-const verifyCaptchaToken = async (
-  token: string,
-): Promise<CaptchaVerificationResult> => {
+const verify = async (token: string): Promise<CaptchaVerificationResult> => {
   try {
     const { data } = await axiosClient.post<{ success: boolean }>(
       '/captcha/verify',
@@ -54,6 +54,8 @@ const verifyCaptchaToken = async (
         : CustomError.badState('Captcha verification failed'),
     };
   } catch (error) {
+    console.error('Captcha verification error:', error);
+
     return {
       success: false,
       error: error as Error,
@@ -63,7 +65,7 @@ const verifyCaptchaToken = async (
 
 export const CaptchaService = {
   init,
-  solveCaptcha,
-  resetCaptcha,
-  verifyCaptchaToken,
+  solve,
+  reset,
+  verify,
 };

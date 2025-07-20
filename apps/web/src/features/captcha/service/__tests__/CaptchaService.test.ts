@@ -1,8 +1,18 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import {
+  describe,
+  it,
+  expect,
+  vi,
+  beforeEach,
+  afterEach,
+  beforeAll,
+  afterAll,
+} from 'vitest';
 import MockAdapter from 'axios-mock-adapter';
 import { CustomError } from '@mono/common-dto';
 import { axiosClient } from '@/common/clients/axios';
 import { CaptchaService } from '../CaptchaService';
+import { noop } from '../../../../common/utils/noop';
 
 // @cap.js/widget is globally mocked in testSetup.ts
 
@@ -19,6 +29,7 @@ describe('CaptchaService', () => {
   });
 
   beforeEach(() => {
+    vi.spyOn(console, 'error').mockImplementation(noop);
     mockAxios = new MockAdapter(axiosClient);
     mockCap = (global as any).mockCap;
     mockCapConstructor = (global as any).mockCapConstructor;
@@ -34,7 +45,7 @@ describe('CaptchaService', () => {
     vi.unstubAllGlobals();
   });
 
-  describe('createCaptchaInstance', () => {
+  describe('init', () => {
     it('should create a new Cap instance with correct configuration', () => {
       const instance = CaptchaService.init();
 
@@ -46,12 +57,12 @@ describe('CaptchaService', () => {
     });
   });
 
-  describe('solveCaptcha', () => {
+  describe('solve', () => {
     it('should return success result when captcha is solved', async () => {
       const expectedToken = 'solved-token-123';
       mockCap.solve.mockResolvedValue({ token: expectedToken });
 
-      const result = await CaptchaService.solveCaptcha(mockCap as any);
+      const result = await CaptchaService.solve(mockCap);
 
       expect(mockCap.solve).toHaveBeenCalledTimes(1);
       expect(result).toEqual({
@@ -64,7 +75,7 @@ describe('CaptchaService', () => {
       const error = new Error('Captcha solving failed');
       mockCap.solve.mockRejectedValue(error);
 
-      const result = await CaptchaService.solveCaptcha(mockCap as any);
+      const result = await CaptchaService.solve(mockCap);
 
       expect(mockCap.solve).toHaveBeenCalledTimes(1);
       expect(result).toEqual({
@@ -78,7 +89,7 @@ describe('CaptchaService', () => {
       const stringError = 'String error';
       mockCap.solve.mockRejectedValue(stringError);
 
-      const result = await CaptchaService.solveCaptcha(mockCap as any);
+      const result = await CaptchaService.solve(mockCap);
 
       expect(result).toEqual({
         token: '',
@@ -90,7 +101,7 @@ describe('CaptchaService', () => {
     it('should handle null/undefined solutions', async () => {
       mockCap.solve.mockResolvedValue(null);
 
-      const result = await CaptchaService.solveCaptcha(mockCap as any);
+      const result = await CaptchaService.solve(mockCap);
 
       expect(result.success).toBe(false);
       expect(result.error).toBeInstanceOf(Error);
@@ -99,7 +110,7 @@ describe('CaptchaService', () => {
     it('should handle solutions without token', async () => {
       mockCap.solve.mockResolvedValue({});
 
-      const result = await CaptchaService.solveCaptcha(mockCap as any);
+      const result = await CaptchaService.solve(mockCap);
 
       expect(result).toEqual({
         token: undefined,
@@ -108,9 +119,9 @@ describe('CaptchaService', () => {
     });
   });
 
-  describe('resetCaptcha', () => {
+  describe('reset', () => {
     it('should call reset on the captcha instance', () => {
-      CaptchaService.resetCaptcha(mockCap as any);
+      CaptchaService.reset(mockCap);
 
       expect(mockCap.reset).toHaveBeenCalledTimes(1);
     });
@@ -124,7 +135,7 @@ describe('CaptchaService', () => {
         throw resetError;
       });
 
-      expect(() => CaptchaService.resetCaptcha(mockCap as any)).not.toThrow();
+      expect(() => CaptchaService.reset(mockCap)).not.toThrow();
       expect(consoleErrorSpy).toHaveBeenCalledWith(
         'Failed to reset captcha:',
         resetError,
@@ -134,13 +145,13 @@ describe('CaptchaService', () => {
     });
   });
 
-  describe('verifyCaptchaToken', () => {
+  describe('verify', () => {
     const validToken = 'valid-token-123';
 
     it('should return success when verification succeeds', async () => {
       mockAxios.onPost('/captcha/verify').reply(200, { success: true });
 
-      const result = await CaptchaService.verifyCaptchaToken(validToken);
+      const result = await CaptchaService.verify(validToken);
 
       expect(result).toEqual({
         success: true,
@@ -151,7 +162,7 @@ describe('CaptchaService', () => {
     it('should return error when verification fails on server', async () => {
       mockAxios.onPost('/captcha/verify').reply(200, { success: false });
 
-      const result = await CaptchaService.verifyCaptchaToken(validToken);
+      const result = await CaptchaService.verify(validToken);
 
       expect(result.success).toBe(false);
       expect(result.error).toBeInstanceOf(CustomError);
@@ -161,7 +172,7 @@ describe('CaptchaService', () => {
     it('should handle HTTP error status codes', async () => {
       mockAxios.onPost('/captcha/verify').reply(500);
 
-      const result = await CaptchaService.verifyCaptchaToken(validToken);
+      const result = await CaptchaService.verify(validToken);
 
       expect(result.success).toBe(false);
       expect(result.error).toBeInstanceOf(Error);
@@ -170,7 +181,7 @@ describe('CaptchaService', () => {
     it('should handle HTTP 400 status codes', async () => {
       mockAxios.onPost('/captcha/verify').reply(400);
 
-      const result = await CaptchaService.verifyCaptchaToken(validToken);
+      const result = await CaptchaService.verify(validToken);
 
       expect(result.success).toBe(false);
       expect(result.error).toBeInstanceOf(Error);
@@ -179,7 +190,7 @@ describe('CaptchaService', () => {
     it('should send correct request payload', async () => {
       mockAxios.onPost('/captcha/verify').reply(200, { success: true });
 
-      await CaptchaService.verifyCaptchaToken(validToken);
+      await CaptchaService.verify(validToken);
 
       expect(mockAxios.history.post).toHaveLength(1);
       expect(mockAxios.history.post[0].data).toBe(
@@ -190,7 +201,7 @@ describe('CaptchaService', () => {
     it('should handle network errors', async () => {
       mockAxios.onPost('/captcha/verify').networkError();
 
-      const result = await CaptchaService.verifyCaptchaToken(validToken);
+      const result = await CaptchaService.verify(validToken);
 
       expect(result.success).toBe(false);
       expect(result.error).toBeInstanceOf(Error);
@@ -199,7 +210,7 @@ describe('CaptchaService', () => {
     it('should handle timeout errors', async () => {
       mockAxios.onPost('/captcha/verify').timeout();
 
-      const result = await CaptchaService.verifyCaptchaToken(validToken);
+      const result = await CaptchaService.verify(validToken);
 
       expect(result.success).toBe(false);
       expect(result.error).toBeInstanceOf(Error);
@@ -208,7 +219,7 @@ describe('CaptchaService', () => {
     it('should handle malformed JSON responses', async () => {
       mockAxios.onPost('/captcha/verify').reply(200, 'invalid-json');
 
-      const result = await CaptchaService.verifyCaptchaToken(validToken);
+      const result = await CaptchaService.verify(validToken);
 
       expect(result.success).toBe(false);
       expect(result.error).toBeInstanceOf(Error);
@@ -217,7 +228,7 @@ describe('CaptchaService', () => {
     it('should handle missing response data', async () => {
       mockAxios.onPost('/captcha/verify').reply(200);
 
-      const result = await CaptchaService.verifyCaptchaToken(validToken);
+      const result = await CaptchaService.verify(validToken);
 
       expect(result.success).toBe(false);
     });
@@ -225,7 +236,7 @@ describe('CaptchaService', () => {
     it('should handle null response data', async () => {
       mockAxios.onPost('/captcha/verify').reply(200, null);
 
-      const result = await CaptchaService.verifyCaptchaToken(validToken);
+      const result = await CaptchaService.verify(validToken);
 
       expect(result.success).toBe(false);
     });

@@ -9,6 +9,7 @@ import { FindMatchButton } from '../component/FindMatchButton';
 import { useMediaPermissions } from '../hooks/useMediaPermissions';
 import { ContentModerationUnavailableDialog } from '../../content-moderation/component/ContentModerationUnavailableDialog';
 import { useContentModerationAvailability } from '../../content-moderation/hooks/useContentModerationAvailability';
+import { FindMatchLoadingState } from '../model/FindMatchLoadingState';
 
 const FIND_MATCH_ROUTER_STATE: CallLocation = {
   state: {
@@ -17,7 +18,8 @@ const FIND_MATCH_ROUTER_STATE: CallLocation = {
 };
 
 export const FindMatchContainer = observer(function FindMatchContainer() {
-  const [userClicked, setUserClicked] = useState(false);
+  const [loadingState, setLoadingState] =
+    useState<FindMatchLoadingState>('idle');
 
   const navigate = useNavigate();
 
@@ -42,17 +44,19 @@ export const FindMatchContainer = observer(function FindMatchContainer() {
   }, [navigate]);
 
   const proceedToMediaCheck = useCallback(async () => {
+    setLoadingState('mediaCheck');
+
     const { success } = await checkAndRequestMedia();
 
     if (success) {
       navigateToCall();
     } else {
-      setUserClicked(false);
+      setLoadingState('idle');
     }
   }, [checkAndRequestMedia, navigateToCall]);
 
   const handleFindMatch = useCallback(async () => {
-    setUserClicked(true);
+    setLoadingState('contentModeration');
 
     const { contentModerationAvailable } =
       await checkContentModerationAvailability();
@@ -72,7 +76,7 @@ export const FindMatchContainer = observer(function FindMatchContainer() {
 
   const handleContentModerationCancelClick = useCallback(() => {
     handleContentModerationCancel();
-    setUserClicked(false);
+    setLoadingState('idle');
   }, [handleContentModerationCancel]);
 
   return (
@@ -81,8 +85,7 @@ export const FindMatchContainer = observer(function FindMatchContainer() {
         onClick={handleFindMatch}
         startingMedia={startingMedia}
         connecting={!socketStore.connected}
-        modelStatus={contentModerationStore.modelStatus}
-        showLoadingState={userClicked}
+        loadingState={loadingState}
       />
 
       <PermissionsDialog

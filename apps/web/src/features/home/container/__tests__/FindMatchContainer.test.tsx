@@ -110,11 +110,35 @@ describe('FindMatchContainer', () => {
 
     await waitFor(() => {
       expect(
-        screen.getByRole('button', { name: 'Loading...' }),
+        screen.getByRole('button', { name: 'Loading safety features...' }),
       ).toBeInTheDocument();
     });
 
-    expect(screen.getByRole('button', { name: 'Loading...' })).toBeDisabled();
+    expect(
+      screen.getByRole('button', { name: 'Loading safety features...' }),
+    ).toBeDisabled();
+  });
+
+  it('should render loading state when starting media', async () => {
+    const user = userEvent.setup();
+
+    render(<FindMatchContainer />);
+
+    expect(
+      screen.getByRole('button', { name: 'Find match' }),
+    ).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Find match' }));
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole('button', { name: 'Starting media...' }),
+      ).toBeInTheDocument();
+    });
+
+    expect(
+      screen.getByRole('button', { name: 'Starting media...' }),
+    ).toBeDisabled();
   });
 
   it('should display content moderation warning if model is not available', async () => {

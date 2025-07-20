@@ -2,46 +2,44 @@ import { useMemo } from 'react';
 import { observer } from 'mobx-react';
 import { Button } from '@/common/components/ui/button';
 import { LoadingSpinner } from '@/common/components/loading-spinner/LoadingSpinner';
-import { NSFWModelStatus } from '@/stores/model/NSFWModelStatus';
+import { FindMatchLoadingState } from '../model/FindMatchLoadingState';
 
 interface Props {
   onClick: VoidFunction;
   connecting: boolean;
   startingMedia: boolean;
-  modelStatus: NSFWModelStatus;
-  showLoadingState: boolean;
+  loadingState: FindMatchLoadingState;
 }
 
 export const FindMatchButton = observer(function FindMatchButton({
   onClick,
   connecting,
   startingMedia,
-  modelStatus,
-  showLoadingState,
+  loadingState,
 }: Props) {
-  const loading = useMemo(
-    () => showLoadingState && modelStatus === 'loading',
-    [showLoadingState, modelStatus],
-  );
+  const buttonText = useMemo(() => {
+    if (connecting) {
+      return 'Connecting...';
+    } else if (loadingState === 'contentModeration') {
+      return 'Loading safety features...';
+    } else if (loadingState === 'mediaCheck' || startingMedia) {
+      return 'Starting media...';
+    }
+    return 'Find match';
+  }, [connecting, loadingState, startingMedia]);
+
+  const isLoading = connecting || startingMedia || loadingState !== 'idle';
 
   return (
     <>
-      <Button
-        className="w-full"
-        onClick={onClick}
-        disabled={connecting || startingMedia || loading}
-      >
-        {connecting || startingMedia || loading ? (
+      <Button className="w-full" onClick={onClick} disabled={isLoading}>
+        {isLoading ? (
           <>
             <LoadingSpinner />
-            {connecting
-              ? 'Connecting...'
-              : startingMedia
-                ? 'Starting camera...'
-                : 'Loading...'}
+            {buttonText}
           </>
         ) : (
-          'Find match'
+          buttonText
         )}
       </Button>
     </>
