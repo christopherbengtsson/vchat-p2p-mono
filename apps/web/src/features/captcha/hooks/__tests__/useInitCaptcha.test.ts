@@ -1,6 +1,6 @@
 import { renderHook, act } from '@testing-library/react';
 import { CaptchaService } from '../../service/CaptchaService';
-import { useInitCaptcha } from '../useInitCapcha';
+import { useInitCaptcha } from '../useInitCaptcha';
 
 // @cap.js/widget is globally mocked in testSetup.ts
 vi.mock('../../service/CaptchaService');

@@ -7,7 +7,7 @@ import {
   CardTitle,
 } from '@/common/components/ui/card';
 import { OrDivider } from '@/common/components/or-divider/OrDivider';
-import { useInitCaptcha } from '../../captcha/hooks/useInitCapcha';
+import { useInitCaptcha } from '../../captcha/hooks/useInitCaptcha';
 import { EmailLoginFormContainer } from './EmailLoginFormContainer';
 import { FastLoginContainer } from './FastLoginContainer';
 
