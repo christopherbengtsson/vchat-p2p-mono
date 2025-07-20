@@ -12,11 +12,15 @@ import { EmailLoginFormContainer } from './EmailLoginFormContainer';
 import { FastLoginContainer } from './FastLoginContainer';
 
 export function AuthFormContainer() {
-  const { init, cap } = useInitCaptcha();
+  const { init, cap, reset } = useInitCaptcha();
 
   useEffect(() => {
     init();
-  }, [init]);
+
+    return () => {
+      reset();
+    };
+  }, [cap, init, reset]);
 
   return (
     <Card className="w-[350px]">

@@ -13,17 +13,22 @@ export const useInitCaptcha = () => {
     }
 
     cap.current = CaptchaService.init();
+  }, []);
 
-    return () => {
-      if (cap.current) {
-        CaptchaService.reset(cap.current);
-        cap.current = null;
-      }
-    };
+  const reset = useCallback(() => {
+    if (cap.current) {
+      CaptchaService.reset(cap.current);
+      cap.current = null;
+
+      document.querySelectorAll('cap-widget').forEach((el) => {
+        el.remove();
+      });
+    }
   }, []);
 
   return {
     cap,
     init,
+    reset,
   };
 };
