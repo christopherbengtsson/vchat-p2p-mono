@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import {
   Card,
   CardContent,
@@ -12,15 +11,7 @@ import { EmailLoginFormContainer } from './EmailLoginFormContainer';
 import { FastLoginContainer } from './FastLoginContainer';
 
 export function AuthFormContainer() {
-  const { init, cap, reset } = useInitCaptcha();
-
-  useEffect(() => {
-    init();
-
-    return () => {
-      reset();
-    };
-  }, [cap, init, reset]);
+  const cap = useInitCaptcha();
 
   return (
     <Card className="w-[350px]">

@@ -17,18 +17,16 @@ export const FindMatchButton = observer(function FindMatchButton({
   startingMedia,
   loadingState,
 }: Props) {
-  const buttonText = useMemo(() => {
+  const { isLoading, buttonText } = useMemo(() => {
     if (connecting) {
-      return 'Connecting...';
+      return { isLoading: true, buttonText: 'Connecting...' };
     } else if (loadingState === 'contentModeration') {
-      return 'Loading safety features...';
+      return { isLoading: true, buttonText: 'Loading safety features...' };
     } else if (loadingState === 'mediaCheck' || startingMedia) {
-      return 'Starting media...';
+      return { isLoading: true, buttonText: 'Starting media...' };
     }
-    return 'Find match';
+    return { isLoading: false, buttonText: 'Find match' };
   }, [connecting, loadingState, startingMedia]);
-
-  const isLoading = connecting || startingMedia || loadingState !== 'idle';
 
   return (
     <>

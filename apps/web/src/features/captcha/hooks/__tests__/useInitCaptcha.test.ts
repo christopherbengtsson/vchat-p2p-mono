@@ -1,4 +1,5 @@
 import { renderHook, act } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { CaptchaService } from '../../service/CaptchaService';
 import { useInitCaptcha } from '../useInitCaptcha';
 
@@ -22,45 +23,32 @@ describe('useInitCaptcha', () => {
   });
 
   describe('initialization', () => {
-    it('should initialize with null cap ref', () => {
+    it('should auto-initialize captcha on mount', () => {
       const { result } = renderHook(() => useInitCaptcha());
 
-      expect(result.current.cap.current).toBe(null);
-      expect(typeof result.current.init).toBe('function');
+      expect(result.current.current).toBe(mockCap);
+      expect(CaptchaService.init).toHaveBeenCalledOnce();
     });
 
-    it('should call CaptchaService.init when init is called', () => {
+    it('should initialize automatically on mount', () => {
       const { result } = renderHook(() => useInitCaptcha());
-
-      act(() => {
-        result.current.init();
-      });
 
       expect(CaptchaService.init).toHaveBeenCalledOnce();
-      expect(result.current.cap.current).toBe(mockCap);
+      expect(result.current.current).toBe(mockCap);
     });
 
-    it('should maintain cap instance after init', () => {
+    it('should maintain cap instance after initialization', () => {
       const { result } = renderHook(() => useInitCaptcha());
 
-      act(() => {
-        result.current.init();
-      });
-
-      expect(result.current.cap.current).toBe(mockCap);
-      expect(result.current.cap.current).not.toBe(null);
+      expect(result.current.current).toBe(mockCap);
+      expect(result.current.current).not.toBe(null);
     });
 
-    it('should handle multiple init calls', () => {
+    it('should only initialize once per hook instance', () => {
       const { result } = renderHook(() => useInitCaptcha());
 
-      act(() => {
-        result.current.init();
-        result.current.init();
-      });
-
-      expect(CaptchaService.init).toHaveBeenCalledTimes(2);
-      expect(result.current.cap.current).toBe(mockCap);
+      expect(CaptchaService.init).toHaveBeenCalledOnce();
+      expect(result.current.current).toBe(mockCap);
     });
   });
 
@@ -71,12 +59,8 @@ describe('useInitCaptcha', () => {
         throw error;
       });
 
-      const { result } = renderHook(() => useInitCaptcha());
-
       expect(() => {
-        act(() => {
-          result.current.init();
-        });
+        renderHook(() => useInitCaptcha());
       }).toThrow('Initialization failed');
 
       expect(CaptchaService.init).toHaveBeenCalledOnce();
@@ -87,39 +71,23 @@ describe('useInitCaptcha', () => {
         throw new Error('Initialization failed');
       });
 
-      const { result } = renderHook(() => useInitCaptcha());
-
       expect(() => {
-        act(() => {
-          result.current.init();
-        });
+        renderHook(() => useInitCaptcha());
       }).toThrow();
 
-      expect(result.current.cap.current).toBe(null);
+      expect(CaptchaService.init).toHaveBeenCalledOnce();
     });
   });
 
   describe('hook stability', () => {
-    it('should provide stable init function reference', () => {
-      const { result, rerender } = renderHook(() => useInitCaptcha());
-
-      const firstInit = result.current.init;
-
-      rerender();
-
-      const secondInit = result.current.init;
-
-      expect(firstInit).toBe(secondInit);
-    });
-
     it('should provide stable cap ref across renders', () => {
       const { result, rerender } = renderHook(() => useInitCaptcha());
 
-      const firstCapRef = result.current.cap;
+      const firstCapRef = result.current;
 
       rerender();
 
-      const secondCapRef = result.current.cap;
+      const secondCapRef = result.current;
 
       expect(firstCapRef).toBe(secondCapRef);
     });
@@ -127,26 +95,18 @@ describe('useInitCaptcha', () => {
     it('should maintain cap instance across rerenders', () => {
       const { result, rerender } = renderHook(() => useInitCaptcha());
 
-      act(() => {
-        result.current.init();
-      });
-
-      const capAfterInit = result.current.cap.current;
+      const capAfterInit = result.current.current;
 
       rerender();
 
-      expect(result.current.cap.current).toBe(capAfterInit);
-      expect(result.current.cap.current).toBe(mockCap);
+      expect(result.current.current).toBe(capAfterInit);
+      expect(result.current.current).toBe(mockCap);
     });
   });
 
   describe('service integration', () => {
     it('should pass correct parameters to CaptchaService.init', () => {
-      const { result } = renderHook(() => useInitCaptcha());
-
-      act(() => {
-        result.current.init();
-      });
+      renderHook(() => useInitCaptcha());
 
       expect(CaptchaService.init).toHaveBeenCalledWith();
       expect(CaptchaService.init).toHaveBeenCalledTimes(1);
@@ -158,12 +118,39 @@ describe('useInitCaptcha', () => {
 
       const { result } = renderHook(() => useInitCaptcha());
 
+      expect(result.current.current).toBe(customMockCap);
+      expect(result.current.current).toEqual(customMockCap);
+    });
+  });
+
+  describe('captcha disabled', () => {
+    it('should not initialize when captcha is disabled', () => {
+      vi.stubEnv('VITE_CAPTCHA_ENABLED', 'false');
+
+      const { result } = renderHook(() => useInitCaptcha());
+
+      expect(CaptchaService.init).not.toHaveBeenCalled();
+      expect(result.current.current).toBe(null);
+    });
+  });
+
+  describe('cleanup functionality', () => {
+    it('should reset the captcha instance on unmount', () => {
+      // Mock document.querySelectorAll
+      const mockRemove = vi.fn();
+      const mockElements = [{ remove: mockRemove }];
+      vi.spyOn(document, 'querySelectorAll').mockReturnValue(
+        mockElements as any,
+      );
+
+      const { unmount } = renderHook(() => useInitCaptcha());
+
       act(() => {
-        result.current.init();
+        unmount();
       });
 
-      expect(result.current.cap.current).toBe(customMockCap);
-      expect(result.current.cap.current).toEqual(customMockCap);
+      expect(CaptchaService.reset).toHaveBeenCalledWith(mockCap);
+      expect(mockRemove).toHaveBeenCalled();
     });
   });
 });

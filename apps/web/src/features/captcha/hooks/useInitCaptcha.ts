@@ -1,4 +1,4 @@
-import { useCallback, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import type Cap from '@cap.js/widget';
 import { CaptchaService } from '../service/CaptchaService';
 
@@ -26,9 +26,13 @@ export const useInitCaptcha = () => {
     }
   }, []);
 
-  return {
-    cap,
-    init,
-    reset,
-  };
+  useEffect(() => {
+    init();
+
+    return () => {
+      reset();
+    };
+  }, [init, reset]);
+
+  return cap;
 };
