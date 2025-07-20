@@ -1,4 +1,3 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import type { Express, Request, Response } from 'express';
 import { CustomError, CustomErrorType } from '@mono/common-dto';
 import { CaptchaController } from '../CaptchaController.js';

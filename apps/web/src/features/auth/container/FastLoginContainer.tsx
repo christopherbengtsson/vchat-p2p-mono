@@ -1,9 +1,9 @@
+import { useMemo, useState } from 'react';
 import { Link } from 'react-router';
+import type Cap from '@cap.js/widget';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { toast } from 'sonner';
-import { useState } from 'react';
 import { Checkbox } from '@/common/components/ui/checkbox';
 import {
   Form,
@@ -17,7 +17,7 @@ import {
 import { FastLoginButton } from '../component/FastLoginButton';
 import { useLogins } from '../hooks/useLogins';
 import { RoutePath } from '../../../RoutePath';
-import { useCaptcha } from '../../captcha/hooks/useCaptcha';
+import { useSolveCaptcha } from '../../captcha/hooks/useSolveCaptcha';
 
 const FormSchema = z.object({
   termsOfService: z.boolean().refine((val) => val, {
@@ -25,9 +25,13 @@ const FormSchema = z.object({
   }),
 });
 
-export function FastLoginContainer() {
+export function FastLoginContainer({
+  capRef,
+}: {
+  capRef: React.RefObject<Cap | null>;
+}) {
   const { loginAnonymouslyMutation } = useLogins();
-  const { solveAndVerifyCaptcha, captchaLoading } = useCaptcha();
+  const { solve, isSolving } = useSolveCaptcha();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<z.infer<typeof FormSchema>>({
@@ -37,14 +41,23 @@ export function FastLoginContainer() {
     },
   });
 
+  const loadingText = useMemo(() => {
+    if (isSolving) {
+      return 'Verifying...';
+    } else if (isSubmitting || loginAnonymouslyMutation.isPending) {
+      return 'Registering...';
+    }
+
+    return 'Loading...';
+  }, [isSolving, isSubmitting, loginAnonymouslyMutation.isPending]);
+
   const onSubmit = async () => {
     setIsSubmitting(true);
 
-    const captchaResult = await solveAndVerifyCaptcha();
+    const captchaResult = await solve(capRef?.current);
 
     if (!captchaResult.success) {
       setIsSubmitting(false);
-      toast.error(captchaResult.errorMessage);
       return;
     }
 
@@ -60,8 +73,9 @@ export function FastLoginContainer() {
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <FastLoginButton
           isLoading={
-            isSubmitting || loginAnonymouslyMutation.isPending || captchaLoading
+            isSubmitting || loginAnonymouslyMutation.isPending || isSolving
           }
+          loadingText={loadingText}
         />
         <FormField
           control={form.control}

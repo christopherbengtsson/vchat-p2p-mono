@@ -6,10 +6,13 @@ import {
   CardTitle,
 } from '@/common/components/ui/card';
 import { OrDivider } from '@/common/components/or-divider/OrDivider';
+import { useInitCaptcha } from '../../captcha/hooks/useInitCaptcha';
 import { EmailLoginFormContainer } from './EmailLoginFormContainer';
 import { FastLoginContainer } from './FastLoginContainer';
 
 export function AuthFormContainer() {
+  const cap = useInitCaptcha();
+
   return (
     <Card className="w-[350px]">
       <CardHeader>
@@ -20,11 +23,11 @@ export function AuthFormContainer() {
       </CardHeader>
       <CardContent className="p-6">
         <div className="w-full max-w-sm flex flex-col items-center gap-4">
-          <EmailLoginFormContainer />
+          <EmailLoginFormContainer capRef={cap} />
 
           <OrDivider />
 
-          <FastLoginContainer />
+          <FastLoginContainer capRef={cap} />
         </div>
       </CardContent>
     </Card>
