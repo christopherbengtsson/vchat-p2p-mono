@@ -32,3 +32,13 @@ export const DEBUG = {
   SHOW_HITBOX: import.meta.env.DEV,
   HITBOX_COLOR: 'rgba(255, 0, 0, 0.5)',
 };
+
+// Pre-calculated performance optimizations
+export const PERFORMANCE = {
+  // Pre-calculated audio throttle interval (33ms for 30fps)
+  AUDIO_THROTTLE_MS: 33,
+  // Pre-calculated canvas stream frame rate for WebRTC
+  CANVAS_STREAM_FPS: 15,
+  // Object pooling - pre-allocate pipes to avoid GC pressure
+  PIPE_POOL_SIZE: 20,
+};

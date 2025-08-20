@@ -8,7 +8,7 @@ export const Canvas: React.FC<CanvasProps> = ({ canvasRef }) => {
   return (
     <canvas
       ref={canvasRef}
-      className="w-full h-full touch-none select-none opacity-80"
+      className="w-full h-full touch-none select-none"
       aria-label="Fly between the pipes with your voice pitch"
       role="img"
       tabIndex={-1}

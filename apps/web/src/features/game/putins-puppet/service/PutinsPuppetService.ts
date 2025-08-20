@@ -2,6 +2,7 @@ import { Assert, CustomError, Maybe } from '@mono/common-dto';
 import { WebRTCService } from '@mono/fe-webrtc';
 import { MediaStreamService } from '@/common/service/MediaStreamService';
 import { mediaStore } from '@/stores/MediaStore';
+import { PERFORMANCE } from '../model/constants';
 import { AudioFrequencyService } from './AudioFrequencyService';
 
 let _audioFrequencyService: Maybe<AudioFrequencyService>;
@@ -70,7 +71,7 @@ const startCanvasStream = (
 
   try {
     const webRTCInstance = _getWebRTCInstance();
-    const stream = canvasElement.captureStream(30);
+    const stream = canvasElement.captureStream(PERFORMANCE.CANVAS_STREAM_FPS);
     webRTCInstance.addCanvasStream(stream);
     return stream;
   } catch (error) {

@@ -10,10 +10,18 @@ interface Heart {
   visible: boolean;
 }
 
+interface CachedHeartData {
+  dimensions: { width: number; height: number }[];
+  positions: { x: number; y: number }[];
+  playerWidth: number;
+  playerHeight: number;
+}
+
 // State
 let hearts: Heart[] = [];
 let animationFrame = -1; // -1 means animation hasn't started
 let animationComplete = false;
+let cachedHeartData: CachedHeartData | null = null;
 
 /**
  * Initializes the heart animation sequence
@@ -42,6 +50,7 @@ const resetHeartAnimation = () => {
   hearts = [];
   animationFrame = -1;
   animationComplete = false;
+  cachedHeartData = null;
 };
 
 /**
@@ -122,45 +131,69 @@ const drawHearts = (
     playerX + playerWidth / 2 + HEART_ANIMATION.OFFSET_X * playerWidth;
   const heartBaseY = playerY + HEART_ANIMATION.OFFSET_Y * playerHeight;
 
-  // Calculate heart dimensions for each heart
-  const heartDimensions = hearts.map((heart) => {
-    const heartCoords = heart.blinking
-      ? ASSETS.COORDS.PUTIN_HEART_BLINK
-      : ASSETS.COORDS.PUTIN_HEART;
+  // Use cached calculations if player dimensions haven't changed
+  let heartDimensions: { width: number; height: number }[];
+  let positions: { x: number; y: number }[];
 
-    const aspectRatio = heartCoords.width / heartCoords.height;
-    const heartWidth = playerWidth * heart.size;
-    const heartHeight = heartWidth / aspectRatio;
+  if (
+    cachedHeartData &&
+    cachedHeartData.playerWidth === playerWidth &&
+    cachedHeartData.playerHeight === playerHeight
+  ) {
+    heartDimensions = cachedHeartData.dimensions;
+    // Apply cached relative positions to current base position
+    positions = cachedHeartData.positions.map((pos) => ({
+      x: pos.x + heartBaseX,
+      y: pos.y + heartBaseY,
+    }));
+  } else {
+    // Calculate heart dimensions for each heart
+    heartDimensions = hearts.map((heart) => {
+      const heartCoords = ASSETS.COORDS.PUTIN_HEART;
+      const aspectRatio = heartCoords.width / heartCoords.height;
+      const heartWidth = playerWidth * heart.size;
+      const heartHeight = heartWidth / aspectRatio;
+      return { width: heartWidth, height: heartHeight };
+    });
 
-    return { width: heartWidth, height: heartHeight };
-  });
+    // Calculate positions with dynamic spacing and horizontal offset
+    positions = [];
 
-  // Calculate positions with dynamic spacing and horizontal offset
-  const positions = [];
+    // Calculate positions from bottom to top with horizontal offset
+    for (let i = 0; i < hearts.length; i++) {
+      let currentY = heartBaseY;
+      let currentX = heartBaseX;
 
-  // Calculate positions from bottom to top with horizontal offset
-  for (let i = 0; i < hearts.length; i++) {
-    let currentY = heartBaseY;
-    let currentX = heartBaseX;
+      // Apply vertical spacing for hearts above the first one
+      for (let j = 0; j < i; j++) {
+        // Calculate spacing based on the sizes of adjacent hearts
+        const lowerHeartHeight = heartDimensions[j].height;
+        const upperHeartHeight = heartDimensions[j + 1].height;
 
-    // Apply vertical spacing for hearts above the first one
-    for (let j = 0; j < i; j++) {
-      // Calculate spacing based on the sizes of adjacent hearts
-      const lowerHeartHeight = heartDimensions[j].height;
-      const upperHeartHeight = heartDimensions[j + 1].height;
+        // Use average height for spacing calculation
+        const averageHeight = (lowerHeartHeight + upperHeartHeight) / 2;
+        const spacing = HEART_ANIMATION.BASE_VERTICAL_SPACING * averageHeight;
 
-      // Use average height for spacing calculation
-      const averageHeight = (lowerHeartHeight + upperHeartHeight) / 2;
-      const spacing = HEART_ANIMATION.BASE_VERTICAL_SPACING * averageHeight;
+        // Move up by the spacing amount
+        currentY -= spacing;
 
-      // Move up by the spacing amount
-      currentY -= spacing;
+        // Move right by the horizontal offset
+        currentX += HEART_ANIMATION.HORIZONTAL_OFFSET_PER_HEART * playerWidth;
+      }
 
-      // Move right by the horizontal offset
-      currentX += HEART_ANIMATION.HORIZONTAL_OFFSET_PER_HEART * playerWidth;
+      positions.push({ x: currentX, y: currentY });
     }
 
-    positions.push({ x: currentX, y: currentY });
+    // Cache the calculations
+    cachedHeartData = {
+      dimensions: heartDimensions,
+      positions: positions.map((pos) => ({
+        x: pos.x - heartBaseX,
+        y: pos.y - heartBaseY,
+      })),
+      playerWidth,
+      playerHeight,
+    };
   }
 
   // Draw hearts from smallest to largest (bottom to top)

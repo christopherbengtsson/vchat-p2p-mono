@@ -5,7 +5,7 @@ const convertToImageData = (
   element: HTMLImageElement | HTMLVideoElement | HTMLCanvasElement,
 ): ImageData => {
   const canvas = document.createElement('canvas');
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext('2d', { alpha: false });
 
   if (!ctx) {
     throw new Error('Could not get 2D context from canvas');
@@ -82,7 +82,7 @@ const captureVideoFrame = (() => {
       lastHeight = targetHeight;
     }
 
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d', { alpha: false });
     if (ctx) {
       ctx.drawImage(videoElement, 0, 0, targetWidth, targetHeight);
     }

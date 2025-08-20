@@ -234,7 +234,6 @@ sequenceDiagram
 ## Implementation Details
 
 1. **Game Engine Architecture**:
-
    - **GameStore**: Generic state store used by all games
    - **GameEngineContainer**: Wraps games inside a GameStore provider
    - **useGameEngine**: Core hook that manages state transitions and communication
@@ -242,14 +241,12 @@ sequenceDiagram
    - **Game-specific services**: Implement game-specific functionality
 
 2. **Dependency Injection Pattern**:
-
    - Each game provides its own implementation for:
      - prepareGame: Initializes game-specific resources
      - disposables.roundDispose: Cleans up after each round
      - disposables.gameDispose: Cleans up when the game ends
 
 3. **Game Flow**:
-
    - Game starts in IDLE with one player having isMyTurn=true
    - That player's game transitions to PREPARE_ROUND automatically
    - After confirmation, it transitions to ROUND_START → PLAYER_TURN
@@ -259,7 +256,6 @@ sequenceDiagram
    - Repeats until all rounds complete, then GAME_OVER
 
 4. **Implementing a New Game**:
-
    - Create a game-specific service (like PutinsPuppetService)
    - Create a game-specific hook (like usePutinsPuppet) that configures useGameEngine
    - Implement game-specific UI components

@@ -3,6 +3,7 @@ export interface Pipe {
   y: number;
   width: number;
   height: number;
-  passed?: boolean;
-  isUpperPipe?: boolean;
+  passed: boolean;
+  isUpperPipe: boolean;
+  active: boolean;
 }

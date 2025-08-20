@@ -1,5 +1,3 @@
-import type { Pipe } from './Pipe';
-
 export interface ScaleFactor {
   widthScale: number;
   heightScale: number;
@@ -12,7 +10,6 @@ export interface DrawProps {
   ctx: CanvasRenderingContext2D;
   xPos: number;
   yPos: number;
-  pipes: Pipe[];
   scaleFactor: ScaleFactor;
   velocity: number;
   pipeSpeed: number;
@@ -20,4 +17,5 @@ export interface DrawProps {
 
   isDead: boolean;
   deathFrames: number;
+  playerSize?: number;
 }

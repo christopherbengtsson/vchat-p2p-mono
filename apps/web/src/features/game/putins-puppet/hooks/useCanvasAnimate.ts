@@ -5,6 +5,7 @@ import type { ScaleFactor } from '../model/DrawProps';
 import {
   BASE_PLAYER_SIZE_PERCENT,
   PLAYER_X_POS_MULTIPLIER,
+  PERFORMANCE,
 } from '../model/constants';
 import { CanvasUtil } from '../util/CanvasUtil';
 import { AssetService } from '../service/AssetService';
@@ -34,16 +35,51 @@ export const useCanvasAnimate = ({
 }: In) => {
   const requestRef = useRef<number>(null);
   const frameCountRef = useRef<number>(0);
-
   const heartAnimationStartedRef = useRef<boolean>(false);
-
-  const pipesRef = useRef<Pipe[]>([]);
   const pipesPassedRef = useRef<number>(0);
-
   const playerXRef = useRef<number>(0);
   const playerYRef = useRef<number>(0);
-
   const velocityRef = useRef<number>(0);
+
+  const lastPitchTimeRef = useRef<number>(0);
+  const cachedPitchRef = useRef<Maybe<[number, number]>>(null);
+
+  // Cache frequently calculated values per frame
+  const frameDataRef = useRef<{
+    canvasWidth: number;
+    canvasHeight: number;
+    playerSize: number;
+    playerSizePercent: number;
+    playerX: number;
+  } | null>(null);
+
+  // Reusable collision parameters object to reduce allocations
+  const collisionParamsRef = useRef({
+    playerX: 0,
+    playerY: 0,
+    playerWidth: 0,
+    playerHeight: 0,
+    pipes: [] as Pipe[],
+    canvasWidth: 0,
+    scaleFactor: scaleFactor,
+  });
+
+  const getThrottledPitch = useCallback((): Maybe<[number, number]> => {
+    const currentTime = performance.now();
+
+    // Only get new pitch data every 33ms (30fps) instead of every 16ms (60fps)
+    if (
+      currentTime - lastPitchTimeRef.current <
+      PERFORMANCE.AUDIO_THROTTLE_MS
+    ) {
+      return cachedPitchRef.current;
+    }
+
+    const pitchData = getPitch();
+    cachedPitchRef.current = pitchData;
+    lastPitchTimeRef.current = currentTime;
+    return pitchData;
+  }, [getPitch]);
 
   const {
     initDeathAnimation,
@@ -66,13 +102,14 @@ export const useCanvasAnimate = ({
 
     cancelAnimationFrame(requestRef.current);
     CanvasDrawService.clearCache();
+    CanvasPipeService.resetPipes();
     onGameOver();
   }, [onGameOver]);
 
   const animate = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d', { alpha: false });
     if (!ctx) return;
 
     if (!AssetService.areAssetsReady()) {
@@ -80,10 +117,26 @@ export const useCanvasAnimate = ({
       return;
     }
 
+    // Cache frame data calculations once per frame
     const canvasWidth = canvas.width / scaleFactor.devicePixelRatio;
+    const canvasHeight = canvas.height / scaleFactor.devicePixelRatio;
+    const playerSizePercent = CanvasUtil.getScaledValue(
+      BASE_PLAYER_SIZE_PERCENT,
+      scaleFactor,
+    );
+    const playerSize = canvasWidth * playerSizePercent;
+    const playerX = canvasWidth * PLAYER_X_POS_MULTIPLIER;
+
+    frameDataRef.current = {
+      canvasWidth,
+      canvasHeight,
+      playerSize,
+      playerSizePercent,
+      playerX,
+    };
 
     // Update player X position for reference (used in death animation)
-    playerXRef.current = canvasWidth * PLAYER_X_POS_MULTIPLIER;
+    playerXRef.current = playerX;
 
     // Start heart animation if it hasn't started yet and game is not over
     if (!heartAnimationStartedRef.current && !isDeadRef.current) {
@@ -94,11 +147,12 @@ export const useCanvasAnimate = ({
     if (!isDeadRef.current) {
       CanvasHeartService.updateHeartAnimation();
 
-      const pitchData = getPitch();
+      const pitchData = getThrottledPitch();
       if (pitchData) {
         CanvasPlayerService.updatePlayerPosition(
           pitchData,
-          canvas,
+          frameDataRef.current.canvasHeight,
+          frameDataRef.current.playerSize,
           playerYRef,
           velocityRef,
           scaleFactor,
@@ -107,38 +161,36 @@ export const useCanvasAnimate = ({
 
       CanvasPipeService.addPipe(
         frameCountRef,
-        pipesRef,
-        canvas,
+        frameDataRef.current.canvasWidth,
+        frameDataRef.current.canvasHeight,
+        frameDataRef.current.playerSize,
         scaleFactor,
         pipesPassedRef,
       );
 
       CanvasPipeService.movePipes(
-        pipesRef,
         pipesPassedRef,
         scaleFactor,
-        canvasWidth,
+        frameDataRef.current.canvasWidth,
       );
 
-      CanvasPipeService.removePipes(pipesRef);
+      CanvasPipeService.removePipes();
 
-      // Check for collisions
-      const playerSizePercent = CanvasUtil.getScaledValue(
-        BASE_PLAYER_SIZE_PERCENT,
-        scaleFactor,
-      );
-      const playerSize = canvasWidth * playerSizePercent;
-      const playerX = playerXRef.current;
+      // Check for collisions using cached values and reusable params object
+      const frameData = frameDataRef.current;
+      if (!frameData) return;
 
-      const pipeHit = CanvasCollisionService.isCollision({
-        playerX,
-        playerY: playerYRef.current,
-        playerWidth: playerSize,
-        playerHeight: playerSize,
-        pipes: pipesRef.current,
-        canvasWidth,
-        scaleFactor,
-      });
+      // Update reusable collision params object instead of creating new one
+      const collisionParams = collisionParamsRef.current;
+      collisionParams.playerX = frameData.playerX;
+      collisionParams.playerY = playerYRef.current;
+      collisionParams.playerWidth = frameData.playerSize;
+      collisionParams.playerHeight = frameData.playerSize;
+      collisionParams.pipes = CanvasPipeService.getActivePipes();
+      collisionParams.canvasWidth = frameData.canvasWidth;
+      collisionParams.scaleFactor = scaleFactor;
+
+      const pipeHit = CanvasCollisionService.isCollision(collisionParams);
 
       if (pipeHit) {
         initDeathAnimation();
@@ -146,6 +198,7 @@ export const useCanvasAnimate = ({
         handleScoreUpdate(pipesPassedRef.current);
       }
     } else {
+      // Skip expensive frame data calculations when dead - only animate death
       const animationFinished = animateDeath();
       const soundFinished = !endAudioRef.current
         ? true
@@ -157,18 +210,19 @@ export const useCanvasAnimate = ({
       }
     }
 
-    // Draw the current frame
+    // Draw the current frame - reuse cached frame data when possible
+    const frameData = frameDataRef.current;
     CanvasDrawService.drawCanvas({
       ctx,
-      xPos: playerXRef.current,
+      xPos: frameData ? frameData.playerX : playerXRef.current,
       yPos: playerYRef.current,
-      pipes: pipesRef.current,
       scaleFactor,
       velocity: velocityRef.current,
       pipeSpeed: CanvasPipeService.getPipeSpeed(pipesPassedRef, scaleFactor),
       frameCount: frameCountRef.current,
       isDead: isDeadRef.current,
       deathFrames: deathAnimationFramesRef.current,
+      playerSize: frameData?.playerSize,
     });
 
     // Schedule next frame
@@ -178,7 +232,7 @@ export const useCanvasAnimate = ({
     scaleFactor,
     isDeadRef,
     deathAnimationFramesRef,
-    getPitch,
+    getThrottledPitch,
     initDeathAnimation,
     handleScoreUpdate,
     animateDeath,
@@ -197,10 +251,11 @@ export const useCanvasAnimate = ({
         canvasRef.current.width / scaleFactor.devicePixelRatio;
       playerXRef.current = canvasWidth * PLAYER_X_POS_MULTIPLIER;
     }
-  }, [playerYRef, canvasRef, scaleFactor]);
+  }, [canvasRef, scaleFactor]);
 
-  // Render game
+  // Initialize pool and render game
   useEffect(() => {
+    CanvasPipeService.initializePool();
     requestRef.current = requestAnimationFrame(animate);
 
     return () => {
@@ -208,5 +263,5 @@ export const useCanvasAnimate = ({
         cancelAnimationFrame(requestRef.current);
       }
     };
-  }, [animate, deathAnimationFramesRef, isDeadRef]);
+  }, [animate]);
 };
