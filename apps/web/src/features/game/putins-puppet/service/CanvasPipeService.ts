@@ -4,7 +4,6 @@ import {
   PIPE_FREQUENCY,
   PIPE_GAP_MULTIPLIER,
   BASE_PIPE_WIDTH_PERCENT,
-  PLAYER_WIDTH_PERCENT,
   ASSETS,
   DEBUG,
   MAX_PIPE_FREQUENCY,
@@ -13,14 +12,16 @@ import { ScaleFactor } from '../model/DrawProps';
 import { Pipe } from '../model/Pipe';
 import { CanvasUtil } from '../util/CanvasUtil';
 import { CanvasCacheService, MAX_CACHE_SIZE } from './CanvasCacheService';
+import { PipePoolService } from './PipePoolService';
 
 /**
  * Adds a new pipe pair to the game
  */
 const addPipe = (
   frameCountRef: React.RefObject<number>,
-  pipesRef: React.RefObject<Pipe[]>,
-  canvas: HTMLCanvasElement,
+  canvasWidth: number,
+  canvasHeight: number,
+  playerSize: number,
   scaleFactor: ScaleFactor,
   scoreRef: React.RefObject<number>,
 ) => {
@@ -33,50 +34,29 @@ const addPipe = (
   );
 
   if (frameCountRef.current % actualFrequency === 0) {
-    const canvasWidth = canvas.width / scaleFactor.devicePixelRatio;
-    const canvasHeight = canvas.height / scaleFactor.devicePixelRatio;
-
     const pipeWidthPercent = CanvasUtil.getScaledValue(
       BASE_PIPE_WIDTH_PERCENT,
       scaleFactor,
     );
     const pipeWidth = canvasWidth * pipeWidthPercent;
 
-    const playerWidthPercent = CanvasUtil.getScaledValue(
-      PLAYER_WIDTH_PERCENT,
-      scaleFactor,
-    );
-
-    const playerWidth =
-      (canvas.width / scaleFactor.devicePixelRatio) * playerWidthPercent;
-
-    const pipeGap = playerWidth * PIPE_GAP_MULTIPLIER;
+    const pipeGap = playerSize * PIPE_GAP_MULTIPLIER;
 
     // Ensure minimum gap position accounts for player height
-    const minGapY = playerWidth;
-    const maxGapY = canvasHeight - pipeGap - playerWidth;
+    const minGapY = playerSize;
+    const maxGapY = canvasHeight - pipeGap - playerSize;
 
     const gapY = Math.random() * (maxGapY - minGapY) + minGapY;
 
-    // Top pipe
-    pipesRef.current.push({
-      x: canvasWidth,
-      y: 0,
-      width: pipeWidth,
-      height: gapY,
-      passed: false,
-      isUpperPipe: true,
-    });
-
-    // Bottom pipe
-    pipesRef.current.push({
-      x: canvasWidth,
-      y: gapY + pipeGap,
-      width: pipeWidth,
-      height: canvasHeight - (gapY + pipeGap),
-      passed: false,
-      isUpperPipe: false,
-    });
+    // Acquire pipes from pool instead of creating new objects
+    PipePoolService.acquire(canvasWidth, 0, pipeWidth, gapY, true);
+    PipePoolService.acquire(
+      canvasWidth,
+      gapY + pipeGap,
+      pipeWidth,
+      canvasHeight - (gapY + pipeGap),
+      false,
+    );
   }
 };
 
@@ -84,16 +64,15 @@ const addPipe = (
  * Moves all pipes and updates score when pipes are passed
  */
 const movePipes = (
-  pipesRef: React.RefObject<Pipe[]>,
   pipesPassedRef: React.RefObject<number>,
   scaleFactor: ScaleFactor,
   canvasWidth: number,
 ) => {
   const speed = getPipeSpeed(pipesPassedRef, scaleFactor);
   const playerX = canvasWidth * PLAYER_X_POS_MULTIPLIER;
+  const activePipes = PipePoolService.getActivePipes();
 
-  for (let i = 0; i < pipesRef.current.length; i++) {
-    const pipe = pipesRef.current[i];
+  for (const pipe of activePipes) {
     pipe.x -= speed;
 
     // Check if pipe has passed the player - only count upper pipes to avoid double counting
@@ -111,8 +90,15 @@ const movePipes = (
 /**
  * Removes pipes that are off-screen
  */
-const removePipes = (pipesRef: React.RefObject<Pipe[]>) => {
-  pipesRef.current = pipesRef.current.filter((pipe) => pipe.x + pipe.width > 0);
+const removePipes = () => {
+  const activePipes = PipePoolService.getActivePipes();
+
+  // Deactivate pipes that are off-screen instead of removing them
+  for (const pipe of activePipes) {
+    if (pipe.x + pipe.width <= 0) {
+      PipePoolService.release(pipe);
+    }
+  }
 };
 
 /**
@@ -317,16 +303,13 @@ const drawUpperPipe = (
 /**
  * Draws all pipes with hitboxes if debug mode is enabled
  */
-const drawPipes = (
-  ctx: CanvasRenderingContext2D,
-  pipes: Pipe[],
-  scaleFactor: ScaleFactor,
-) => {
+const drawPipes = (ctx: CanvasRenderingContext2D, scaleFactor: ScaleFactor) => {
   const tilesImage = ASSETS.TILES;
 
   if (!tilesImage.complete) return;
 
-  pipes.forEach((pipe) => {
+  const activePipes = PipePoolService.getActivePipes();
+  activePipes.forEach((pipe) => {
     const cacheKey = `${pipe.isUpperPipe ? 'upper' : 'lower'}_${Math.round(pipe.width)}_${Math.round(pipe.height)}`;
     const pipeDimensions = {
       width: pipe.width,
@@ -443,6 +426,18 @@ const getPipeDimensions = (pipe: Pipe) => {
   };
 };
 
+const getActivePipes = (): Pipe[] => {
+  return PipePoolService.getActivePipes();
+};
+
+const initializePool = () => {
+  PipePoolService.initialize();
+};
+
+const resetPipes = () => {
+  PipePoolService.reset();
+};
+
 export const CanvasPipeService = {
   addPipe,
   movePipes,
@@ -452,4 +447,7 @@ export const CanvasPipeService = {
   drawUpperPipe,
   drawLowerPipe,
   getPipeDimensions,
+  getActivePipes,
+  initializePool,
+  resetPipes,
 };

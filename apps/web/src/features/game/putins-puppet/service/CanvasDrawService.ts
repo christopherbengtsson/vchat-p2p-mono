@@ -22,13 +22,13 @@ const drawCanvas = ({
   ctx,
   xPos,
   yPos,
-  pipes,
   scaleFactor,
   velocity,
   pipeSpeed,
   frameCount,
   isDead = false,
   deathFrames = 0,
+  playerSize,
 }: DrawProps) => {
   // Skip rendering if assets aren't loaded
   if (!areAssetsReady()) return;
@@ -72,14 +72,13 @@ const drawCanvas = ({
   CanvasCloudService.drawClouds(ctx, scaleFactor);
 
   // Draw pipes
-  CanvasPipeService.drawPipes(ctx, pipes, scaleFactor);
+  CanvasPipeService.drawPipes(ctx, scaleFactor);
 
-  // Calculate player dimensions
-  const playerSizePercent = CanvasUtil.getScaledValue(
-    BASE_PLAYER_SIZE_PERCENT,
-    scaleFactor,
-  );
-  const playerWidth = logicalWidth * playerSizePercent;
+  // Use pre-calculated player dimensions
+  const playerWidth =
+    playerSize ||
+    logicalWidth *
+      CanvasUtil.getScaledValue(BASE_PLAYER_SIZE_PERCENT, scaleFactor);
 
   // Calculate player position
   const playerX =
@@ -99,7 +98,7 @@ const drawCanvas = ({
 
   // Draw hearts animation
   if (!isDead) {
-    // Calculate player height based on aspect ratio
+    // Use pre-calculated player height to avoid recalculating aspect ratio
     const playerCoords = ASSETS.COORDS.TRUMP;
     const aspectRatio = playerCoords.width / playerCoords.height;
     const playerHeight = playerWidth / aspectRatio;

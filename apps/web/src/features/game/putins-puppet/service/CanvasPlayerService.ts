@@ -1,6 +1,5 @@
 import {
   GRAVITY,
-  BASE_PLAYER_SIZE_PERCENT,
   SMOOTHING_FACTOR,
   ASSETS,
   DEBUG,
@@ -17,20 +16,12 @@ import { CanvasCacheService, MAX_CACHE_SIZE } from './CanvasCacheService';
  */
 const updatePlayerPosition = (
   [pitch, clarity]: [number, number],
-  canvas: HTMLCanvasElement,
+  canvasHeight: number,
+  playerSize: number,
   playerYRef: React.RefObject<number>,
   velocityRef: React.RefObject<number>,
   scaleFactor: ScaleFactor,
 ) => {
-  const canvasWidth = canvas.width / scaleFactor.devicePixelRatio;
-  const canvasHeight = canvas.height / scaleFactor.devicePixelRatio;
-
-  const playerSizePercent = CanvasUtil.getScaledValue(
-    BASE_PLAYER_SIZE_PERCENT,
-    scaleFactor,
-  );
-  const playerSize = canvasWidth * playerSizePercent;
-
   const maxY = canvasHeight - playerSize;
   const scaledGravity = GRAVITY * scaleFactor.heightScale;
 

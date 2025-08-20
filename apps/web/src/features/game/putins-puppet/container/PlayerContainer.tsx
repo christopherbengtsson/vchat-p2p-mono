@@ -3,6 +3,7 @@ import { observer } from 'mobx-react';
 import { Canvas } from '../component/Canvas';
 import { useCanvasAnimate } from '../hooks/useCanvasAnimate';
 import { useCanvasResize } from '../hooks/useCanvasResize';
+import { useToggleRemoteVideoElement } from '../hooks/useToggleRemoteVideoElement';
 import { PutinsPuppetService } from '../service/PutinsPuppetService';
 import { RandomTrumpSound } from '../component/RandomTrumpSound';
 import { GameTitle } from '../component/GameTitle';
@@ -23,6 +24,8 @@ export const PlayerContainer = observer(function PlayerContainer({
   const containerRef = useRef<HTMLDivElement>(null);
   const startAudioRef = useRef<HTMLAudioElement>(null);
   const endAudioRef = useRef<HTMLAudioElement>(null);
+
+  useToggleRemoteVideoElement();
 
   const getPitch = useCallback(() => PutinsPuppetService.getPitch(), []);
 

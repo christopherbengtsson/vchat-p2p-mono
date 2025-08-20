@@ -46,15 +46,20 @@ const isCollision = ({
     height: playerHeight || playerSize,
   };
 
-  // Broad-phase: Only check pipes that are close to the player
-  const relevantPipes = pipes.filter((pipe) => {
-    const roundedPipeX = Math.round(pipe.x);
-    // Only check pipes that are within a reasonable range
-    return (
-      roundedPipeX + pipe.width >= roundedPlayerX - playerSize &&
-      roundedPipeX <= roundedPlayerX + playerSize * 2
-    );
-  });
+  // Broad-phase: Only check pipes that are close to the player (optimized for performance)
+  const relevantPipes = [];
+  const playerLeft = roundedPlayerX - playerSize;
+  const playerRight = roundedPlayerX + playerSize * 2;
+
+  for (const pipe of pipes) {
+    const pipeX = pipe.x;
+    const pipeRight = pipeX + pipe.width;
+
+    // Skip pipes that are clearly out of range without expensive Math.round calls
+    if (pipeRight >= playerLeft && pipeX <= playerRight) {
+      relevantPipes.push(pipe);
+    }
+  }
 
   // Narrow-phase: Check actual collisions
   for (const pipe of relevantPipes) {

@@ -1,18 +1,10 @@
-import { action, observable, onBecomeUnobserved } from 'mobx';
+import { action, observable } from 'mobx';
 
 export class MediaStore {
   @observable.ref accessor localAudioGameStream: MediaStream | null = null;
   @observable.ref accessor localCallStream: MediaStream | null = null;
   @observable accessor localVideoEnabled = true;
   @observable accessor localAudioEnabled = true;
-
-  constructor() {
-    onBecomeUnobserved(
-      this,
-      'localAudioGameStream',
-      this.closeLocalGameAudioStream,
-    );
-  }
 
   @action
   setGameAudioStream = (stream: MediaStream) => {

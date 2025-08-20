@@ -15,13 +15,29 @@ interface Props {
   setGameActive: (val: boolean) => void;
 }
 
-const toggleMicrophone = (micEnabled: boolean) => {
-  // Only control call audio stream for communication/muting opponents
+const toggleLocalMicrophone = (micEnabled: boolean) => {
+  if (mediaStore.localAudioEnabled === micEnabled) {
+    return;
+  }
+
   mediaStore.setLocalAudioEnabled(micEnabled);
 
   WebRTCService.get()?.sendMessage({
     type: 'AUDIO_TOGGLE',
     toggle: micEnabled,
+  });
+};
+
+const toggleLocalVideo = (videoEnabled: boolean) => {
+  if (mediaStore.localVideoEnabled === videoEnabled) {
+    return;
+  }
+
+  mediaStore.setLocalVideoEnabled(videoEnabled);
+
+  WebRTCService.get()?.sendMessage({
+    type: 'VIDEO_TOGGLE',
+    toggle: videoEnabled,
   });
 };
 
@@ -54,16 +70,20 @@ export const PutinsPuppetContainer = observer(function PutinsPuppetContainer({
           case GameState.ROUND_END:
           case GameState.GAME_OVER:
             setShowResultDialog(true);
-            toggleMicrophone(true);
+            toggleLocalMicrophone(true);
+            toggleLocalVideo(true);
             break;
 
           // Toggle microphone not to disturb the user currently playing
+          // Disable spectator video to focus resources on game
           case GameState.PLAYER_TURN:
-            toggleMicrophone(true);
+            toggleLocalMicrophone(true);
+            toggleLocalVideo(true);
             break;
 
           case GameState.SPECTATOR_TURN:
-            toggleMicrophone(false);
+            toggleLocalMicrophone(false);
+            toggleLocalVideo(false);
             break;
         }
       }),

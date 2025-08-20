@@ -42,7 +42,7 @@ export const hijackRemoteVideoStream = async (page: Page) => {
     const canvas = document.createElement('canvas');
     canvas.width = 640;
     canvas.height = 480;
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d', { alpha: false });
     if (!ctx) {
       console.error('Could not get canvas context');
       return false;

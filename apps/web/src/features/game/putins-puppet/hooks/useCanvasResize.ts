@@ -58,7 +58,7 @@ export const useCanvasResize = (
         deviceScaleFactor,
       });
 
-      const ctx = canvas.getContext('2d');
+      const ctx = canvas.getContext('2d', { alpha: false });
       if (ctx) {
         ctx.scale(dpr, dpr);
         ctx.clearRect(0, 0, width, height);

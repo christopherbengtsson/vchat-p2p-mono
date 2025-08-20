@@ -5,4 +5,5 @@ export interface Pipe {
   height: number;
   passed?: boolean;
   isUpperPipe?: boolean;
+  active?: boolean;
 }
