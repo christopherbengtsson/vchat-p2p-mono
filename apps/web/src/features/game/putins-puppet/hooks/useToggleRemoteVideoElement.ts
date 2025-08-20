@@ -4,7 +4,7 @@ const toggleRemoveVideoContainer = (
   visible: boolean,
   videoElement: HTMLVideoElement | null,
 ) => {
-  if (videoElement) {
+  if (videoElement && videoElement.style) {
     videoElement.style.display = visible ? 'block' : 'none';
   }
 };
