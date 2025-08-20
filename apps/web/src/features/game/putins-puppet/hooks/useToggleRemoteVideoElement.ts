@@ -1,21 +1,26 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
-const toggleRemoveVideoContainer = (visible: boolean) => {
-  const videoElement: HTMLVideoElement | null = document.querySelector(
-    '[data-testid="remote-video-element"]',
-  );
-
+const toggleRemoveVideoContainer = (
+  visible: boolean,
+  videoElement: HTMLVideoElement | null,
+) => {
   if (videoElement) {
     videoElement.style.display = visible ? 'block' : 'none';
   }
 };
 
 export const useToggleRemoteVideoElement = () => {
+  const videoElementRef = useRef<HTMLVideoElement | null>(null);
+
   useEffect(() => {
-    toggleRemoveVideoContainer(false);
+    videoElementRef.current = document.querySelector(
+      '[data-testid="remote-video-element"]',
+    );
+
+    toggleRemoveVideoContainer(false, videoElementRef.current);
 
     return () => {
-      toggleRemoveVideoContainer(true);
+      toggleRemoveVideoContainer(true, videoElementRef.current);
     };
   }, []);
 };
