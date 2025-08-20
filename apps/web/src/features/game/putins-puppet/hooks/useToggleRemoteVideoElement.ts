@@ -13,9 +13,11 @@ export const useToggleRemoteVideoElement = () => {
   const videoElementRef = useRef<HTMLVideoElement | null>(null);
 
   useEffect(() => {
-    videoElementRef.current = document.querySelector(
-      '[data-testid="remote-video-element"]',
-    );
+    if (!videoElementRef.current) {
+      videoElementRef.current = document.querySelector(
+        '[data-testid="remote-video-element"]',
+      );
+    }
 
     toggleRemoveVideoContainer(false, videoElementRef.current);
 
