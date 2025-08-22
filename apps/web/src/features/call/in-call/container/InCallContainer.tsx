@@ -25,8 +25,9 @@ export const InCallContainer = observer(function InCallPage() {
     remoteStream: callStore.remoteStream,
   });
 
-  const { isPortrait, isSquare, shouldUseObjectCover } =
-    useVideoAspectRatio(localVideoRef);
+  const { isPortrait, isSquare } = useVideoAspectRatio(localVideoRef);
+  const { shouldUseObjectCover: remoteShouldUseObjectCover } =
+    useVideoAspectRatio(remoteVideoRef);
 
   return (
     <>
@@ -52,7 +53,7 @@ export const InCallContainer = observer(function InCallPage() {
       <RemoteVideoStreamContainer
         remoteVideoRef={remoteVideoRef}
         remoteVideoEnabled={callStore.remoteVideoEnabled}
-        shouldUseObjectCover={shouldUseObjectCover}
+        shouldUseObjectCover={remoteShouldUseObjectCover}
         contentModerationEnabled={contentModerationStore.config.enabled}
         modelStatus={contentModerationStore.modelStatus}
         onEndCall={endCall}

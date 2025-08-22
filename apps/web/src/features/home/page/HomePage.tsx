@@ -1,8 +1,11 @@
+import { useCursorTrack } from '@/common/hooks/useCursorTrack';
 import { SettingsMenuContainer } from '../container/SettingsMenuContainer';
 import { ConnectionCountContainer } from '../container/ConnectionCountContainer';
 import { FindMatchContainer } from '../container/FindMatchContainer';
 
 export function HomePage() {
+  useCursorTrack();
+
   return (
     <>
       <SettingsMenuContainer />
