@@ -1,6 +1,14 @@
+import { lazy, Suspense } from 'react';
 import { observer } from 'mobx-react';
 import { GameStoreProvider } from '../../game-engine/context/GameStoreProvider';
-import { PutinsPuppetContainer } from '../../putins-puppet/container/PutinsPuppetContainer';
+
+const PutinsPuppetContainer = lazy(() =>
+  import('../../putins-puppet/container/PutinsPuppetContainer').then(
+    (module) => ({
+      default: module.PutinsPuppetContainer,
+    }),
+  ),
+);
 
 interface Props {
   initiator: boolean;
@@ -15,7 +23,9 @@ export const GameEngineContainer = observer(function GameEngineContainer({
 }: Props) {
   return (
     <GameStoreProvider playerId={playerId} isMyTurn={initiator}>
-      <PutinsPuppetContainer setGameActive={setGameActive} />
+      <Suspense fallback={null}>
+        <PutinsPuppetContainer setGameActive={setGameActive} />
+      </Suspense>
     </GameStoreProvider>
   );
 });
