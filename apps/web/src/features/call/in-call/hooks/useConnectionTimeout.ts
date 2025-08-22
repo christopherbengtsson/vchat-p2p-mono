@@ -10,7 +10,12 @@ export const useConnectionTimeout = () => {
 
   useEffect(() => {
     const timeout = setTimeout(() => {
-      navigate(RoutePath.CALL, { replace: true, state: null });
+      navigate(RoutePath.CALL, {
+        replace: true,
+        state: {
+          findMatch: true,
+        },
+      });
     }, CONNECTION_TIMEOUT_MS);
 
     return () => {
