@@ -61,6 +61,13 @@ jobs:
           # socket-io
           echo ADMIN_UI_USERNAME=ADMIN_UI_USERNAME >> apps/server/.env
           echo ADMIN_UI_PASSWORD=ADMIN_UI_PASSWORD >> apps/server/.env
+
+          # cap.js
+          echo CAP_SERVER_BASE_URL=http://localhost:8001
+          echo CAP_ADMIN_KEY=test_admin_key_at_least_30_characters_long
+          echo CAP_SECRET_KEY=secretKey
+          echo CAP_SITE_KEY=siteKey
+          echo CAP_CORS_ORIGINS="http://localhost:3000"
           cat apps/server/.env
 
           touch apps/web/.env
