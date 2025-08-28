@@ -107,7 +107,12 @@ describe('useSolveCaptcha', () => {
       const { result } = renderHook(() => useSolveCaptcha());
 
       // Start solving (without await to check loading state)
-      const solveAndVerifyPromise = result.current.solve(mockCap);
+      let solveAndVerifyPromise: Promise<{
+        success: boolean;
+      }>;
+      act(() => {
+        solveAndVerifyPromise = result.current.solve(mockCap);
+      });
 
       await waitFor(() => {
         expect(result.current.isSolving).toBe(true);
@@ -121,7 +126,7 @@ describe('useSolveCaptcha', () => {
 
       // Wait for completion
       await act(async () => {
-        await solveAndVerifyPromise;
+        await solveAndVerifyPromise!;
       });
 
       expect(result.current.isSolving).toBe(false);

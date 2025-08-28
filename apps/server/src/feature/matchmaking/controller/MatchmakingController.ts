@@ -1,17 +1,16 @@
 import type { VChatSocket } from '../../../common/model/VChatSocket.js';
 import { QueueService } from '../service/queue/QueueService.js';
 import { AssignmentService } from '../service/assignment/AssignmentService.js';
+import type { wrapSocketHandler } from '../../../common/util/wrapSocketHandler.js';
 
 const register = (
   socket: VChatSocket,
-  wrapHandler: <T extends (...args: string[]) => void>(
-    handler: T,
-  ) => (...args: Parameters<T>) => Promise<void>,
+  wrapHandler: typeof wrapSocketHandler,
 ) => {
   socket.on(
     'find-match',
-    wrapHandler(async (socketId, userId) => {
-      await QueueService.addToQueue(socketId, userId);
+    wrapHandler(async (socketId, userId, ignoreList) => {
+      await QueueService.addToQueue(socketId, userId, ignoreList);
     }),
   );
 

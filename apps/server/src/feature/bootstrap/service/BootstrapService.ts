@@ -3,7 +3,6 @@ import { ServerConfigService } from '../../../common/config/service/ServerConfig
 import { RedisClient } from '../../../common/client/RedisClient.js';
 import { SupabaseClient } from '../../../common/client/SupabaseClient.js';
 import { AnalyticsBootstrapService } from '../../analytics/service/AnalyticsBootstrapService.js';
-import { GlobalIgnoreMatrixService } from '../../matchmaking/service/match-prerequisite/GlobalIgnoreMatrixService.js';
 
 const init = async () => {
   const config = ServerConfigService.init(process.env);
@@ -14,8 +13,6 @@ const init = async () => {
   SupabaseClient.init();
 
   AnalyticsBootstrapService.init();
-
-  await GlobalIgnoreMatrixService.warmupMatrix();
 };
 
 export const BootstrapService = {

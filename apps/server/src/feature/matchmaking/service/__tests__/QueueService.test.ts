@@ -1,5 +1,6 @@
 import { QueueService } from '../queue/QueueService.js';
 import { ServerConfigService } from '../../../../common/config/service/ServerConfigService.js';
+import { REDIS_KEY } from '../../model/RedisKey.js';
 
 describe('MatchmakingQueueService', async () => {
   beforeAll(() => {
@@ -16,23 +17,60 @@ describe('MatchmakingQueueService', async () => {
 
   describe('addToQueue', () => {
     it('should add an item to the queue', async () => {
-      await QueueService.addToQueue('socketId1', 'userId1');
+      await QueueService.addToQueue('socketId1', 'userId1', []);
       const queue = await QueueService._getQueue();
       expect(queue).toEqual(['socketId1__:__userId1']);
     });
 
     it('should add multiple items to the queue', async () => {
-      await QueueService.addToQueue('socketId1', 'userId1');
-      await QueueService.addToQueue('socketId2', 'userId2');
+      await QueueService.addToQueue('socketId1', 'userId1', []);
+      await QueueService.addToQueue('socketId2', 'userId2', []);
       const queue = await QueueService._getQueue();
       expect(queue).toEqual(['socketId1__:__userId1', 'socketId2__:__userId2']);
+    });
+
+    it('should store ignoreList in Redis when provided', async () => {
+      const ignoreList = ['userId2', 'userId3', 'userId4'];
+      await QueueService.addToQueue('socketId1', 'userId1', ignoreList);
+
+      // Verify user is in queue
+      const queue = await QueueService._getQueue();
+      expect(queue).toEqual(['socketId1__:__userId1']);
+
+      // Verify ignoreList is stored in Redis
+      const member = QueueService.composeKey({
+        socketId: 'socketId1',
+        userId: 'userId1',
+      });
+      const storedIgnoreList = await globalThis.redisClient.get(
+        REDIS_KEY.getIgnoreKey(member),
+      );
+      expect(storedIgnoreList).toBe(JSON.stringify(ignoreList));
+    });
+
+    it('should not store ignoreList in Redis when empty', async () => {
+      await QueueService.addToQueue('socketId1', 'userId1', []);
+
+      // Verify user is in queue
+      const queue = await QueueService._getQueue();
+      expect(queue).toEqual(['socketId1__:__userId1']);
+
+      // Verify no ignoreList key is created for empty arrays
+      const member = QueueService.composeKey({
+        socketId: 'socketId1',
+        userId: 'userId1',
+      });
+      const storedIgnoreList = await globalThis.redisClient.get(
+        REDIS_KEY.getIgnoreKey(member),
+      );
+      expect(storedIgnoreList).toBeNull();
     });
   });
 
   describe('removeFromQueue', () => {
     it('should remove an item from queue when both socketId and userId are provided', async () => {
-      await QueueService.addToQueue('socketId1', 'userId1');
-      await QueueService.addToQueue('socketId2', 'userId2');
+      await QueueService.addToQueue('socketId1', 'userId1', []);
+      await QueueService.addToQueue('socketId2', 'userId2', []);
 
       await QueueService.removeFromQueue('socketId1', 'userId1');
       const queue = await QueueService._getQueue();
@@ -40,8 +78,8 @@ describe('MatchmakingQueueService', async () => {
     });
 
     it('should remove an item from queue when only socketId is provided', async () => {
-      await QueueService.addToQueue('socketId1', 'userId1');
-      await QueueService.addToQueue('socketId2', 'userId2');
+      await QueueService.addToQueue('socketId1', 'userId1', []);
+      await QueueService.addToQueue('socketId2', 'userId2', []);
 
       await QueueService.removeFromQueue('socketId1', null);
       const queue = await QueueService._getQueue();
@@ -49,7 +87,7 @@ describe('MatchmakingQueueService', async () => {
     });
 
     it('should handle removal when socketId is not found and userId is not provided', async () => {
-      await QueueService.addToQueue('socketId1', 'userId1');
+      await QueueService.addToQueue('socketId1', 'userId1', []);
 
       await QueueService.removeFromQueue('nonexistentSocket', null);
       const queue = await QueueService._getQueue();
@@ -57,8 +95,8 @@ describe('MatchmakingQueueService', async () => {
     });
 
     it('should handle multiple items with same socketId but different userIds', async () => {
-      await QueueService.addToQueue('socketId1', 'userId1');
-      await QueueService.addToQueue('socketId1', 'userId2');
+      await QueueService.addToQueue('socketId1', 'userId1', []);
+      await QueueService.addToQueue('socketId1', 'userId2', []);
 
       await QueueService.removeFromQueue('socketId1', 'userId1');
       const queue = await QueueService._getQueue();
@@ -68,8 +106,8 @@ describe('MatchmakingQueueService', async () => {
 
   describe('getMultipleFromQueue', () => {
     it('should get multiple users from queue', async () => {
-      await QueueService.addToQueue('socketId1', 'userId1');
-      await QueueService.addToQueue('socketId2', 'userId2');
+      await QueueService.addToQueue('socketId1', 'userId1', []);
+      await QueueService.addToQueue('socketId2', 'userId2', []);
 
       const result = await QueueService.getMultipleFromQueue(0, 2);
       expect(result).toHaveLength(2);
@@ -83,7 +121,7 @@ describe('MatchmakingQueueService', async () => {
     });
 
     it('should handle requesting more items than available', async () => {
-      await QueueService.addToQueue('socketId1', 'userId1');
+      await QueueService.addToQueue('socketId1', 'userId1', []);
 
       const result = await QueueService.getMultipleFromQueue(0, 5);
       expect(result).toHaveLength(1);
@@ -129,8 +167,8 @@ describe('MatchmakingQueueService', async () => {
 
   describe('_getQueueCount', () => {
     it('should return queue count', async () => {
-      await QueueService.addToQueue('socketId1', 'userId1');
-      await QueueService.addToQueue('socketId2', 'userId2');
+      await QueueService.addToQueue('socketId1', 'userId1', []);
+      await QueueService.addToQueue('socketId2', 'userId2', []);
 
       const count = await QueueService._getQueueCount();
       expect(count).toBe(2);
@@ -144,8 +182,8 @@ describe('MatchmakingQueueService', async () => {
 
   describe('_getFirstInQueue', () => {
     it('should get first user in queue', async () => {
-      await QueueService.addToQueue('socketId1', 'userId1');
-      await QueueService.addToQueue('socketId2', 'userId2');
+      await QueueService.addToQueue('socketId1', 'userId1', []);
+      await QueueService.addToQueue('socketId2', 'userId2', []);
 
       const first = await QueueService._getFirstInQueue();
       expect(first).toEqual({
@@ -160,8 +198,8 @@ describe('MatchmakingQueueService', async () => {
     });
 
     it('should get user at specific position', async () => {
-      await QueueService.addToQueue('socketId1', 'userId1');
-      await QueueService.addToQueue('socketId2', 'userId2');
+      await QueueService.addToQueue('socketId1', 'userId1', []);
+      await QueueService.addToQueue('socketId2', 'userId2', []);
 
       const second = await QueueService._getFirstInQueue(1);
       expect(second).toEqual({
@@ -173,7 +211,7 @@ describe('MatchmakingQueueService', async () => {
 
   describe('_findByMatchPatternInRegion', () => {
     it('should find user by pattern', async () => {
-      await QueueService.addToQueue('socketId1', 'userId1');
+      await QueueService.addToQueue('socketId1', 'userId1', []);
 
       const result =
         await QueueService._findByMatchPatternInRegion('socketId1__:__*');

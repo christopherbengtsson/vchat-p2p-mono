@@ -6,7 +6,6 @@ import { log } from '../../../../common/util/logger.js';
 import { MatchmakingMetricsService } from '../metrics/MatchmakingMetricsService.js';
 import type { MatchmakingProcessConfig } from '../../model/MatchmakingProcessConfig.js';
 import type { QueueUser } from '../../model/QueueUser.js';
-import { IgnoredUsersService } from '../match-prerequisite/IgnoredUsersService.js';
 import { AtomicQueueService } from '../queue/AtomicQueueService.js';
 import { MatchingAlgorithm } from '../match-prerequisite/MatchingAlgorithm.js';
 import { AtomicAssignmentService } from '../assignment/AtomicAssignmentService.js';
@@ -64,7 +63,7 @@ const processQueue = async (
       config,
       workerId,
     );
-    job.updateProgress(25);
+    job.updateProgress(20);
 
     if (claimedUsers.length < 2) {
       // Clean up claims for single user
@@ -80,34 +79,10 @@ const processQueue = async (
       };
     }
 
-    // Step 2: Get ignored pairs using adaptive user prioritization
-    const userIds = claimedUsers.map((user) => user.userId);
-    const ignoreInfo = await IgnoredUsersService.getIgnoreInfo(
-      userIds,
-      claimedUsers,
-    );
-    job.updateProgress(50);
-
-    // Step 3: Prioritized matching
-    const priorityUserSet = new Set(ignoreInfo.priorityUsers);
-    const priorityQueueUsers: QueueUser[] = [];
-    const deprioritizedQueueUsers: QueueUser[] = [];
-
-    for (const user of claimedUsers) {
-      if (priorityUserSet.has(user.userId)) {
-        priorityQueueUsers.push(user);
-      } else {
-        deprioritizedQueueUsers.push(user);
-      }
-    }
-
     // Priority users first, then combine remaining
-    const matches = MatchingAlgorithm.findOptimizedMatches(
-      [...priorityQueueUsers, ...deprioritizedQueueUsers],
-      ignoreInfo.ignoreMatrix,
-    );
+    const matches = MatchingAlgorithm.findMatches(claimedUsers);
 
-    job.updateProgress(75);
+    job.updateProgress(40);
 
     // Step 4: Process matches atomically
     if (matches.length > 0) {
@@ -116,9 +91,13 @@ const processQueue = async (
         config.luaProcessingBatchSize,
       );
 
+      job.updateProgress(60);
+
       SocketNotifications.notifyMatchedUsers(io, matches);
 
       _recordMatchMetrics(matches);
+
+      job.updateProgress(75);
     }
 
     // Step 5: Separate matched and unmatched users
@@ -140,6 +119,8 @@ const processQueue = async (
         workerId,
       );
     }
+
+    job.updateProgress(90);
 
     // Step 7: Complete processing (clean up claims for matched users only)
     if (matchedUsers.length > 0) {

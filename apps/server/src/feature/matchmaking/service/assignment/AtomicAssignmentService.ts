@@ -19,6 +19,7 @@ for i = 1, #ARGV, 3 do
   
   -- Remove from queue and set assignment atomically
   redis.call('ZREM', queueKey, userKey)
+  redis.call('DEL', 'ignore_list:' .. userKey)
   redis.call('HSET', assignmentKey, socketId, assignmentData)
 end
 

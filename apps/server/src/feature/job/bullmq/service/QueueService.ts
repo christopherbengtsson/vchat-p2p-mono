@@ -11,9 +11,8 @@ const init = async (
   handlers: WorkerHandler[],
 ): Promise<{ queue: Queue; workers: Worker[] }> => {
   try {
-    const queueConfig = false;
     const queue = new Queue(config.queueName, {
-      connection: ConnectionConfig.getBullMQConnection(queueConfig),
+      connection: ConnectionConfig.getBullMQConnection(false),
     });
 
     queue.on('error', (err) => {

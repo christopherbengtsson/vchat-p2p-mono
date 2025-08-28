@@ -6,6 +6,7 @@ import { RouterStateUtil } from '@/common/utils/RouterStateUtil';
 import { RoutePath } from '@/RoutePath';
 import { CallLocation } from '../model/CallLocationState';
 import { CallStore } from '../../store/CallStore';
+import { useFetchUser } from '../../../home/hooks/useFetchUser';
 
 interface In {
   socket: Maybe<VChatSocket>;
@@ -15,16 +16,17 @@ interface In {
 
 export const useFindMatchOnMount = ({ socket, socketId, userId }: In) => {
   const { state } = useLocation() as CallLocation;
+  const { user } = useFetchUser();
   const navigate = useNavigate();
 
   useEffect(() => {
     let timeout: NodeJS.Timeout;
 
-    if (state?.findMatch && socketId) {
+    if (state?.findMatch && socketId && user?.id) {
       const timeoutMS = state?.slow ? CallStore.NEW_MATCH_TIMEOUT : 0;
 
       timeout = setTimeout(() => {
-        socket?.emit('find-match', socketId, userId);
+        socket?.emit('find-match', socketId, userId, user.ignoredUserIds);
       }, timeoutMS);
 
       RouterStateUtil.clear();
@@ -35,5 +37,14 @@ export const useFindMatchOnMount = ({ socket, socketId, userId }: In) => {
     return () => {
       clearTimeout(timeout);
     };
-  }, [navigate, socket, socketId, state?.findMatch, state?.slow, userId]);
+  }, [
+    navigate,
+    socket,
+    socketId,
+    state?.findMatch,
+    state?.slow,
+    user?.id,
+    user?.ignoredUserIds,
+    userId,
+  ]);
 };

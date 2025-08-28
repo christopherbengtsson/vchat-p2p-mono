@@ -35,19 +35,37 @@ const _getUserEntryTime = async (
 
 /**
  * Adds a user to the region-specific waiting queue.
+ * Uses Redis multi() for atomic transaction - all operations must succeed or fail together.
+ * This prevents race conditions where a user might be partially added to the queue.
  * @param socketId The user's socket ID.
  * @param userId The user's ID.
+ * @param ignoreList The user's ignore list.
  */
-const addToQueue = async (socketId: string, userId: string) => {
+const addToQueue = async (
+  socketId: string,
+  userId: string,
+  ignoreList: string[],
+) => {
+  const redis = RedisClient.get();
+  // Use multi() for atomic transaction - ensures data consistency
+  const multi = redis.multi();
+
   const key = getRegionSpecificQueueKey();
   const score = TimeUtils.getCurrentTimeAsScore();
   const member = composeKey({ socketId, userId });
 
-  await RedisClient.get()
-    .multi()
-    .zadd(key, score, member)
-    .sadd(REDIS_KEY.ALL_KNOWN_USERS_KEY, member)
-    .exec();
+  multi.zadd(key, score, member);
+
+  const ignoreListKey = REDIS_KEY.getIgnoreKey(member);
+  const ignoreListTTL = 3600; // 1 hour
+
+  if (ignoreList.length) {
+    multi.setex(ignoreListKey, ignoreListTTL, JSON.stringify(ignoreList));
+  }
+
+  multi.sadd(REDIS_KEY.ALL_KNOWN_USERS_KEY, member);
+
+  await multi.exec();
 
   // Record metric for queue entry
   const queueName = ServerConfigService.getConfig().config.serverRegion;
@@ -56,6 +74,8 @@ const addToQueue = async (socketId: string, userId: string) => {
 
 /**
  * Removes a user from the region-specific waiting queue.
+ * Uses Redis multi() for atomic transaction to ensure consistent queue state.
+ * Batches member lookup and entry time retrieval for better performance.
  * @param socketId The user's socket ID.
  * @param userId Maybe: The user's ID.
  * @param reason Optional: The reason for removal (for metrics).
@@ -65,12 +85,16 @@ const removeFromQueue = async (
   userId: Maybe<string>,
   reason: QueueExitReason = 'cancel-match',
 ) => {
-  let member: Maybe<string>;
   const key = getRegionSpecificQueueKey();
+  let member: Maybe<string>;
+  let entryTimestamp: Maybe<number>;
 
   if (userId) {
     member = composeKey({ socketId, userId });
+    // Batch the entry time lookup with the member we already know
+    entryTimestamp = await _getUserEntryTime(key, member);
   } else {
+    // Need to find the member first, then get entry time
     const match = await _findByMatchPatternInRegion(
       composeKey({ socketId, userId: undefined }),
     );
@@ -78,14 +102,17 @@ const removeFromQueue = async (
     if (!match) {
       return;
     }
+
     member = composeKey({ socketId: match.socketId, userId: match.userId });
+    entryTimestamp = await _getUserEntryTime(key, member);
   }
 
-  const entryTimestamp = await _getUserEntryTime(key, member);
+  const ignoreListKey = REDIS_KEY.getIgnoreKey(member);
 
   await RedisClient.get()
     .multi()
     .zrem(key, member)
+    .del(ignoreListKey)
     .srem(REDIS_KEY.ALL_KNOWN_USERS_KEY, member)
     .exec();
 

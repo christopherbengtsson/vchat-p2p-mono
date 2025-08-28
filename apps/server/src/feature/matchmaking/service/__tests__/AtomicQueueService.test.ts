@@ -7,6 +7,7 @@ import { ServerConfigService } from '../../../../common/config/service/ServerCon
 import { TimeUtils } from '../../util/TimeUtils.js';
 import { AssignmentService } from '../assignment/AssignmentService.js';
 import { SocketServer } from '../../../socket-io/server/SocketServer.js';
+import { REDIS_KEY } from '../../model/RedisKey.js';
 
 vi.mock('../../util/TimeUtils.js', async () => ({
   ...(await vi.importActual('../../util/TimeUtils.js')),
@@ -53,10 +54,11 @@ describe('AtomicQueueService - Concurrent Processing Tests', () => {
       const socketId = `socket${i}`;
       const userId = `user${i}`;
       const score = 1000 + i;
+      const ignoreList: string[] = [];
       const key = QueueService.composeKey({ socketId, userId });
 
       await globalThis.redisClient.zadd(queueKey, score, key);
-      users.push({ socketId, userId, score });
+      users.push({ socketId, userId, ignoreList, score });
     }
 
     return users;
@@ -410,6 +412,101 @@ describe('AtomicQueueService - Concurrent Processing Tests', () => {
         AtomicQueueService.completeUserProcessing([], 'mock-workerId'),
       ).resolves.not.toThrow();
     });
+
+    it('should fetch ignore lists when claiming users from queue', async () => {
+      // Setup users in queue with ignore lists
+      const queueKey = QueueService.getRegionSpecificQueueKey();
+      const user1Key = QueueService.composeKey({
+        socketId: 'socket1',
+        userId: 'user1',
+      });
+      const user2Key = QueueService.composeKey({
+        socketId: 'socket2',
+        userId: 'user2',
+      });
+
+      await globalThis.redisClient.zadd(queueKey, 1000, user1Key);
+      await globalThis.redisClient.zadd(queueKey, 1001, user2Key);
+
+      // Set up ignore lists in Redis
+      await globalThis.redisClient.set(
+        REDIS_KEY.getIgnoreKey(user1Key),
+        JSON.stringify(['user3', 'user4']),
+      );
+      await globalThis.redisClient.set(
+        REDIS_KEY.getIgnoreKey(user2Key),
+        JSON.stringify(['user5']),
+      );
+
+      const claimedUsers = await AtomicQueueService.claimUsersFromQueue(
+        { ...TEST_CONFIG, batchSize: 2 },
+        'mock-workerId',
+      );
+
+      expect(claimedUsers).toHaveLength(2);
+
+      // Verify ignore lists are populated correctly
+      const user1 = claimedUsers.find((u) => u.socketId === 'socket1');
+      const user2 = claimedUsers.find((u) => u.socketId === 'socket2');
+
+      expect(user1?.ignoreList).toEqual(['user3', 'user4']);
+      expect(user2?.ignoreList).toEqual(['user5']);
+    });
+
+    it('should handle missing ignore lists gracefully', async () => {
+      // Setup users in queue without ignore lists
+      const queueKey = QueueService.getRegionSpecificQueueKey();
+      const user1Key = QueueService.composeKey({
+        socketId: 'socket1',
+        userId: 'user1',
+      });
+
+      await globalThis.redisClient.zadd(queueKey, 1000, user1Key);
+      // No ignore list set in Redis
+
+      const claimedUsers = await AtomicQueueService.claimUsersFromQueue(
+        { ...TEST_CONFIG, batchSize: 1 },
+        'mock-workerId',
+      );
+
+      expect(claimedUsers).toHaveLength(1);
+      expect(claimedUsers[0].ignoreList).toEqual([]); // Should default to empty array
+    });
+
+    it('should delete ignore lists when completing user processing', async () => {
+      // Setup users in queue with ignore lists
+      const queueKey = QueueService.getRegionSpecificQueueKey();
+      const user1Key = QueueService.composeKey({
+        socketId: 'socket1',
+        userId: 'user1',
+      });
+
+      await globalThis.redisClient.zadd(queueKey, 1000, user1Key);
+
+      // Set up ignore list in Redis
+      const ignoreListKey = REDIS_KEY.getIgnoreKey(user1Key);
+      await globalThis.redisClient.set(
+        ignoreListKey,
+        JSON.stringify(['user3', 'user4']),
+      );
+
+      // Verify ignore list exists
+      expect(await globalThis.redisClient.get(ignoreListKey)).not.toBeNull();
+
+      const claimedUsers = await AtomicQueueService.claimUsersFromQueue(
+        { ...TEST_CONFIG, batchSize: 1 },
+        'mock-workerId',
+      );
+
+      // Complete processing (should delete ignore list)
+      await AtomicQueueService.completeUserProcessing(
+        claimedUsers,
+        'mock-workerId',
+      );
+
+      // Verify ignore list is deleted
+      expect(await globalThis.redisClient.get(ignoreListKey)).toBeNull();
+    });
   });
 
   describe('Load Testing and Performance', () => {
@@ -467,9 +564,9 @@ describe('AtomicQueueService - Concurrent Processing Tests', () => {
   describe('Integration with Real Queue Scenarios', () => {
     it('should work correctly with MatchmakingQueueService operations', async () => {
       // Add users using actual service
-      await QueueService.addToQueue('socket1', 'user1');
-      await QueueService.addToQueue('socket2', 'user2');
-      await QueueService.addToQueue('socket3', 'user3');
+      await QueueService.addToQueue('socket1', 'user1', []);
+      await QueueService.addToQueue('socket2', 'user2', []);
+      await QueueService.addToQueue('socket3', 'user3', []);
 
       const claimedUsers = await AtomicQueueService.claimUsersFromQueue(
         TEST_CONFIG,
@@ -495,7 +592,7 @@ describe('AtomicQueueService - Concurrent Processing Tests', () => {
 
       // Add using service to ensure proper key formatting
       for (const user of complexUsers) {
-        await QueueService.addToQueue(user.socketId, user.userId);
+        await QueueService.addToQueue(user.socketId, user.userId, []);
       }
 
       const claimedUsers = await AtomicQueueService.claimUsersFromQueue(
@@ -621,7 +718,7 @@ describe('AtomicQueueService - Concurrent Processing Tests', () => {
       // Remove any existing assignment for socket1
       await redis.hdel('match_assignments', 'socket1');
 
-      await QueueService.addToQueue('socket1', 'user1');
+      await QueueService.addToQueue('socket1', 'user1', []);
 
       // Claim the user (removes from queue, sets claim key with TTL)
       const claimed = await AtomicQueueService.claimUsersFromQueue(
@@ -659,7 +756,7 @@ describe('AtomicQueueService - Concurrent Processing Tests', () => {
       // Remove any existing assignment for socket1
       await redis.hdel('match_assignments', 'socket1');
 
-      await QueueService.addToQueue('socket1', 'user1');
+      await QueueService.addToQueue('socket1', 'user1', []);
 
       // Claim the user
       const claimed = await AtomicQueueService.claimUsersFromQueue(
@@ -697,7 +794,7 @@ describe('AtomicQueueService - Concurrent Processing Tests', () => {
       // Now set up a match assignment for the test
       await redis.hset('match_assignments', 'socket1', 'room1:partner1');
 
-      await QueueService.addToQueue('socket1', 'user1');
+      await QueueService.addToQueue('socket1', 'user1', []);
 
       // Claim the user
       const claimed = await AtomicQueueService.claimUsersFromQueue(

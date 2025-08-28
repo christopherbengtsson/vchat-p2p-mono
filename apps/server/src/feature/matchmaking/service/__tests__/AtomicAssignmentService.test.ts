@@ -32,13 +32,33 @@ describe('AtomicAssignmentService', () => {
       const matches: Match[] = [
         {
           roomId: 'room1',
-          user1: { socketId: 'socket1', userId: 'user1', score: 1000 },
-          user2: { socketId: 'socket2', userId: 'user2', score: 1001 },
+          user1: {
+            socketId: 'socket1',
+            userId: 'user1',
+            ignoreList: [],
+            score: 1000,
+          },
+          user2: {
+            socketId: 'socket2',
+            userId: 'user2',
+            ignoreList: [],
+            score: 1001,
+          },
         },
         {
           roomId: 'room2',
-          user1: { socketId: 'socket3', userId: 'user3', score: 1002 },
-          user2: { socketId: 'socket4', userId: 'user4', score: 1003 },
+          user1: {
+            socketId: 'socket3',
+            userId: 'user3',
+            ignoreList: [],
+            score: 1002,
+          },
+          user2: {
+            socketId: 'socket4',
+            userId: 'user4',
+            ignoreList: [],
+            score: 1003,
+          },
         },
       ];
 
@@ -116,11 +136,13 @@ describe('AtomicAssignmentService', () => {
           user1: {
             socketId: user1SocketId,
             userId: user1UserId,
+            ignoreList: [],
             score: 1000 + i * 2,
           },
           user2: {
             socketId: user2SocketId,
             userId: user2UserId,
+            ignoreList: [],
             score: 1000 + i * 2 + 1,
           },
         });
@@ -154,8 +176,18 @@ describe('AtomicAssignmentService', () => {
       const matches: Match[] = [
         {
           roomId: 'room1',
-          user1: { socketId: 'socket1', userId: 'user1', score: 1000 },
-          user2: { socketId: 'socket2', userId: 'user2', score: 1001 },
+          user1: {
+            socketId: 'socket1',
+            userId: 'user1',
+            ignoreList: [],
+            score: 1000,
+          },
+          user2: {
+            socketId: 'socket2',
+            userId: 'user2',
+            ignoreList: [],
+            score: 1001,
+          },
         },
       ];
 
@@ -188,8 +220,18 @@ describe('AtomicAssignmentService', () => {
       const matches: Match[] = [
         {
           roomId: 'same-room-id', // Same room ID for testing
-          user1: { socketId: 'socket1', userId: 'user1', score: 1000 },
-          user2: { socketId: 'socket2', userId: 'user2', score: 1001 },
+          user1: {
+            socketId: 'socket1',
+            userId: 'user1',
+            ignoreList: [],
+            score: 1000,
+          },
+          user2: {
+            socketId: 'socket2',
+            userId: 'user2',
+            ignoreList: [],
+            score: 1001,
+          },
         },
       ];
 
@@ -237,11 +279,13 @@ describe('AtomicAssignmentService', () => {
           user1: {
             socketId: specialSocket1,
             userId: specialUser1,
+            ignoreList: [],
             score: 1000,
           },
           user2: {
             socketId: specialSocket2,
             userId: specialUser2,
+            ignoreList: [],
             score: 1001,
           },
         },
@@ -299,11 +343,13 @@ describe('AtomicAssignmentService', () => {
           user1: {
             socketId: user1SocketId,
             userId: user1UserId,
+            ignoreList: [],
             score: 1000 + i * 2,
           },
           user2: {
             socketId: user2SocketId,
             userId: user2UserId,
+            ignoreList: [],
             score: 1000 + i * 2 + 1,
           },
         });
@@ -317,6 +363,68 @@ describe('AtomicAssignmentService', () => {
 
       // Verify: All assignments created
       expect(await globalThis.redisClient.hlen(assignmentKey)).toBe(16);
+    });
+
+    it('should delete ignore lists when processing matched users', async () => {
+      // Setup: Add users to queue and ignore lists
+      const queueKey = QueueService.getRegionSpecificQueueKey();
+      const assignmentKey = REDIS_KEY.MATCH_ASSIGNMENT_KEY;
+
+      await globalThis.redisClient.zadd(queueKey, 1000, 'socket1__:__user1');
+      await globalThis.redisClient.zadd(queueKey, 1001, 'socket2__:__user2');
+
+      // Setup ignore lists that should be deleted
+      await globalThis.redisClient.set(
+        'ignore_list:socket1__:__user1',
+        JSON.stringify(['user3', 'user4']),
+      );
+      await globalThis.redisClient.set(
+        'ignore_list:socket2__:__user2',
+        JSON.stringify(['user5', 'user6']),
+      );
+
+      // Verify ignore lists exist before processing
+      expect(
+        await globalThis.redisClient.get('ignore_list:socket1__:__user1'),
+      ).not.toBeNull();
+      expect(
+        await globalThis.redisClient.get('ignore_list:socket2__:__user2'),
+      ).not.toBeNull();
+
+      const matches: Match[] = [
+        {
+          roomId: 'room1',
+          user1: {
+            socketId: 'socket1',
+            userId: 'user1',
+            ignoreList: ['user3', 'user4'],
+            score: 1000,
+          },
+          user2: {
+            socketId: 'socket2',
+            userId: 'user2',
+            ignoreList: ['user5', 'user6'],
+            score: 1001,
+          },
+        },
+      ];
+
+      // Execute
+      await AtomicAssignmentService.processMatchedUsers(matches, 5);
+
+      // Verify: Users removed from queue
+      expect(await globalThis.redisClient.zcard(queueKey)).toBe(0);
+
+      // Verify: Assignments created
+      expect(await globalThis.redisClient.hlen(assignmentKey)).toBe(2);
+
+      // Verify: Ignore lists deleted
+      expect(
+        await globalThis.redisClient.get('ignore_list:socket1__:__user1'),
+      ).toBeNull();
+      expect(
+        await globalThis.redisClient.get('ignore_list:socket2__:__user2'),
+      ).toBeNull();
     });
   });
 });

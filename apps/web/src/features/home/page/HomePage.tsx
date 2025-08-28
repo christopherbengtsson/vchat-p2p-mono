@@ -2,9 +2,11 @@ import { useCursorTrack } from '@/common/hooks/useCursorTrack';
 import { SettingsMenuContainer } from '../container/SettingsMenuContainer';
 import { ConnectionCountContainer } from '../container/ConnectionCountContainer';
 import { FindMatchContainer } from '../container/FindMatchContainer';
+import { useFetchUser } from '../hooks/useFetchUser';
 
 export function HomePage() {
   useCursorTrack();
+  useFetchUser();
 
   return (
     <>
