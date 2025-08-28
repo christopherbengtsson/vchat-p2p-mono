@@ -1,7 +1,9 @@
+import { MAX_IGNORED_USERS } from '@mono/common-util';
 import type { VChatSocket } from '../../../common/model/VChatSocket.js';
 import { QueueService } from '../service/queue/QueueService.js';
 import { AssignmentService } from '../service/assignment/AssignmentService.js';
 import type { wrapSocketHandler } from '../../../common/util/wrapSocketHandler.js';
+import { log } from '../../../common/util/logger.js';
 
 const register = (
   socket: VChatSocket,
@@ -10,6 +12,13 @@ const register = (
   socket.on(
     'find-match',
     wrapHandler(async (socketId, userId, ignoreList) => {
+      if (ignoreList.length > MAX_IGNORED_USERS) {
+        log.warn(
+          { ignoreList_length: ignoreList.length },
+          'Unreasonable amount of ignored users, not adding user to queue.',
+        );
+        return;
+      }
       await QueueService.addToQueue(socketId, userId, ignoreList);
     }),
   );

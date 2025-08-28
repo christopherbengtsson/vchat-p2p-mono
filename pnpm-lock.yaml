@@ -196,6 +196,9 @@ importers:
       '@mono/common-supabase':
         specifier: workspace:*
         version: link:../../packages/common-supabase
+      '@mono/common-util':
+        specifier: workspace:*
+        version: link:../../packages/common-util
       '@mono/fe-dto':
         specifier: workspace:*
         version: link:../../packages/fe-dto

@@ -1,6 +1,5 @@
 import { SocketNamespace } from '@mono/common-dto';
 import { isDefined } from '@mono/common-util';
-import { log } from '../../../../common/util/logger.js';
 import { RedisClient } from '../../../../common/client/RedisClient.js';
 import { SocketServer } from '../../../socket-io/server/SocketServer.js';
 import type { MatchmakingProcessConfig } from '../../model/MatchmakingProcessConfig.js';
@@ -166,7 +165,7 @@ const claimUsersFromQueue = async (
 
     if (isDefined(socketId) && isDefined(userId)) {
       memberData.push({ member, socketId, userId, score });
-      pipeline.get(REDIS_KEY.getIgnoreKey(member));
+      pipeline.smembers(REDIS_KEY.getIgnoreKey(member));
     }
   }
 
@@ -176,22 +175,9 @@ const claimUsersFromQueue = async (
   const queueUsers: QueueUser[] = [];
 
   for (let i = 0; i < memberData.length; i++) {
-    const { member, socketId, userId, score } = memberData[i];
+    const { socketId, userId, score } = memberData[i];
     const ignoreListResult = ignoreListResults?.[i];
-    const ignoreListJson = ignoreListResult?.[1]; // Pipeline results are [error, result]
-
-    let ignoreList: string[] = [];
-    if (ignoreListJson) {
-      try {
-        ignoreList = JSON.parse(ignoreListJson as string);
-      } catch (error) {
-        log.warn(
-          { error, member, ignoreListJson },
-          'Failed to parse ignore list JSON',
-        );
-        ignoreList = [];
-      }
-    }
+    const ignoreList = (ignoreListResult?.[1] as string[]) ?? []; // // Pipeline results are [error, result]
 
     queueUsers.push({
       socketId,

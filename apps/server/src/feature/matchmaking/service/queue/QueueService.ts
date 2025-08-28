@@ -57,10 +57,11 @@ const addToQueue = async (
   multi.zadd(key, score, member);
 
   const ignoreListKey = REDIS_KEY.getIgnoreKey(member);
-  const ignoreListTTL = 3600; // 1 hour
+  const ignoreListTTL = 3600; // 1 hour TODO: Should probably match some cleanup interval?
 
   if (ignoreList.length) {
-    multi.setex(ignoreListKey, ignoreListTTL, JSON.stringify(ignoreList));
+    multi.sadd(ignoreListKey, ...ignoreList);
+    multi.expire(ignoreListKey, ignoreListTTL);
   }
 
   multi.sadd(REDIS_KEY.ALL_KNOWN_USERS_KEY, member);

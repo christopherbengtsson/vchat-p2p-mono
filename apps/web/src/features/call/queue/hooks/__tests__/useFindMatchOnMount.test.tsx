@@ -7,8 +7,10 @@ import { RoutePath } from '@/RoutePath';
 import { CallStore } from '@/features/call/store/CallStore';
 import { RootStore } from '@/stores/RootStore';
 import { TestWithQueryContext } from '@/testUtils';
+import { noop } from '@/common/utils/noop';
 import { useFindMatchOnMount } from '../useFindMatchOnMount';
 import type { CallLocation } from '../../model/CallLocationState';
+import * as useFetchUser from '../../../../home/hooks/useFetchUser';
 
 const mockNavigate = vi.fn();
 let mockLocation: CallLocation = {
@@ -136,10 +138,10 @@ describe('useFindMatchOnMount', () => {
       { wrapper: TestWithQueryContext },
     );
 
+    expect(mockSocket.emit).not.toHaveBeenCalled();
     expect(mockNavigate).toHaveBeenCalledWith(RoutePath.HOME, {
       replace: true,
     });
-    expect(mockSocket.emit).not.toHaveBeenCalled();
   });
 
   it('should clean up timeout on unmount', () => {
@@ -159,5 +161,31 @@ describe('useFindMatchOnMount', () => {
     unmount();
 
     expect(clearTimeoutSpy).toHaveBeenCalled();
+  });
+
+  it('should not be possible to proceed with unreasonable amount of ignored users', async () => {
+    vi.spyOn(console, 'error').mockImplementation(noop);
+
+    vi.spyOn(useFetchUser, 'useFetchUser').mockReturnValue({
+      isPending: false,
+      user: { ignoredUserIds: new Array<string>(1001).fill('userId') },
+      error: null,
+      isError: false,
+    });
+
+    renderHook(
+      () =>
+        useFindMatchOnMount({
+          socket: mockSocket,
+          socketId: 'socket-123',
+          userId: 'user-123',
+        }),
+      { wrapper: TestWithQueryContext },
+    );
+
+    expect(mockSocket.emit).not.toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith(RoutePath.HOME, {
+      replace: true,
+    });
   });
 });

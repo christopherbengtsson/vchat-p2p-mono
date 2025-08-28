@@ -429,13 +429,13 @@ describe('AtomicQueueService - Concurrent Processing Tests', () => {
       await globalThis.redisClient.zadd(queueKey, 1001, user2Key);
 
       // Set up ignore lists in Redis
-      await globalThis.redisClient.set(
+      await globalThis.redisClient.sadd(
         REDIS_KEY.getIgnoreKey(user1Key),
-        JSON.stringify(['user3', 'user4']),
+        ...['user3', 'user4'],
       );
-      await globalThis.redisClient.set(
+      await globalThis.redisClient.sadd(
         REDIS_KEY.getIgnoreKey(user2Key),
-        JSON.stringify(['user5']),
+        ...['user5'],
       );
 
       const claimedUsers = await AtomicQueueService.claimUsersFromQueue(
@@ -485,13 +485,10 @@ describe('AtomicQueueService - Concurrent Processing Tests', () => {
 
       // Set up ignore list in Redis
       const ignoreListKey = REDIS_KEY.getIgnoreKey(user1Key);
-      await globalThis.redisClient.set(
-        ignoreListKey,
-        JSON.stringify(['user3', 'user4']),
-      );
+      await globalThis.redisClient.sadd(ignoreListKey, ...['user3', 'user4']);
 
       // Verify ignore list exists
-      expect(await globalThis.redisClient.get(ignoreListKey)).not.toBeNull();
+      expect(await globalThis.redisClient.exists(ignoreListKey)).toBe(1);
 
       const claimedUsers = await AtomicQueueService.claimUsersFromQueue(
         { ...TEST_CONFIG, batchSize: 1 },
@@ -505,7 +502,7 @@ describe('AtomicQueueService - Concurrent Processing Tests', () => {
       );
 
       // Verify ignore list is deleted
-      expect(await globalThis.redisClient.get(ignoreListKey)).toBeNull();
+      expect(await globalThis.redisClient.exists(ignoreListKey)).toBe(0);
     });
   });
 

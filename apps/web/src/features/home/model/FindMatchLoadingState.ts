@@ -1,1 +1,5 @@
-export type FindMatchLoadingState = 'idle' | 'contentModeration' | 'mediaCheck';
+export type FindMatchLoadingState =
+  | 'idle'
+  | 'contentModeration'
+  | 'mediaCheck'
+  | 'fetchingUser';

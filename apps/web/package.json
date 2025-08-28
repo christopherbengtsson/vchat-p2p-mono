@@ -20,6 +20,7 @@
     "@hookform/resolvers": "^5.0.1",
     "@mono/common-dto": "workspace:*",
     "@mono/common-supabase": "workspace:*",
+    "@mono/common-util": "workspace:*",
     "@mono/fe-dto": "workspace:*",
     "@mono/fe-supabase": "workspace:*",
     "@mono/fe-webrtc": "workspace:*",

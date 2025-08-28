@@ -42,10 +42,10 @@ describe('MatchmakingQueueService', async () => {
         socketId: 'socketId1',
         userId: 'userId1',
       });
-      const storedIgnoreList = await globalThis.redisClient.get(
+      const storedIgnoreList = await globalThis.redisClient.smembers(
         REDIS_KEY.getIgnoreKey(member),
       );
-      expect(storedIgnoreList).toBe(JSON.stringify(ignoreList));
+      expect(storedIgnoreList.sort()).toEqual(ignoreList.sort());
     });
 
     it('should not store ignoreList in Redis when empty', async () => {
@@ -60,10 +60,10 @@ describe('MatchmakingQueueService', async () => {
         socketId: 'socketId1',
         userId: 'userId1',
       });
-      const storedIgnoreList = await globalThis.redisClient.get(
+      const exists = await globalThis.redisClient.exists(
         REDIS_KEY.getIgnoreKey(member),
       );
-      expect(storedIgnoreList).toBeNull();
+      expect(exists).toBe(0);
     });
   });
 
