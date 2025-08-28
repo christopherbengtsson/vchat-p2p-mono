@@ -4,12 +4,14 @@ import { observer } from 'mobx-react';
 import { useRootStore } from '@/stores/hooks/useRootStore';
 import { RoutePath } from '@/RoutePath';
 import { CallLocation } from '@/features/call/queue/model/CallLocationState';
+import { TypographyP } from '@/common/components/typography/Typography';
 import { PermissionsDialog } from '../component/PermissionsDialog';
 import { FindMatchButton } from '../component/FindMatchButton';
 import { useMediaPermissions } from '../hooks/useMediaPermissions';
 import { ContentModerationUnavailableDialog } from '../../content-moderation/component/ContentModerationUnavailableDialog';
 import { useContentModerationAvailability } from '../../content-moderation/hooks/useContentModerationAvailability';
 import { FindMatchLoadingState } from '../model/FindMatchLoadingState';
+import { useFetchUser } from '../hooks/useFetchUser';
 
 const FIND_MATCH_ROUTER_STATE: CallLocation = {
   state: {
@@ -22,6 +24,7 @@ export const FindMatchContainer = observer(function FindMatchContainer() {
     useState<FindMatchLoadingState>('idle');
 
   const navigate = useNavigate();
+  const { isPending, isError } = useFetchUser();
 
   const { socketStore, contentModerationStore } = useRootStore();
   const {
@@ -85,8 +88,15 @@ export const FindMatchContainer = observer(function FindMatchContainer() {
         onClick={handleFindMatch}
         startingMedia={startingMedia}
         connecting={!socketStore.connected}
-        loadingState={loadingState}
+        loadingState={isPending ? 'fetchingUser' : loadingState}
+        disabled={isError}
       />
+
+      {isError && (
+        <TypographyP className="text-sm text-destructive text-center">
+          Could not fetch user information. Please try refreshing the page.
+        </TypographyP>
+      )}
 
       <PermissionsDialog
         open={permissionDialogOpen}

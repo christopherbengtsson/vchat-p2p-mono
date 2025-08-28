@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import { NavigateFunction } from 'react-router';
-import { useMutation } from '@tanstack/react-query';
+import { QueryClient, useMutation } from '@tanstack/react-query';
 import { PostgrestError } from '@supabase/supabase-js';
 import { Assert, BanDuration, CustomError, Maybe } from '@mono/common-dto';
 import { VChatSocket } from '@mono/fe-dto';
@@ -9,6 +9,7 @@ import { SupabaseClient } from '@/common/clients/supabase';
 import { InCallService } from '../../call/in-call/service/InCallService';
 
 const client = SupabaseClient.instance;
+const queryClient = new QueryClient();
 
 interface In {
   maybeSocketId: Maybe<string>;
@@ -45,6 +46,9 @@ export const useReportUser = ({
 
   const onSuccess = useCallback(
     (banDuration: BanDuration) => {
+      // Refetch of user to get updated ignoredList
+      queryClient.invalidateQueries({ queryKey: [reporterUserId] });
+
       if (banDuration !== BanDuration.NO_BAN) {
         socket?.emit('ban-user', {
           partnerSocketId,

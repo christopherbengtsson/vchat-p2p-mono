@@ -1,9 +1,6 @@
 import type { Job } from 'bullmq';
 import { noop } from '@mono/common-util';
 import { QueueService } from '../queue/QueueService.js';
-import { IgnoredUsersService } from '../match-prerequisite/IgnoredUsersService.js';
-import { IgnoreSystemMetricsService } from '../metrics/IgnoreSystemMetricsService.js';
-import { GlobalIgnoreMatrixService } from '../match-prerequisite/GlobalIgnoreMatrixService.js';
 import { SupabaseService } from '../../../../common/service/SupabaseService.js';
 import { SocketServer } from '../../../socket-io/server/SocketServer.js';
 import { MetricsUtil } from '../../util/MetricsUtil.js';
@@ -11,9 +8,6 @@ import { MatchmakingMetricsService } from '../metrics/MatchmakingMetricsService.
 import { ServerConfigService } from '../../../../common/config/service/ServerConfigService.js';
 import { MatchmakingJobEntry } from '../job/MatchmakingJobEntry.js';
 import { CleanupJobEntry } from '../job/CleanupJobEntry.js';
-import { MaintenanceJobEntry } from '../job/MaintenanceJobEntry.js';
-import { MonitoringJobEntry } from '../job/MonitoringJobEntry.js';
-import { MATCHMAKING_JOB } from '../../model/MatchmakingJob.js';
 import { REDIS_KEY } from '../../model/RedisKey.js';
 
 // Mock external dependencies
@@ -291,297 +285,6 @@ describe('MatchMakingJobEntry Integration Tests', () => {
     });
   });
 
-  describe('Bloom Filter Optimization Maintenance', () => {
-    it('should optimize bloom filter capacity successfully', async () => {
-      // Setup: Mock metrics service
-      const recordMaintenanceOpSpy = vi.spyOn(
-        IgnoreSystemMetricsService,
-        'recordMaintenanceOperation',
-      );
-
-      // Execute maintenance
-      await MaintenanceJobEntry.optimizeBloomFilterMaintenance();
-
-      // Verify: Maintenance operation was recorded as success
-      expect(recordMaintenanceOpSpy).toHaveBeenCalledWith(
-        MATCHMAKING_JOB.OPTIMIZE_BLOOM_FILTER,
-        'success',
-        expect.any(Number), // duration
-      );
-    });
-
-    it('should handle bloom filter optimization errors gracefully', async () => {
-      // Setup: Mock IgnoredUsersService to throw error
-      const optimizeSpy = vi
-        .spyOn(IgnoredUsersService, 'optimizeBloomFilterCapacity')
-        .mockRejectedValue(new Error('Bloom filter error'));
-
-      const recordMaintenanceOpSpy = vi.spyOn(
-        IgnoreSystemMetricsService,
-        'recordMaintenanceOperation',
-      );
-
-      // Execute maintenance and expect error to be thrown
-      await expect(
-        MaintenanceJobEntry.optimizeBloomFilterMaintenance(),
-      ).rejects.toThrow('Bloom filter error');
-
-      // Verify: Error was recorded before re-throwing
-      expect(recordMaintenanceOpSpy).toHaveBeenCalledWith(
-        MATCHMAKING_JOB.OPTIMIZE_BLOOM_FILTER,
-        'error',
-        expect.any(Number), // duration
-      );
-
-      // Restore spies
-      optimizeSpy.mockRestore();
-      recordMaintenanceOpSpy.mockRestore();
-    });
-  });
-
-  describe('Global Matrix Warmup Maintenance', () => {
-    it('should perform matrix warmup when needed', async () => {
-      // Setup: Mock matrix status indicating warmup is needed
-      vi.spyOn(GlobalIgnoreMatrixService, 'getMatrixStatus').mockResolvedValue({
-        isAvailable: false,
-        version: 0,
-        stats: {
-          totalPairs: 0,
-          lastWarmupDuration: 0,
-          lastWarmupTimestamp: 0,
-          version: 0,
-          isWarmedUp: false,
-        },
-      });
-
-      vi.spyOn(GlobalIgnoreMatrixService, 'warmupMatrix').mockResolvedValue({
-        isAvailable: true,
-        version: 1,
-        stats: {
-          totalPairs: 10,
-          lastWarmupDuration: 100,
-          lastWarmupTimestamp: Date.now(),
-          version: 1,
-          isWarmedUp: true,
-        },
-      });
-
-      const recordMaintenanceOpSpy = vi.spyOn(
-        IgnoreSystemMetricsService,
-        'recordMaintenanceOperation',
-      );
-
-      // Execute maintenance
-      await MaintenanceJobEntry.warmupGlobalMatrixMaintenance();
-
-      // Verify: Warmup was performed and metrics recorded
-      expect(GlobalIgnoreMatrixService.warmupMatrix).toHaveBeenCalled();
-      expect(recordMaintenanceOpSpy).toHaveBeenCalledWith(
-        MATCHMAKING_JOB.WARMUP_GLOBAL_MATRIX,
-        'success',
-        expect.any(Number),
-        {
-          pairs_loaded: 10,
-          version: 1,
-        },
-      );
-    });
-
-    it('should skip warmup when not needed', async () => {
-      // Setup: Mock matrix status indicating warmup is not needed
-      vi.spyOn(GlobalIgnoreMatrixService, 'getMatrixStatus').mockResolvedValue({
-        isAvailable: true,
-        version: 1,
-        stats: {
-          totalPairs: 10,
-          lastWarmupDuration: 100,
-          lastWarmupTimestamp: Date.now() - 1800000, // 30 minutes ago
-          version: 1,
-          isWarmedUp: true,
-        },
-      });
-
-      const warmupSpy = vi.spyOn(GlobalIgnoreMatrixService, 'warmupMatrix');
-
-      // Execute maintenance
-      await MaintenanceJobEntry.warmupGlobalMatrixMaintenance();
-
-      // Verify: Warmup was skipped
-      expect(warmupSpy).not.toHaveBeenCalled();
-    });
-
-    it('should handle warmup errors gracefully', async () => {
-      // Setup: Mock matrix status to trigger warmup, then make warmup fail
-      const getMatrixStatusSpy = vi
-        .spyOn(GlobalIgnoreMatrixService, 'getMatrixStatus')
-        .mockResolvedValue({
-          isAvailable: false,
-          version: 0,
-          stats: {
-            totalPairs: 0,
-            lastWarmupDuration: 0,
-            lastWarmupTimestamp: 0,
-            version: 0,
-            isWarmedUp: false,
-          },
-        });
-
-      const warmupMatrixSpy = vi
-        .spyOn(GlobalIgnoreMatrixService, 'warmupMatrix')
-        .mockRejectedValue(new Error('Warmup failed'));
-
-      const recordMaintenanceOpSpy = vi.spyOn(
-        IgnoreSystemMetricsService,
-        'recordMaintenanceOperation',
-      );
-
-      // Execute maintenance and expect error to be thrown
-      await expect(
-        MaintenanceJobEntry.warmupGlobalMatrixMaintenance(),
-      ).rejects.toThrow('Warmup failed');
-
-      // Verify: Error was recorded before re-throwing
-      expect(recordMaintenanceOpSpy).toHaveBeenCalledWith(
-        MATCHMAKING_JOB.WARMUP_GLOBAL_MATRIX,
-        'error',
-        expect.any(Number),
-      );
-
-      // Restore spies
-      getMatrixStatusSpy.mockRestore();
-      warmupMatrixSpy.mockRestore();
-      recordMaintenanceOpSpy.mockRestore();
-    });
-  });
-
-  describe('Global Matrix Refresh Maintenance', () => {
-    it('should refresh matrix when old or unavailable', async () => {
-      // Setup: Mock matrix status indicating refresh is needed
-      const oldTimestamp = Date.now() - 8 * 60 * 60 * 1000; // 8 hours ago
-      vi.spyOn(GlobalIgnoreMatrixService, 'getMatrixStatus').mockResolvedValue({
-        isAvailable: true,
-        version: 1,
-        stats: {
-          totalPairs: 5,
-          lastWarmupDuration: 100,
-          lastWarmupTimestamp: oldTimestamp,
-          version: 1,
-          isWarmedUp: true,
-        },
-      });
-
-      vi.spyOn(GlobalIgnoreMatrixService, 'refreshMatrix').mockResolvedValue({
-        isAvailable: true,
-        version: 2,
-        stats: {
-          totalPairs: 8,
-          lastWarmupDuration: 150,
-          lastWarmupTimestamp: Date.now(),
-          version: 2,
-          isWarmedUp: true,
-        },
-      });
-
-      const recordMaintenanceOpSpy = vi.spyOn(
-        IgnoreSystemMetricsService,
-        'recordMaintenanceOperation',
-      );
-
-      // Execute maintenance
-      await MaintenanceJobEntry.refreshGlobalIgnoreMatrixMaintenance();
-
-      // Verify: Refresh was performed and metrics recorded
-      expect(GlobalIgnoreMatrixService.refreshMatrix).toHaveBeenCalled();
-      expect(recordMaintenanceOpSpy).toHaveBeenCalledWith(
-        MATCHMAKING_JOB.REFRESH_GLOBAL_MATRIX,
-        'success',
-        expect.any(Number),
-        {
-          pairs_loaded: 8,
-          version: 2,
-        },
-      );
-    });
-
-    it('should skip refresh when not needed', async () => {
-      // Setup: Mock matrix status indicating refresh is not needed
-      vi.spyOn(GlobalIgnoreMatrixService, 'getMatrixStatus').mockResolvedValue({
-        isAvailable: true,
-        version: 1,
-        stats: {
-          totalPairs: 10,
-          lastWarmupDuration: 100,
-          lastWarmupTimestamp: Date.now() - 3600000, // 1 hour ago
-          version: 1,
-          isWarmedUp: true,
-        },
-      });
-
-      const refreshSpy = vi.spyOn(GlobalIgnoreMatrixService, 'refreshMatrix');
-
-      // Execute maintenance
-      await MaintenanceJobEntry.refreshGlobalIgnoreMatrixMaintenance();
-
-      // Verify: Refresh was skipped
-      expect(refreshSpy).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('Cache Health Check Monitoring', () => {
-    it('should perform cache health check successfully', async () => {
-      // Setup: Mock metrics service methods
-      const recordCacheHealthSpy = vi
-        .spyOn(IgnoreSystemMetricsService, 'recordCacheHealthMetrics')
-        .mockResolvedValue();
-
-      const recordBloomFilterSpy = vi
-        .spyOn(IgnoreSystemMetricsService, 'recordBloomFilterMetrics')
-        .mockResolvedValue();
-
-      const recordCleanupOpSpy = vi.spyOn(
-        IgnoreSystemMetricsService,
-        'recordCleanupOperation',
-      );
-
-      // Execute monitoring
-      await MonitoringJobEntry.ignoreCacheHealthCheckMonitoring();
-
-      // Verify: All health checks were performed
-      expect(recordCacheHealthSpy).toHaveBeenCalled();
-      expect(recordBloomFilterSpy).toHaveBeenCalled();
-      expect(recordCleanupOpSpy).toHaveBeenCalledWith(
-        MATCHMAKING_JOB.IGNORE_CACHE_HEALTH_CHECK,
-        'success',
-        expect.any(Number),
-      );
-    });
-
-    it('should handle health check errors gracefully', async () => {
-      // Setup: Mock metrics service to throw error
-      vi.spyOn(
-        IgnoreSystemMetricsService,
-        'recordCacheHealthMetrics',
-      ).mockRejectedValue(new Error('Health check failed'));
-
-      const recordCleanupOpSpy = vi.spyOn(
-        IgnoreSystemMetricsService,
-        'recordCleanupOperation',
-      );
-
-      // Execute monitoring and expect error to be thrown
-      await expect(
-        MonitoringJobEntry.ignoreCacheHealthCheckMonitoring(),
-      ).rejects.toThrow('Health check failed');
-
-      // Verify: Error was recorded before re-throwing
-      expect(recordCleanupOpSpy).toHaveBeenCalledWith(
-        MATCHMAKING_JOB.IGNORE_CACHE_HEALTH_CHECK,
-        'error',
-        expect.any(Number),
-      );
-    });
-  });
-
   describe('Integration Test - Real World Scenario', () => {
     it('should handle complete maintenance cycle', async () => {
       const redis = globalThis.redisClient;
@@ -603,36 +306,9 @@ describe('MatchMakingJobEntry Integration Tests', () => {
       const staleKey = `${processingKey}:stale-worker`;
       await redis.set(staleKey, 'stale-data');
 
-      // Mock global matrix service for maintenance
-      vi.spyOn(GlobalIgnoreMatrixService, 'getMatrixStatus').mockResolvedValue({
-        isAvailable: false,
-        version: 0,
-        stats: {
-          totalPairs: 0,
-          lastWarmupDuration: 0,
-          lastWarmupTimestamp: 0,
-          version: 0,
-          isWarmedUp: false,
-        },
-      });
-
-      vi.spyOn(GlobalIgnoreMatrixService, 'warmupMatrix').mockResolvedValue({
-        isAvailable: true,
-        version: 1,
-        stats: {
-          totalPairs: 5,
-          lastWarmupDuration: 100,
-          lastWarmupTimestamp: Date.now(),
-          version: 1,
-          isWarmedUp: true,
-        },
-      });
-
       // Execute complete maintenance cycle
       await CleanupJobEntry.expiredMatchesCleanup();
       await CleanupJobEntry.staleConnectionsCleanup();
-      await MaintenanceJobEntry.warmupGlobalMatrixMaintenance();
-      await MonitoringJobEntry.ignoreCacheHealthCheckMonitoring();
 
       // Verify: All cleanups were performed
       const remainingAssignments = await redis.hgetall(assignmentKey);
@@ -640,9 +316,6 @@ describe('MatchMakingJobEntry Integration Tests', () => {
 
       const staleExists = await redis.exists(staleKey);
       expect(staleExists).toBe(0);
-
-      // Verify: Global matrix warmup was called
-      expect(GlobalIgnoreMatrixService.warmupMatrix).toHaveBeenCalled();
     });
   });
 });

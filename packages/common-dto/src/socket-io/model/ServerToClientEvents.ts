@@ -7,7 +7,6 @@ export interface ServerToClientEvents {
     partnerUserId: string,
     isPolite: boolean,
   ) => void;
-  'find-match': (userId: string) => void;
   'user-joined': (userId: string) => void;
   'user-left': (userId: string) => void;
   'partner-disconnected': VoidFunction;

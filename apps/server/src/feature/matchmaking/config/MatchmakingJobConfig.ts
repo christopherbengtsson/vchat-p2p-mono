@@ -2,8 +2,6 @@ import type { Job } from 'bullmq';
 import type { QueueConfig } from '../../job/bullmq/model/QueueConfig.js';
 import { MatchmakingJobEntry } from '../service/job/MatchmakingJobEntry.js';
 import { CleanupJobEntry } from '../service/job/CleanupJobEntry.js';
-import { MaintenanceJobEntry } from '../service/job/MaintenanceJobEntry.js';
-import { MonitoringJobEntry } from '../service/job/MonitoringJobEntry.js';
 import { MATCHMAKING_JOB } from '../model/MatchmakingJob.js';
 
 // TODO: Needs to be configurable
@@ -121,112 +119,6 @@ export const matchmakingConfig: QueueConfig[] = [
           data: { source: 'scheduler' },
           opts: {
             removeOnComplete: 3,
-            removeOnFail: 5,
-            attempts: 1,
-          },
-        },
-      },
-    ],
-  },
-  {
-    type: 'maintenance',
-    queueName: '{ignore-system-maintenance}',
-    schedulers: [
-      {
-        schedulerId: 'optimize-bloom-filter',
-        handler: async (): Promise<void> => {
-          await MaintenanceJobEntry.optimizeBloomFilterMaintenance();
-        },
-        repeatOptions: {
-          pattern: '0 3,15 * * *', // 3 AM and 3 PM daily
-        },
-        jobTemplate: {
-          name: MATCHMAKING_JOB.OPTIMIZE_BLOOM_FILTER,
-          data: { source: 'scheduler' },
-          opts: {
-            removeOnComplete: 5,
-            removeOnFail: 3,
-            attempts: 2,
-          },
-        },
-      },
-      {
-        schedulerId: 'warmup-global-matrix',
-        handler: async (_job: Job): Promise<void> => {
-          await MaintenanceJobEntry.warmupGlobalMatrixMaintenance();
-        },
-        repeatOptions: {
-          pattern: '0 1 * * *', // 1 AM daily
-        },
-        jobTemplate: {
-          name: MATCHMAKING_JOB.WARMUP_GLOBAL_MATRIX,
-          data: { source: 'scheduler' },
-          opts: {
-            removeOnComplete: 3,
-            removeOnFail: 5,
-            attempts: 3,
-            backoff: {
-              type: 'exponential',
-              delay: 5000,
-            },
-          },
-        },
-      },
-      {
-        schedulerId: 'refresh-global-matrix',
-        handler: async (_job: Job): Promise<void> => {
-          await MaintenanceJobEntry.refreshGlobalIgnoreMatrixMaintenance();
-        },
-        repeatOptions: {
-          pattern: '0 */2 * * *', // Every 2 hours
-        },
-        jobTemplate: {
-          name: MATCHMAKING_JOB.REFRESH_GLOBAL_MATRIX,
-          data: { source: 'scheduler' },
-          opts: {
-            removeOnComplete: 3,
-            removeOnFail: 3,
-            attempts: 2,
-          },
-        },
-      },
-    ],
-  },
-  {
-    type: 'monitoring',
-    queueName: '{ignore-system-monitoring}',
-    schedulers: [
-      {
-        schedulerId: 'ignore-cache-health-check',
-        handler: async (): Promise<void> => {
-          await MonitoringJobEntry.ignoreCacheHealthCheckMonitoring();
-        },
-        repeatOptions: {
-          pattern: '0 * * * *', // Every hour
-        },
-        jobTemplate: {
-          name: MATCHMAKING_JOB.IGNORE_CACHE_HEALTH_CHECK,
-          data: { source: 'scheduler' },
-          opts: {
-            removeOnComplete: 10,
-            removeOnFail: 5,
-            attempts: 1,
-          },
-        },
-      },
-      {
-        schedulerId: 'global-matrix-health-check',
-        handler: async (_job: Job): Promise<void> => {
-          await MonitoringJobEntry.globalMatrixHealthCheckMonitoring();
-        },
-        repeatOptions: {
-          pattern: '0 */15 * * * *', // Every 15 minutes
-        },
-        jobTemplate: {
-          name: MATCHMAKING_JOB.GLOBAL_MATRIX_HEALTH_CHECK,
-          data: { source: 'scheduler' },
-          opts: {
-            removeOnComplete: 20,
             removeOnFail: 5,
             attempts: 1,
           },

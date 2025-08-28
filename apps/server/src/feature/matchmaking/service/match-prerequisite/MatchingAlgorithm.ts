@@ -2,56 +2,50 @@ import { v4 as uuid } from 'uuid';
 import type { QueueUser } from '../../model/QueueUser.js';
 import type { Match } from '../../model/Match.js';
 
-/**
- * Fast ignore check using pre-computed matrix
- * O(1) lookup with consistent lexicographic ordering
- */
-const isIgnored = (
-  userId1: string,
-  userId2: string,
-  ignoreMatrix: Set<string>,
-): boolean => {
-  const key =
-    userId1 < userId2 ? `${userId1}:${userId2}` : `${userId2}:${userId1}`;
-
-  return ignoreMatrix.has(key);
-};
-
-/**
- * Optimized FIFO matching algorithm with efficient ignore checking
- * O(n) complexity with O(1) ignore lookups
- */
-const findOptimizedMatches = (
-  users: QueueUser[],
-  ignoreMatrix: Set<string>,
-): Match[] => {
+const findMatches = (users: QueueUser[]): Match[] => {
   const matches: Match[] = [];
-  const used = new Set<string>();
+  const numberOfUsers = users.length;
 
-  if (!users || users.length < 2 || !ignoreMatrix) {
-    return matches;
+  if (users.length < 2) return matches;
+
+  // Shuffle for better average case (avoids pathological cases)
+  const indices = Array.from({ length: numberOfUsers }, (_, i) => i);
+  for (let i = numberOfUsers - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [indices[i], indices[j]] = [indices[j], indices[i]];
   }
 
-  // Simple iteration - first available pair wins
-  for (let i = 0; i < users.length - 1; i++) {
-    const user1 = users[i];
-    if (used.has(user1.socketId)) continue;
+  // Pre-build ignore sets
+  const ignoreSets = new Array(numberOfUsers);
+  for (let i = 0; i < numberOfUsers; i++) {
+    ignoreSets[i] = new Set(users[i].ignoreList);
+  }
 
-    // Find first compatible user with O(1) ignore check
-    for (let j = i + 1; j < users.length; j++) {
-      const user2 = users[j];
-      if (used.has(user2.socketId)) continue;
+  const matched = new Uint8Array(numberOfUsers);
+  let unmatchedCount = numberOfUsers;
 
-      // Fast ignore check using pre-computed matrix
-      if (!isIgnored(user1.userId, user2.userId, ignoreMatrix)) {
+  // Process in shuffled order for better distribution
+  for (let idx = 0; idx < numberOfUsers - 1 && unmatchedCount >= 2; idx++) {
+    const i = indices[idx];
+    if (matched[i]) continue;
+
+    for (let jdx = idx + 1; jdx < numberOfUsers; jdx++) {
+      const j = indices[jdx];
+      if (matched[j]) continue;
+
+      if (
+        !ignoreSets[i].has(users[j].userId) &&
+        !ignoreSets[j].has(users[i].userId)
+      ) {
         matches.push({
           roomId: uuid(),
-          user1,
-          user2,
+          user1: users[i],
+          user2: users[j],
         });
 
-        used.add(user1.socketId);
-        used.add(user2.socketId);
+        matched[i] = 1;
+        matched[j] = 1;
+        unmatchedCount -= 2;
         break;
       }
     }
@@ -61,5 +55,5 @@ const findOptimizedMatches = (
 };
 
 export const MatchingAlgorithm = {
-  findOptimizedMatches,
+  findMatches,
 };

@@ -17,12 +17,9 @@ const create = (
     ? `${queueName}-worker-${workerNumber}`
     : queueName;
 
-  const workerConfig = true;
   const worker = new Worker(
     queueName,
     async (job) => {
-      log.debug(`BullMQ worker '${workerId}' picked up job '${job.id}'`);
-
       const handler = handlerMap.get(job.name);
 
       if (!handler) {
@@ -35,7 +32,7 @@ const create = (
       await handler(job);
     },
     {
-      connection: ConnectionConfig.getBullMQConnection(workerConfig),
+      connection: ConnectionConfig.getBullMQConnection(true),
       maxStalledCount: 3,
       concurrency: 100,
     },

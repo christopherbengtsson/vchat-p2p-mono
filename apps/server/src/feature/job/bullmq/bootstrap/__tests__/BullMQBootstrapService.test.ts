@@ -44,7 +44,7 @@ describe('BullMQBootstrapService', () => {
         const totalUsers = 200;
         const users = new Array(totalUsers)
           .fill(null)
-          .map((_, i) => QueueService.addToQueue(`socket${i}`, `user${i}`));
+          .map((_, i) => QueueService.addToQueue(`socket${i}`, `user${i}`, []));
         await Promise.all(users);
 
         // Verify users are in queue

@@ -3,8 +3,11 @@ import { BanDuration } from '../../user-ban/model/BanDuration.js';
 import { BrowserSignature } from '../../fingerprint/model/BrowserSignature.js';
 
 export interface ClientToServerEvents {
-  'find-match': (socketId: string, userId: string) => void;
-  'skip-user': (roomId: string, socketId: string) => void;
+  'find-match': (
+    socketId: string,
+    userId: string,
+    ignoreList: string[],
+  ) => void;
   'cancel-match': (userId: string) => void;
 
   'join-room': (roomId: string, socketId: string) => void;

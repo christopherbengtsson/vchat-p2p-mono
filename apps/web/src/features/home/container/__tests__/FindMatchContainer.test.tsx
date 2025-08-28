@@ -7,6 +7,7 @@ import * as showToastModule from '@/common/utils/toast/showToast';
 import { ErrorToastState } from '@/common/utils/toast/model/ToastState';
 import { RoutePath } from '@/RoutePath';
 import { FindMatchService } from '../../service/FindMatchService';
+import * as useFetchUserModule from '../../hooks/useFetchUser';
 import { FindMatchContainer } from '../FindMatchContainer';
 
 const mockNavigate = vi.fn();
@@ -43,6 +44,7 @@ describe('FindMatchContainer', () => {
 
   let getMediaPermissionsSpy: MockInstance;
   let requestAudioAndVideoStreamSpy: MockInstance;
+  let useFetchUserSpy: MockInstance;
 
   beforeEach(() => {
     vi.spyOn(useRootStore, 'useRootStore').mockReturnValue({
@@ -50,6 +52,19 @@ describe('FindMatchContainer', () => {
       mediaStore: mockMediaStore,
       contentModerationStore: mockContentModerationStore,
     } as unknown as RootStore);
+
+    useFetchUserSpy = vi
+      .spyOn(useFetchUserModule, 'useFetchUser')
+      .mockReturnValue({
+        isPending: false,
+        isError: false,
+        user: {
+          id: 'user-123',
+          username: 'test-user',
+          ignoredUserIds: ['ignored-user-1', 'ignored-user-2'],
+        },
+        error: null,
+      });
 
     getMediaPermissionsSpy = vi
       .spyOn(FindMatchService, 'getMediaPermissions')
@@ -358,5 +373,56 @@ describe('FindMatchContainer', () => {
     });
 
     expect(requestAudioAndVideoStreamSpy).toHaveBeenCalled();
+  });
+
+  it('should show loading state when fetching user', () => {
+    useFetchUserSpy.mockReturnValueOnce({
+      isPending: true,
+      isError: false,
+      user: undefined,
+      error: null,
+    });
+
+    render(<FindMatchContainer />);
+
+    expect(
+      screen.getByRole('button', { name: 'Loading user...' }),
+    ).toBeDisabled();
+  });
+
+  it('should show disabled button and error message when user fetch fails', () => {
+    useFetchUserSpy.mockReturnValueOnce({
+      isPending: false,
+      isError: true,
+      user: { id: null },
+      error: new Error('Fetch failed'),
+    });
+
+    render(<FindMatchContainer />);
+
+    expect(screen.getByRole('button', { name: 'Find match' })).toBeDisabled();
+    expect(
+      screen.getByText(
+        'Could not fetch user information. Please try refreshing the page.',
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it('should show disabled button and error message when query has error', () => {
+    useFetchUserSpy.mockReturnValueOnce({
+      isPending: false,
+      isError: true,
+      user: {},
+      error: new Error('Network error'),
+    });
+
+    render(<FindMatchContainer />);
+
+    expect(screen.getByRole('button', { name: 'Find match' })).toBeDisabled();
+    expect(
+      screen.getByText(
+        'Could not fetch user information. Please try refreshing the page.',
+      ),
+    ).toBeInTheDocument();
   });
 });

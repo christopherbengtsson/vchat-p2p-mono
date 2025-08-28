@@ -54,6 +54,7 @@ return claimed_users
 
 /**
  * Lua script to release claimed users (error recovery)
+ * No need to cleanup ignore_list
  */
 const RELEASE_USERS_LUA = `
 local queue_key = KEYS[1]
@@ -90,6 +91,7 @@ return released_count
 /**
  * Lua script to atomically release specific claimed users (unmatched) back to the queue
  * Only releases claims owned by this worker for security
+ * No need to cleanup ignore_list
  */
 const RELEASE_SPECIFIC_USERS_LUA = `
 local queue_key = KEYS[1]
@@ -132,9 +134,10 @@ const claimUsersFromQueue = async (
   const processingKey = `${queueKey}${REDIS_KEY.PROCESSING_SUFFIX}`;
   const claimTtlSeconds = 5; // Auto-expire claims after 5 seconds TODO make configurable
 
+  // Step 1: Claim users with LUA
   const result = (await redis.eval(
     CLAIM_USERS_LUA,
-    2, // 2 keys
+    2,
     queueKey,
     processingKey,
     config.batchSize.toString(),
@@ -146,20 +149,42 @@ const claimUsersFromQueue = async (
     return [];
   }
 
-  // Parse result (pairs of member, score)
-  const queueUsers: QueueUser[] = [];
+  // Step 2: Parse and batch fetch ignore lists in single pipeline
+  const pipeline = redis.pipeline();
+  const memberData: {
+    member: string;
+    socketId: string;
+    userId: string;
+    score: number;
+  }[] = [];
+
   for (let i = 0; i < result.length; i += 2) {
     const member = result[i];
     const score = parseFloat(result[i + 1]);
     const { socketId, userId } = QueueService.splitRedisKey(member);
 
     if (isDefined(socketId) && isDefined(userId)) {
-      queueUsers.push({
-        socketId,
-        userId,
-        score,
-      });
+      memberData.push({ member, socketId, userId, score });
+      pipeline.smembers(REDIS_KEY.getIgnoreKey(member));
     }
+  }
+
+  const ignoreListResults = await pipeline.exec();
+
+  // Step 3: Combine results
+  const queueUsers: QueueUser[] = [];
+
+  for (let i = 0; i < memberData.length; i++) {
+    const { socketId, userId, score } = memberData[i];
+    const ignoreListResult = ignoreListResults?.[i];
+    const ignoreList = (ignoreListResult?.[1] as string[]) ?? []; // // Pipeline results are [error, result]
+
+    queueUsers.push({
+      socketId,
+      userId,
+      score,
+      ignoreList,
+    });
   }
 
   return queueUsers;
@@ -217,6 +242,7 @@ const releaseSpecificClaimedUsers = async (
 /**
  * Complete processing for claimed users (remove claims)
  * Only removes claims owned by this worker for security
+ * Also cleans up user's ignore_list
  */
 const completeUserProcessing = async (
   queueUsers: readonly QueueUser[],
@@ -236,22 +262,28 @@ const completeUserProcessing = async (
       userId: user.userId,
     });
     const claimKey = `${processingKey}:${member}`;
+    const ignoreListKey = REDIS_KEY.getIgnoreKey(member);
 
     // Only delete if we own this claim (security check)
     pipeline.eval(
       `
       local claim_key = KEYS[1]
+      local ignore_key = KEYS[2]
       local worker_id = ARGV[1]
+      local member = ARGV[2]
       
       local owner = redis.call('GET', claim_key)
       if owner == worker_id then
-          return redis.call('DEL', claim_key)
+          redis.call('DEL', claim_key)
+          redis.call('DEL', ignore_key)
+          return 1
       else
           return 0
       end
       `,
-      1,
+      2,
       claimKey,
+      ignoreListKey,
       workerId,
     );
   }

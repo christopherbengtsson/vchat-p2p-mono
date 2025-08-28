@@ -1,5 +1,4 @@
 import type { VChatSocket } from '../../../common/model/VChatSocket.js';
-import { IgnoredUsersService } from '../../matchmaking/service/match-prerequisite/IgnoredUsersService.js';
 import { ModerationService } from '../service/ModerationService.js';
 
 const register = (
@@ -12,17 +11,6 @@ const register = (
     'user-reported',
     wrapHandler(async (partnerUserId, _userId) => {
       socket.to(partnerUserId).emit('user-reported');
-
-      /**
-       * TODO: Add prio BullMQ job instead?
-       * TODO: We need immidiate cache update for ignored users, otherwise users can directly re-match
-       */
-      void IgnoredUsersService.clearUsersIgnoreCache([partnerUserId]);
-      /**
-       * user 1 ignores, added to queue
-       * user 2 ignores, added to queue
-       * job triggers, should gather both ignore events above and update matrix?
-       */
     }),
   );
 
