@@ -34,7 +34,9 @@ describe('NewMatchContainer', () => {
     expect(mockNavigate).toHaveBeenCalled();
 
     expect(mockNavigate).toHaveBeenCalledWith(RoutePath.CALL, {
-      state: null,
+      state: {
+        findMatch: true,
+      },
       replace: true,
     });
   });
