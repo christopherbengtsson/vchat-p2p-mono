@@ -12,7 +12,7 @@ const rateLimitOptions: RateLimitOptions = {
   duration: 60,
   blockDuration: 600,
   keyPrefix: 'admin-ui-namespace',
-  execEvenly: true,
+  execEvenly: process.env.NODE_ENV === 'production',
 };
 
 const bootstrap = (io: Server, serverConfig: ServerConfig) => {

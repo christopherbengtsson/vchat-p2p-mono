@@ -6,12 +6,14 @@ import {
 import { RateLimiterMiddleware } from '../../../common/middleware/RateLimiterMiddleware.js';
 import type { RateLimitOptions } from '../../../common/middleware/model/RateLimitOptions.js';
 
+// Health Check Rate Limits
+// Dev: 60/min | Prod: 30/min (Deployment script friendly)
 const rateLimitOptions: RateLimitOptions = {
-  points: process.env.NODE_ENV === 'development' ? 300 : 180,
+  points: process.env.NODE_ENV === 'development' ? 60 : 30,
   duration: 60,
   blockDuration: 30,
   keyPrefix: 'health-check',
-  execEvenly: true,
+  execEvenly: process.env.NODE_ENV === 'production',
 };
 
 const register = (app: Express) => {

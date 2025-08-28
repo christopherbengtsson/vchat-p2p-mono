@@ -9,12 +9,15 @@ import { ApiKeyMiddleware } from '../../../common/middleware/ApiKeyMiddleware.js
 import { FingerprintService } from '../service/FingerprintService.js';
 import type { RateLimitOptions } from '../../../common/middleware/model/RateLimitOptions.js';
 
+// Browser Fingerprinting Rate Limits
+// Dev: 100 (E2E testing needs headroom) | Prod: 15 (Slightly more generous for legitimate users)
+// Block Duration: 300s (Don't punish too long)
 const rateLimitOptions: RateLimitOptions = {
-  points: process.env.NODE_ENV === 'development' ? 20 : 10,
-  duration: 300,
-  blockDuration: 600,
+  points: process.env.NODE_ENV === 'development' ? 100 : 15,
+  duration: 300, // 5 minutes
+  blockDuration: 300, // 5 minutes (same as duration)
   keyPrefix: 'signature',
-  execEvenly: true,
+  execEvenly: process.env.NODE_ENV === 'production',
 };
 
 const register = (app: Express) => {

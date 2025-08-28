@@ -21,7 +21,7 @@ const to = async (
         context = await browser.newContext({
           userAgent: `VChat E2E test - ${testTitle} - ${user.email}`,
           extraHTTPHeaders: {
-            'X-Forwarded-For': `127.0.0.${index}`,
+            'X-Forwarded-For': `127.0.0.${index + 1}`,
           },
         });
         page = await context.newPage();

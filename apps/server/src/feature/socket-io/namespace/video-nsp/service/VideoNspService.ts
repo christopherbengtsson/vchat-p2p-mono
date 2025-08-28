@@ -14,12 +14,15 @@ import { SignalingController } from '../../../../signaling/controller/SignalingC
 import { nspEmitters } from '../../api/namespaceEmitter.js';
 import type { RateLimitOptions } from '../../../../../common/middleware/model/RateLimitOptions.js';
 
+// WebSocket Real-time Rate Limits
+// Dev: 300 (Heavy development testing) | Prod: 150 (Video calls generate many signaling events)
+// Block Duration: 180s (Shorter timeout for real-time)
 const rateLimitOptions: RateLimitOptions = {
-  points: process.env.NODE_ENV === 'development' ? 120 : 80,
-  duration: 60,
-  blockDuration: 300,
+  points: process.env.NODE_ENV === 'development' ? 300 : 150,
+  duration: 60, // per minute
+  blockDuration: 180, // 3 minutes
   keyPrefix: 'video-chat-namespace',
-  execEvenly: false,
+  execEvenly: false, // Real-time communications need immediate responses
 };
 
 const initNspControllers = (socket: VChatSocket) => {

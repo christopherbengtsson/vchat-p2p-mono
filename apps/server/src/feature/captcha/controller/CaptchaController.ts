@@ -9,12 +9,15 @@ import { ApiKeyMiddleware } from '../../../common/middleware/ApiKeyMiddleware.js
 import { CaptchaService } from '../service/CaptchaService.js';
 import type { RateLimitOptions } from '../../../common/middleware/model/RateLimitOptions.js';
 
+// Bot Protection Rate Limits
+// Dev: 50 (Testing needs) | Prod: 5 (Stricter - captcha failures are suspicious)
+// Block Duration: 600s (10min penalty for failed captchas)
 const rateLimitOptions: RateLimitOptions = {
-  points: process.env.NODE_ENV === 'development' ? 30 : 10,
-  duration: 300,
-  blockDuration: 900,
+  points: process.env.NODE_ENV === 'development' ? 50 : 5,
+  duration: 300, // 5 minutes
+  blockDuration: 600, // 10 minutes (longer for captcha failures)
   keyPrefix: 'captcha-verify',
-  execEvenly: true,
+  execEvenly: process.env.NODE_ENV === 'production',
 };
 
 const register = (app: Express) => {

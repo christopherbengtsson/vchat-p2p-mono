@@ -14,6 +14,7 @@ const extractIpFromHeaders = (
     // The 'x-forwarded-for' header can contain a list of IPs; the first one is usually the client's.
     return forwardedFor.split(',')[0].trim();
   }
+
   return undefined;
 };
 

@@ -11,6 +11,8 @@ import { ServerConfigService } from '../../../common/config/service/ServerConfig
 import { RateLimiterMiddleware } from '../../../common/middleware/RateLimiterMiddleware.js';
 import type { RateLimitOptions } from '../../../common/middleware/model/RateLimitOptions.js';
 
+// Metrics Scraping Rate Limits
+// Dev: 60/min | Prod: 30/min (Grafana scraping friendly)
 const rateLimitOptions: RateLimitOptions = {
   points: process.env.NODE_ENV === 'development' ? 60 : 30,
   duration: 60,
