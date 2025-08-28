@@ -63,11 +63,12 @@ jobs:
           echo ADMIN_UI_PASSWORD=ADMIN_UI_PASSWORD >> apps/server/.env
 
           # cap.js
-          echo CAP_SERVER_BASE_URL=http://localhost:8001
-          echo CAP_ADMIN_KEY=test_admin_key_at_least_30_characters_long
-          echo CAP_SECRET_KEY=secretKey
-          echo CAP_SITE_KEY=siteKey
-          echo CAP_CORS_ORIGINS="http://localhost:3000"
+          echo CAP_SERVER_BASE_URL=http://localhost:8001 >> apps/server/.env
+          echo CAP_ADMIN_KEY=e2e_test_secret_key_at_least_30_characters_long >> apps/server/.env
+          echo CAP_SECRET_KEY=secretKey >> apps/server/.env
+          echo CAP_SITE_KEY=siteKey >> apps/server/.env
+          echo CAP_CORS_ORIGINS="http://localhost:3000" >> apps/server/.env
+
           cat apps/server/.env
 
           touch apps/web/.env
@@ -77,12 +78,17 @@ jobs:
           echo VITE_BASE_URL=http://localhost:3000 >> apps/web/.env
           echo VITE_SERVER_URL=http://localhost:8000 >> apps/web/.env
           echo VITE_API_KEY=testapikey >> apps/web/.env
+
           cat apps/web/.env
 
           touch apps/web/.env.e2e
           echo TEST_SUPABASE_URL=${{ secrets.SUPABASE_URL }} >> apps/web/.env.e2e
           echo TEST_SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY }} >> apps/web/.env.e2e
           echo TEST_USER_PASSWORD=${{ secrets.TEST_USER_PASSWORD }} >> apps/web/.env.e2e
+          echo NODE_OPTIONS="--max-old-space-size=120" >> apps/web/.env.e2e
+          echo VITE_NSFW_THRESHOLD=0.01 >> apps/web/.env.e2e
+          echo VITE_NSFW_ENABLED=false >> apps/web/.env.e2e
+          echo VITE_CAPTCHA_ENABLED=false  >> apps/web/.env.e2e
           cat apps/web/.env.e2e
 
       - name: Build packages
@@ -91,7 +97,7 @@ jobs:
       - name: Server start
         run: |
           # Start server in background with logs
-          nohup pnpm run server dev > server.log 2>&1 &
+          nohup pnpm run server dev:server > server.log 2>&1 &
           SERVER_PID=$!
           echo "Server started with PID: $SERVER_PID"
 
@@ -146,4 +152,4 @@ jobs:
         with:
           name: playwright-report-${{ matrix.shardIndex }}
           path: apps/web/e2e/failed-e2e-results
-          retention-days: 1
+          retention-days: 3
