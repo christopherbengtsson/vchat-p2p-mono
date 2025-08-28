@@ -16,6 +16,10 @@ export const useLogins = () => {
       if (CustomError.isCustomError(error)) {
         toast.error(error.message);
       } else if (error.code === 'user_banned') {
+        /**
+         * Supabase error code
+         * https://supabase.com/docs/guides/auth/debugging/error-codes
+         */
         toast.error('User is banned, try again later');
       } else if (error.message) {
         toast.error(error.message);
@@ -33,8 +37,6 @@ export const useLogins = () => {
     onError: (error) => {
       if (CustomError.isCustomError(error)) {
         toast.error(error.message);
-      } else if (error.code === 'user_banned') {
-        toast.error('User is banned, try again later');
       } else if (error.message) {
         toast.error(error.message);
       } else {

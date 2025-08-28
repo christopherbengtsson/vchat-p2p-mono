@@ -3,6 +3,8 @@ name: Test + Lint
 on:
   workflow_dispatch:
   push:
+  schedule: # Just to keep the Redis binaries cache alive
+    - cron: '0 3 * * 0' # Every Sunday at 3:00 UTC
 
 jobs:
   mono-ci:
