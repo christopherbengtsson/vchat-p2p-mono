@@ -18,7 +18,6 @@ const rateLimitOptions: RateLimitOptions = {
 
 const handleSignature = UwsUtil.createHandler((ctx) => {
   UwsUtil.parseJsonBody<{ browserSignature: BrowserSignature }>(ctx, {
-    maxSize: 1024 * 1024,
     rateLimitOptions,
     onComplete: async (body) => {
       if (!body) return;

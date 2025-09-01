@@ -1,6 +1,15 @@
+import { timingSafeEqual } from 'node:crypto';
 import { ServerConfigService } from '../../../common/config/service/ServerConfigService.js';
 import { UwsUtil } from '../util/UwsUtil.js';
 import type { RequestContext } from '../model/RequestContext.js';
+
+const isValid = (apiKey: string, validKey: string): boolean => {
+  try {
+    return timingSafeEqual(Buffer.from(apiKey), Buffer.from(validKey));
+  } catch {
+    return false;
+  }
+};
 
 const use = (ctx: RequestContext) => {
   const apiKey = ctx.headers['x-api-key'];
@@ -11,9 +20,8 @@ const use = (ctx: RequestContext) => {
   }
 
   const validKey = ServerConfigService.getConfig().secrets.server.apiKey;
-  const isValid = apiKey === validKey;
 
-  if (!isValid) {
+  if (!isValid(apiKey, validKey)) {
     UwsUtil.sendError(ctx.res, '403 Forbidden', 'Invalid API key');
     return false;
   }

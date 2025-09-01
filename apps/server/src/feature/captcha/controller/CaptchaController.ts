@@ -20,7 +20,7 @@ const rateLimitOptions: RateLimitOptions = {
 
 const handleCaptchaVerify = UwsUtil.createHandler((ctx) => {
   UwsUtil.parseJsonBody<{ token: string }>(ctx, {
-    maxSize: 1024 * 1024,
+    maxSize: UwsUtil.BODY_SIZE_LIMITS.TINY,
     rateLimitOptions,
     onComplete: async (body) => {
       if (!body) return;
