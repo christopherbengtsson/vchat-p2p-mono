@@ -2,11 +2,11 @@ import type { Socket } from 'socket.io';
 import { RateLimiterRedis, type IRateLimiterRes } from 'rate-limiter-flexible';
 import { Assert, CustomError, type Maybe } from '@mono/common-dto';
 import type { JwtPayload } from 'jsonwebtoken';
-import { RedisClient } from '../client/RedisClient.js';
-import { log } from '../util/logger.js';
-import { HeadersUtil } from '../util/HeadersUtil.js';
-import type { IncomingMessage } from './model/IncomingMessage.js';
-import type { RateLimitOptions } from './model/RateLimitOptions.js';
+import { RedisClient } from '../../../common/client/RedisClient.js';
+import { log } from '../../../common/util/logger.js';
+import { HeadersUtil } from '../../../common/util/HeadersUtil.js';
+import type { RateLimitOptions } from '../model/RateLimitOptions.js';
+import type { IncomingMessage } from '../../socket-io/model/IncomingMessage.js';
 
 const isDevelopment = process.env.NODE_ENV === 'development';
 

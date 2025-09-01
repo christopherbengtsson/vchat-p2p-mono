@@ -1,6 +1,6 @@
 import { log } from './common/util/logger.js';
-import { HttpServer } from './HttpServer.js';
 import { ServerConfigService } from './common/config/service/ServerConfigService.js';
+import { HttpServer } from './feature/uws/server/HttpServer.js';
 import { BootstrapService } from './feature/bootstrap/service/BootstrapService.js';
 import { SocketServer } from './feature/socket-io/server/SocketServer.js';
 import { RedisClient } from './common/client/RedisClient.js';
@@ -11,15 +11,20 @@ export const start = async () => {
 
   const serverConfig = ServerConfigService.getConfig();
 
-  const httpServer = HttpServer.init();
+  const uApp = HttpServer.init();
 
-  await SocketServer.init(httpServer, serverConfig);
+  await SocketServer.init(uApp, serverConfig);
 
   await BullMQBootstrapService.initialize();
 
   const port = serverConfig.config.port;
-  httpServer.listen(port, () => {
-    log.info(`Server is running on port ${port}`);
+  uApp.listen(port, (token) => {
+    if (token) {
+      log.info(`Server is running on port ${port}`);
+    } else {
+      log.error(`Failed to listen on port ${port}`);
+      throw new Error(`Failed to listen on port ${port}`);
+    }
   });
 };
 

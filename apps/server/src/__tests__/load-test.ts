@@ -1,9 +1,26 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+/**
+ * Socket.IO Load Test
+ *
+ * Environment Variables:
+ * - SERVER_URL: Server URL (default: http://localhost:8000)
+ * - SUPABASE_JWT_SECRET: JWT secret for authentication (required)
+ * - MAX_CLIENTS: Number of clients to create (default: 200)
+ * - SIGNALING_TEST: Enable signaling test (default: true)
+ * - MATCHMAKING_INTERVAL_MS: Matchmaking interval (default: 340)
+ * - ICE_CANDIDATES: ICE candidates per client (default: 20)
+ * - BURST_INTERVAL: Signaling burst interval (default: 50)
+ *
+ * Usage:
+ * Localhost: SUPABASE_JWT_SECRET=your_secret npm run test:load
+ * Deployed:  SERVER_URL=https://vcat-service.rest SUPABASE_JWT_SECRET=your_secret npm run test:load
+ */
 import { io } from 'socket.io-client';
 import jwt from 'jsonwebtoken';
 import { SocketNamespace } from '@mono/common-dto';
 
-const URL = `http://localhost:8000${SocketNamespace.VIDEO_CHAT}`;
+const BASE_URL = process.env.SERVER_URL || 'http://localhost:8000';
+const URL = `${BASE_URL}${SocketNamespace.VIDEO_CHAT}`;
 
 const MAX_CLIENTS = parseInt(process.env.MAX_CLIENTS || '200');
 const POLLING_PERCENTAGE = 0.05;
@@ -25,18 +42,18 @@ const VERBOSE_LOGGING = false;
 const SUPABASE_JWT_SECRET = process.env.SUPABASE_JWT_SECRET;
 
 if (!SUPABASE_JWT_SECRET) {
-  throw new Error('SUPABASE_JWT_SECRET is not defined');
+  throw new Error('SUPABASE_JWT_SECRET is required for testing');
 }
 
 // Mock WebRTC signaling data generators
 const generateMockOffer = () => ({
   type: 'offer',
-  sdp: 'v=0\r\no=- 4611731400430051336 2 IN IP4 127.0.0.1\r\n'.repeat(20), // ~1KB payload
+  sdp: 'v=0\r\no=- 4611731400430051336 2 IN IP4 127.0.0.1\r\n'.repeat(100), // ~5-6KB payload
 });
 
 const generateMockAnswer = () => ({
   type: 'answer',
-  sdp: 'v=0\r\no=- 4611731400430051337 2 IN IP4 127.0.0.1\r\n'.repeat(20),
+  sdp: 'v=0\r\no=- 4611731400430051337 2 IN IP4 127.0.0.1\r\n'.repeat(100),
 });
 
 const generateMockIceCandidate = () => ({

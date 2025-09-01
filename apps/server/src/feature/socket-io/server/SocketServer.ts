@@ -1,5 +1,5 @@
-import type { Server } from 'http';
-import helmet from 'helmet';
+import type { TemplatedApp } from 'uWebSockets.js';
+// import helmet from 'helmet';
 import { createAdapter } from '@socket.io/redis-streams-adapter';
 import { Server as SocketIoServer } from 'socket.io';
 import { CustomError, type Maybe } from '@mono/common-dto';
@@ -10,8 +10,8 @@ import { SocketIoBootstrapService } from '../service/SocketIoBoostrapService.js'
 
 let _io: Maybe<SocketIoServer>;
 
-const init = async (httpServer: Server, serverConfig: ServerConfig) => {
-  const io = new SocketIoServer(httpServer, {
+const init = async (uApp: TemplatedApp, serverConfig: ServerConfig) => {
+  const io = new SocketIoServer({
     adapter: createAdapter(RedisClient.get()),
     cors: {
       origin: serverConfig.config.allowedOrigins.split(','),
@@ -19,6 +19,8 @@ const init = async (httpServer: Server, serverConfig: ServerConfig) => {
       credentials: true,
     },
   });
+
+  io.attachApp(uApp);
 
   io.engine.on('connection_error', (err) => {
     log.fatal(
@@ -30,10 +32,6 @@ const init = async (httpServer: Server, serverConfig: ServerConfig) => {
       '[SocketServer] Socket.io connection error',
     );
   });
-
-  /** Middlewares */
-  // Apply helmet to the Socket.IO engine's underlying HTTP server
-  io.engine.use(helmet());
 
   /** Bootstrap */
   await SocketIoBootstrapService.bootstrap(io);
