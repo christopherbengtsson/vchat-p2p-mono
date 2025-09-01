@@ -113,7 +113,7 @@ health_check() {
             ;;
         "backend")
             while [[ $retries -lt $MAX_HEALTH_CHECK_RETRIES ]]; do
-                if docker compose exec -T backend curl -f -s --max-time 3 http://localhost:8000/api/v1/health >/dev/null 2>&1; then
+                if docker compose exec -T backend curl -f -s --max-time 3 -H "x-forwarded-for: 127.0.0.1" http://localhost:8000/api/v1/health >/dev/null 2>&1; then
                     echo -e " ${GREEN}✓${NC} (${retries}s)"
                     return 0
                 fi
@@ -270,7 +270,7 @@ rolling_update() {
                     local backend_containers=($(docker compose ps -q backend))
                     for container in "${backend_containers[@]}"; do
                         if [[ "$container" != "$current_container" ]]; then
-                            if docker exec "$container" curl -f -s --max-time 3 http://localhost:8000/api/v1/health >/dev/null 2>&1; then
+                            if docker exec "$container" curl -f -s --max-time 3 -H "x-forwarded-for: 127.0.0.1" http://localhost:8000/api/v1/health >/dev/null 2>&1; then
                                 new_healthy=true
                                 echo -e "     ${GREEN}✓${NC} New instance is healthy"
                                 break 2

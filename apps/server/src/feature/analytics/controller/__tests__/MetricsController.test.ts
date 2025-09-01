@@ -29,15 +29,15 @@ describe('MetricsController', () => {
     expect(await body.text()).toMatchSnapshot();
   });
 
-  it('returns 400 when no ip', async () => {
+  it('returns 200 when no ip', async () => {
     MetricsController.register(server);
 
     const { statusCode, body } = await UwsTestUtils.request(HttpRoute.METRICS, {
       headers: {},
     });
 
-    expect(statusCode).toBe(400);
-    expect(await body.text()).toBe('IP address not found');
+    expect(statusCode).toBe(200);
+    expect(await body.text()).toMatchSnapshot();
   });
 
   it('should return 500 on server error', async () => {
