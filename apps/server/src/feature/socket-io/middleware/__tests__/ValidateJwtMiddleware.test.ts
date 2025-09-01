@@ -1,8 +1,8 @@
 import jwt from 'jsonwebtoken';
 import { CustomError, CustomErrorType } from '@mono/common-dto';
-import { log } from '../../util/logger.js';
-import type { IncomingMessage } from '../model/IncomingMessage.js';
+import type { IncomingMessage } from '../../model/IncomingMessage.js';
 import { ValidateJwtMiddleware } from '../ValidateJwtMiddleware.js';
+import { log } from '../../../../common/util/logger.js';
 
 vi.mock('jsonwebtoken');
 vi.mock('../../utils/logger');

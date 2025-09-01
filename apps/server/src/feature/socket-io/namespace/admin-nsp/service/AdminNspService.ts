@@ -4,8 +4,8 @@ import type { Server } from 'socket.io';
 import { SocketNamespace } from '@mono/common-dto';
 import type { ServerConfig } from '../../../../../common/config/model/ServerConfig.js';
 import { RedisClient } from '../../../../../common/client/RedisClient.js';
-import { SocketRateLimiterMiddleware } from '../../../../../common/middleware/SocketRateLimiterMiddleware.js';
-import type { RateLimitOptions } from '../../../../../common/middleware/model/RateLimitOptions.js';
+import { SocketRateLimiterMiddleware } from '../../../../uws/middleware/SocketRateLimiterMiddleware.js';
+import type { RateLimitOptions } from '../../../../uws/model/RateLimitOptions.js';
 
 const rateLimitOptions: RateLimitOptions = {
   points: process.env.NODE_ENV === 'development' ? 60 : 30,

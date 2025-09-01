@@ -1,13 +1,11 @@
-import type { Express } from 'express';
-import { log } from '../../../common/util/logger.js';
+import type { TemplatedApp } from 'uWebSockets.js';
 import {
   HttpRoute,
   HttpRoutePaths,
 } from '../../../common/config/model/HttpRoute.js';
-import { RateLimiterMiddleware } from '../../../common/middleware/RateLimiterMiddleware.js';
-import { ApiKeyMiddleware } from '../../../common/middleware/ApiKeyMiddleware.js';
 import { CaptchaService } from '../service/CaptchaService.js';
-import type { RateLimitOptions } from '../../../common/middleware/model/RateLimitOptions.js';
+import type { RateLimitOptions } from '../../uws/model/RateLimitOptions.js';
+import { UwsUtil } from '../../uws/util/UwsUtil.js';
 
 // Bot Protection Rate Limits
 // Dev: 50 (Testing needs) | Prod: 5 (Stricter - captcha failures are suspicious)
@@ -20,43 +18,30 @@ const rateLimitOptions: RateLimitOptions = {
   execEvenly: process.env.NODE_ENV === 'production',
 };
 
-const register = (app: Express) => {
-  app.post(
-    HttpRoutePaths[HttpRoute.CAPTCHA_VERIFY],
-    ApiKeyMiddleware.use,
-    RateLimiterMiddleware.use(rateLimitOptions),
-    async (req, res) => {
-      try {
-        const { token } = req.body;
+const handleCaptchaVerify = UwsUtil.createHandler((ctx) => {
+  UwsUtil.parseJsonBody<{ token: string }>(ctx, {
+    maxSize: UwsUtil.BODY_SIZE_LIMITS.TINY,
+    rateLimitOptions,
+    onComplete: async (body) => {
+      if (!body) return;
 
-        if (!token) {
-          res.status(400).json({
-            success: false,
-            error: 'Missing captcha token',
-          });
-          return;
-        }
-
-        const isVerified = await CaptchaService.verifyCaptchaToken(token);
-
-        res.status(200).json({
-          success: isVerified,
-        });
-      } catch (error) {
-        log.error(
-          {
-            error: error instanceof Error ? error.message : error,
-          },
-          'Error in captcha verification endpoint',
-        );
-
-        res.status(500).json({
+      if (!UwsUtil.validateString(body.token, 1, 1000)) {
+        UwsUtil.sendJson(ctx.res, '400 Bad Request', {
           success: false,
-          error: 'Internal server error',
+          error: 'Missing captcha token',
         });
+        return;
       }
+
+      const isVerified = await CaptchaService.verifyCaptchaToken(body.token);
+
+      UwsUtil.sendJson(ctx.res, '200 OK', { success: isVerified });
     },
-  );
+  });
+});
+
+const register = (app: TemplatedApp) => {
+  app.post(HttpRoutePaths[HttpRoute.CAPTCHA_VERIFY], handleCaptchaVerify);
 };
 
 export const CaptchaController = {

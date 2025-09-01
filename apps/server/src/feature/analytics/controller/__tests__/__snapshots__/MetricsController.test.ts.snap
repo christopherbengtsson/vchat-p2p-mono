@@ -1,0 +1,23 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`MetricsController > works 1`] = `
+"# HELP matchmaking_processing_duration_seconds Duration of matchmaking processing jobs in seconds
+# TYPE matchmaking_processing_duration_seconds histogram
+
+# HELP matchmaking_jobs_total Total number of matchmaking jobs processed
+# TYPE matchmaking_jobs_total counter
+
+# HELP matchmaking_matches_created_total Total number of user matches created
+# TYPE matchmaking_matches_created_total counter
+
+# HELP matchmaking_queue_entries_total Total number of users entering the matchmaking queue
+# TYPE matchmaking_queue_entries_total counter
+
+# HELP matchmaking_queue_exits_total Total number of users exiting the matchmaking queue
+# TYPE matchmaking_queue_exits_total counter
+
+# HELP matchmaking_queue_duration_seconds Duration users spent in the matchmaking queue before exiting
+# TYPE matchmaking_queue_duration_seconds histogram
+
+BullMQ-metrics-mock"
+`;

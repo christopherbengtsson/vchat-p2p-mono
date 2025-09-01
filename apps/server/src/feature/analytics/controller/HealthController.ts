@@ -1,10 +1,10 @@
-import type { Express } from 'express';
+import type { TemplatedApp } from 'uWebSockets.js';
 import {
   HttpRoute,
   HttpRoutePaths,
 } from '../../../common/config/model/HttpRoute.js';
-import { RateLimiterMiddleware } from '../../../common/middleware/RateLimiterMiddleware.js';
-import type { RateLimitOptions } from '../../../common/middleware/model/RateLimitOptions.js';
+import type { RateLimitOptions } from '../../uws/model/RateLimitOptions.js';
+import { UwsUtil } from '../../uws/util/UwsUtil.js';
 
 // Health Check Rate Limits
 // Dev: 60/min | Prod: 30/min (Deployment script friendly)
@@ -16,14 +16,20 @@ const rateLimitOptions: RateLimitOptions = {
   execEvenly: process.env.NODE_ENV === 'production',
 };
 
-const register = (app: Express) => {
-  app.get(
-    HttpRoutePaths[HttpRoute.HEALTH],
-    RateLimiterMiddleware.use(rateLimitOptions),
-    (_req, res) => {
-      res.status(200).send('Ok');
-    },
-  );
+const handleHealth = UwsUtil.createHandler(
+  (ctx) => {
+    UwsUtil.runAsync(ctx, {
+      rateLimitOptions,
+      work: async () => {
+        UwsUtil.sendResponse(ctx.res, '200 OK', 'Ok');
+      },
+    });
+  },
+  { validateApiKey: false },
+);
+
+const register = (app: TemplatedApp) => {
+  app.get(HttpRoutePaths[HttpRoute.HEALTH], handleHealth);
 };
 
 export const HealthController = {

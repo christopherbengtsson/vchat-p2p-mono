@@ -2,19 +2,42 @@
 
 # Comprehensive Performance Benchmark Script
 # Tests client scaling AND WebRTC signaling performance with ICE candidate progression
-# Usage: ./benchmark-progression.sh [express|uwebsockets]
+# Usage: ./benchmark-progression.sh [SERVER_URL] [SUPABASE_JWT_SECRET]
+# Examples:
+#   ./benchmark-progression.sh                                                    # localhost
+#   ./benchmark-progression.sh https://vcat-service.rest your_jwt_secret         # deployed
 
-FRAMEWORK=${1:-"express"}
+SERVER_URL=${1:-"http://localhost:8000"}
+SUPABASE_JWT_SECRET=${2:-$SUPABASE_JWT_SECRET}
+
+# Determine environment type for results naming
+if [[ "$SERVER_URL" == "http://localhost:8000" ]]; then
+    ENV_TYPE="localhost"
+else
+    ENV_TYPE="deployed"
+fi
+
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 RESULTS_DIR="./benchmark-results"
-RESULTS_FILE="${RESULTS_DIR}/${FRAMEWORK}_comprehensive_benchmark_${TIMESTAMP}.txt"
+RESULTS_FILE="${RESULTS_DIR}/${ENV_TYPE}_comprehensive_benchmark_${TIMESTAMP}.txt"
+
+# Validate required environment variables
+if [[ -z "$SUPABASE_JWT_SECRET" ]]; then
+    echo "❌ Error: SUPABASE_JWT_SECRET is required"
+    echo "Usage: ./benchmark-progression.sh [SERVER_URL] [SUPABASE_JWT_SECRET]"
+    echo "Examples:"
+    echo "  SUPABASE_JWT_SECRET=your_secret ./benchmark-progression.sh"
+    echo "  ./benchmark-progression.sh https://vcat-service.rest your_jwt_secret"
+    exit 1
+fi
 
 # Create results directory
 mkdir -p "$RESULTS_DIR"
 
-echo "🚀 Starting Comprehensive Performance Benchmark for $FRAMEWORK"
+echo "🚀 Starting Comprehensive Performance Benchmark"
 echo "=============================================================" | tee "$RESULTS_FILE"
-echo "Framework: $FRAMEWORK" | tee -a "$RESULTS_FILE"
+echo "Environment: $ENV_TYPE" | tee -a "$RESULTS_FILE"
+echo "Server URL: $SERVER_URL" | tee -a "$RESULTS_FILE"
 echo "Test Type: Client Scaling + WebRTC Signaling Performance" | tee -a "$RESULTS_FILE"
 echo "Timestamp: $(date)" | tee -a "$RESULTS_FILE"
 echo "=============================================================" | tee -a "$RESULTS_FILE"
@@ -57,7 +80,7 @@ for clients in "${CLIENT_LEVELS[@]}"; do
         echo "" | tee -a "$RESULTS_FILE"
         
         # Run the comprehensive test with signaling enabled
-        SIGNALING_TEST=true ICE_CANDIDATES=$ice_candidates MAX_CLIENTS=$clients pnpm test:load 2>&1 | tee -a "$RESULTS_FILE"
+        SERVER_URL="$SERVER_URL" SUPABASE_JWT_SECRET="$SUPABASE_JWT_SECRET" SIGNALING_TEST=true ICE_CANDIDATES=$ice_candidates MAX_CLIENTS=$clients pnpm test:load 2>&1 | tee -a "$RESULTS_FILE"
         
         echo "" | tee -a "$RESULTS_FILE"
         echo "✅ Completed: $clients clients, $ice_candidates ICE candidates" | tee -a "$RESULTS_FILE"
@@ -78,7 +101,8 @@ done
 echo "🎯 Comprehensive Performance Benchmark Completed!" | tee -a "$RESULTS_FILE"
 echo "" | tee -a "$RESULTS_FILE"
 echo "📊 Benchmark Summary:" | tee -a "$RESULTS_FILE"
-echo "   Framework: $FRAMEWORK" | tee -a "$RESULTS_FILE"
+echo "   Environment: $ENV_TYPE" | tee -a "$RESULTS_FILE"
+echo "   Server URL: $SERVER_URL" | tee -a "$RESULTS_FILE"
 echo "   Client Loads: ${CLIENT_LEVELS[*]} concurrent users" | tee -a "$RESULTS_FILE"
 echo "   ICE Intensities: ${ICE_LEVELS[*]} candidates per client" | tee -a "$RESULTS_FILE"
 echo "   Total Scenarios: $total_tests test combinations" | tee -a "$RESULTS_FILE"
@@ -92,8 +116,8 @@ echo "   • System stability at scale" | tee -a "$RESULTS_FILE"
 echo "" | tee -a "$RESULTS_FILE"
 echo "💾 Results saved to: $RESULTS_FILE" | tee -a "$RESULTS_FILE"
 echo "" | tee -a "$RESULTS_FILE"
-echo "🔄 Framework Comparison:" | tee -a "$RESULTS_FILE"
-echo "   1. Run: ./benchmark-progression.sh express" | tee -a "$RESULTS_FILE"
-echo "   2. Run: ./benchmark-progression.sh uwebsockets" | tee -a "$RESULTS_FILE"
-echo "   3. Compare signaling performance in benchmark-results/" | tee -a "$RESULTS_FILE"
+echo "🔄 Environment Comparison:" | tee -a "$RESULTS_FILE"
+echo "   Localhost: SUPABASE_JWT_SECRET=your_secret ./benchmark-progression.sh" | tee -a "$RESULTS_FILE"
+echo "   Deployed:  ./benchmark-progression.sh https://vcat-service.rest your_jwt_secret" | tee -a "$RESULTS_FILE"
+echo "   Compare performance in benchmark-results/" | tee -a "$RESULTS_FILE"
 echo "" | tee -a "$RESULTS_FILE"

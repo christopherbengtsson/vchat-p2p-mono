@@ -1,9 +1,7 @@
 import type { NextFunction } from 'express';
 import type { Server } from 'socket.io';
 import { SocketNamespace } from '@mono/common-dto';
-import { SocketRateLimiterMiddleware } from '../../../../../common/middleware/SocketRateLimiterMiddleware.js';
-import { ValidateJwtMiddleware } from '../../../../../common/middleware/ValidateJwtMiddleware.js';
-import type { IncomingMessage } from '../../../../../common/middleware/model/IncomingMessage.js';
+import { SocketRateLimiterMiddleware } from '../../../../uws/middleware/SocketRateLimiterMiddleware.js';
 import type { VChatSocket } from '../../../../../common/model/VChatSocket.js';
 import { log } from '../../../../../common/util/logger.js';
 import { wrapSocketHandler } from '../../../../../common/util/wrapSocketHandler.js';
@@ -12,7 +10,9 @@ import { ModerationController } from '../../../../moderation/controller/Moderati
 import { RoomManagementController } from '../../../../room-management/controller/RoomManagementController.js';
 import { SignalingController } from '../../../../signaling/controller/SignalingController.js';
 import { nspEmitters } from '../../api/namespaceEmitter.js';
-import type { RateLimitOptions } from '../../../../../common/middleware/model/RateLimitOptions.js';
+import type { RateLimitOptions } from '../../../../uws/model/RateLimitOptions.js';
+import type { IncomingMessage } from '../../../model/IncomingMessage.js';
+import { ValidateJwtMiddleware } from '../../../middleware/ValidateJwtMiddleware.js';
 
 // WebSocket Real-time Rate Limits
 // Dev: 300 (Heavy development testing) | Prod: 150 (Video calls generate many signaling events)

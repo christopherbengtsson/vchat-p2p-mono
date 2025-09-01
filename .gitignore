@@ -33,6 +33,7 @@ backups/
 *.log
 monitoring.log
 deployment.log
+benchmark-results
 
 # Auth and session data
 playwright/.auth

@@ -49,6 +49,7 @@ const handleUserBan = async (
 
   return permanentBan;
 };
+
 export const ModerationService = {
   blacklistDeviceSignature,
   handleUserBan,
