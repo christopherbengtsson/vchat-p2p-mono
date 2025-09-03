@@ -308,14 +308,34 @@ const recoverLostUsers = async (): Promise<{
   const recoveredUsers: string[] = [];
   const removedUsers: string[] = [];
 
-  // Get all redis-registered users
-  const members = await redis.smembers(REDIS_KEY.ALL_KNOWN_USERS_KEY);
+  // Use zscanStream to safely iterate through potentially large queue
+  const usersInQueue = new Set<string>();
 
-  // Get all users currently in queue with one command
-  const usersInQueue = new Set(await redis.zrange(queueKey, 0, -1));
+  const queueStream = redis.zscanStream(queueKey, {
+    count: 100, // Process queue members in batches of 100
+  });
 
-  // Batch process users by finding those not in queue
-  const usersToCheck = members.filter((member) => !usersInQueue.has(member));
+  for await (const members of queueStream) {
+    // zscanStream returns arrays of alternating [member1, score1, member2, score2, ...]
+    // We only need the member names (every other element)
+    for (let i = 0; i < members.length; i += 2) {
+      usersInQueue.add(members[i]);
+    }
+  }
+
+  // Use sscanStream to safely iterate through potentially large ALL_KNOWN_USERS set
+  const usersToCheck: string[] = [];
+  const usersStream = redis.sscanStream(REDIS_KEY.ALL_KNOWN_USERS_KEY, {
+    count: 100,
+  });
+
+  for await (const members of usersStream) {
+    // Filter out users who are already in queue
+    const notInQueue = (members as string[]).filter(
+      (member) => !usersInQueue.has(member),
+    );
+    usersToCheck.push(...notInQueue);
+  }
 
   if (usersToCheck.length === 0) {
     return { recovered: [], removed: [] };

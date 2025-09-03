@@ -3,9 +3,10 @@ import { CustomError } from '@mono/common-dto';
 import { ConnectionConfig } from '../config/ConnectionConfig.js';
 import type { WorkerHandler } from '../model/WorkerHandler.js';
 import { log } from '../../../../common/util/logger.js';
+import type { QueueConfig } from '../model/QueueConfig.js';
 
 const create = (
-  queueName: string,
+  queueConfig: QueueConfig,
   handlers: readonly WorkerHandler[],
   workerNumber?: number,
 ): Worker => {
@@ -14,11 +15,11 @@ const create = (
   );
 
   const workerId = workerNumber
-    ? `${queueName}-worker-${workerNumber}`
-    : queueName;
+    ? `${queueConfig.queueName}-worker-${workerNumber}`
+    : queueConfig.queueName;
 
   const worker = new Worker(
-    queueName,
+    queueConfig.queueName,
     async (job) => {
       const handler = handlerMap.get(job.name);
 
@@ -34,21 +35,32 @@ const create = (
     {
       connection: ConnectionConfig.getBullMQConnection(true),
       maxStalledCount: 3,
-      concurrency: 100,
+      concurrency: queueConfig.concurrencyPerWorker || 100,
     },
   );
 
   worker.on('error', (err) => {
-    log.error({ err, workerId, queueName }, 'Worker error');
+    log.error(
+      { err, workerId, queueName: queueConfig.queueName },
+      'Worker error',
+    );
   });
   worker.on('failed', (job, err) => {
-    log.warn({ jobId: job?.id, err, workerId, queueName }, 'Job failed');
+    log.warn(
+      { jobId: job?.id, err, workerId, queueName: queueConfig.queueName },
+      'Job failed',
+    );
   });
   worker.on('stalled', (jobId) => {
-    log.warn({ jobId, workerId, queueName }, 'Job stalled');
+    log.warn(
+      { jobId, workerId, queueName: queueConfig.queueName },
+      'Job stalled',
+    );
   });
 
-  log.debug(`Worker '${workerId}' started for queue '${queueName}'`);
+  log.debug(
+    `Worker '${workerId}' started for queue '${queueConfig.queueName}'`,
+  );
 
   return worker;
 };

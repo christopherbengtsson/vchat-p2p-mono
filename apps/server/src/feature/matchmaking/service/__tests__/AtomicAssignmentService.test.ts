@@ -15,18 +15,29 @@ describe('AtomicAssignmentService', () => {
 
   describe('processMatchedUsers', () => {
     it('should atomically remove matched users from queue and create assignments', async () => {
-      // Setup: Add users to queue
+      // Setup: Add users to queue and ALL_KNOWN_USERS set
       const queueKey = QueueService.getRegionSpecificQueueKey();
       const assignmentKey = REDIS_KEY.MATCH_ASSIGNMENT_KEY;
+      const allKnownUsersKey = REDIS_KEY.ALL_KNOWN_USERS_KEY;
 
       await globalThis.redisClient.zadd(queueKey, 1000, 'socket1__:__user1');
       await globalThis.redisClient.zadd(queueKey, 1001, 'socket2__:__user2');
       await globalThis.redisClient.zadd(queueKey, 1002, 'socket3__:__user3');
       await globalThis.redisClient.zadd(queueKey, 1003, 'socket4__:__user4');
 
+      // Add users to ALL_KNOWN_USERS set
+      await globalThis.redisClient.sadd(
+        allKnownUsersKey,
+        'socket1__:__user1',
+        'socket2__:__user2',
+        'socket3__:__user3',
+        'socket4__:__user4',
+      );
+
       // Verify initial state
       expect(await globalThis.redisClient.zcard(queueKey)).toBe(4);
       expect(await globalThis.redisClient.hlen(assignmentKey)).toBe(0);
+      expect(await globalThis.redisClient.scard(allKnownUsersKey)).toBe(4);
 
       // Setup: Create matches
       const matches: Match[] = [
@@ -70,6 +81,9 @@ describe('AtomicAssignmentService', () => {
 
       // Verify: Match assignments created
       expect(await globalThis.redisClient.hlen(assignmentKey)).toBe(4);
+
+      // Verify: Users removed from ALL_KNOWN_USERS set
+      expect(await globalThis.redisClient.scard(allKnownUsersKey)).toBe(0);
 
       // Verify: Correct assignment data
       const assignment1 = await globalThis.redisClient.hget(
@@ -365,13 +379,21 @@ describe('AtomicAssignmentService', () => {
       expect(await globalThis.redisClient.hlen(assignmentKey)).toBe(16);
     });
 
-    it('should delete ignore lists when processing matched users', async () => {
-      // Setup: Add users to queue and ignore lists
+    it('should delete ignore lists and remove users from ALL_KNOWN_USERS when processing matched users', async () => {
+      // Setup: Add users to queue, ALL_KNOWN_USERS set, and ignore lists
       const queueKey = QueueService.getRegionSpecificQueueKey();
       const assignmentKey = REDIS_KEY.MATCH_ASSIGNMENT_KEY;
+      const allKnownUsersKey = REDIS_KEY.ALL_KNOWN_USERS_KEY;
 
       await globalThis.redisClient.zadd(queueKey, 1000, 'socket1__:__user1');
       await globalThis.redisClient.zadd(queueKey, 1001, 'socket2__:__user2');
+
+      // Add users to ALL_KNOWN_USERS set
+      await globalThis.redisClient.sadd(
+        allKnownUsersKey,
+        'socket1__:__user1',
+        'socket2__:__user2',
+      );
 
       // Setup ignore lists that should be deleted
       await globalThis.redisClient.set(
@@ -383,7 +405,8 @@ describe('AtomicAssignmentService', () => {
         JSON.stringify(['user5', 'user6']),
       );
 
-      // Verify ignore lists exist before processing
+      // Verify initial state
+      expect(await globalThis.redisClient.scard(allKnownUsersKey)).toBe(2);
       expect(
         await globalThis.redisClient.get('ignore_list:socket1__:__user1'),
       ).not.toBeNull();
@@ -417,6 +440,9 @@ describe('AtomicAssignmentService', () => {
 
       // Verify: Assignments created
       expect(await globalThis.redisClient.hlen(assignmentKey)).toBe(2);
+
+      // Verify: Users removed from ALL_KNOWN_USERS set
+      expect(await globalThis.redisClient.scard(allKnownUsersKey)).toBe(0);
 
       // Verify: Ignore lists deleted
       expect(

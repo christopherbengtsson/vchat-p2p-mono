@@ -68,7 +68,19 @@ describe('AtomicQueueService - Concurrent Processing Tests', () => {
   const getProcessingClaims = async (): Promise<string[]> => {
     const queueKey = QueueService.getRegionSpecificQueueKey();
     const processingKey = `${queueKey}:processing`;
-    return await globalThis.redisClient.keys(`${processingKey}:*`);
+
+    // Use scanStream for consistency (though test data is small)
+    const claimKeys: string[] = [];
+    const stream = globalThis.redisClient.scanStream({
+      match: `${processingKey}:*`,
+      count: 100,
+    });
+
+    for await (const keys of stream) {
+      claimKeys.push(...keys);
+    }
+
+    return claimKeys;
   };
 
   // Helper to verify queue state

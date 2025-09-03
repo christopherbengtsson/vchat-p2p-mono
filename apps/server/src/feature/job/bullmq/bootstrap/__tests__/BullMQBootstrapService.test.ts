@@ -1,9 +1,7 @@
 import { ServerConfigService } from '../../../../../common/config/service/ServerConfigService.js';
 import { BullMQBootstrapService } from '../BullMQBootstrapService.js';
 import { QueueService } from '../../../../matchmaking/service/queue/QueueService.js';
-import { SupabaseService } from '../../../../../common/service/SupabaseService.js';
 
-vi.mock('../../../../../common/service/SupabaseService.js');
 vi.mock('../../../../socket-io/server/SocketServer.js', () => ({
   SocketServer: {
     io: {
@@ -21,8 +19,6 @@ describe('BullMQBootstrapService', () => {
   });
 
   beforeEach(() => {
-    vi.mocked(SupabaseService.getIgnoredPairs).mockResolvedValue([]);
-
     globalThis.redisClient.hmget = vi.fn().mockResolvedValue([null, null]); // Cache miss by default
     globalThis.redisClient.hmset = vi.fn().mockResolvedValue('OK');
     globalThis.redisClient.expire = vi.fn().mockResolvedValue(1);
