@@ -25,7 +25,7 @@ const init = async (
     const workers: Worker[] = [];
 
     for (let i = 0; i < workerCount; i++) {
-      const worker = WorkerService.create(config.queueName, handlers, i + 1);
+      const worker = WorkerService.create(config, handlers, i + 1);
       workers.push(worker);
     }
 

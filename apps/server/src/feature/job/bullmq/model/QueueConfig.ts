@@ -7,9 +7,11 @@ export type QueueConfig =
       schedulers: JobSchedulerConfig[];
       /** Number of worker instances to create for this queue (default: 1) */
       workerCount?: number;
+      concurrencyPerWorker: number;
     }
   | {
-      type: 'cleanup' | 'maintenance' | 'monitoring';
+      type: 'cleanup';
       queueName: string;
       schedulers: JobSchedulerConfig[];
+      concurrencyPerWorker: number;
     };

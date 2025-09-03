@@ -136,8 +136,8 @@ describe('MatchMakingJobEntry Integration Tests', () => {
 
       // Setup: Add some assignments with different timestamps
       const currentTime = Date.now();
-      const expiredTime = currentTime - 15 * 60 * 1000; // 15 minutes ago
-      const recentTime = currentTime - 5 * 60 * 1000; // 5 minutes ago
+      const expiredTime = currentTime - 5 * 60 * 1000; // 5 minutes ago (expired)
+      const recentTime = currentTime - 1 * 60 * 1000; // 1 minute ago (valid)
 
       const expiredAssignment = JSON.stringify({
         roomId: 'room-1',
@@ -189,12 +189,12 @@ describe('MatchMakingJobEntry Integration Tests', () => {
 
     it('should handle Redis errors gracefully during cleanup', async () => {
       const redis = globalThis.redisClient;
-      const originalHgetall = redis.hgetall;
+      const originalHscanStream = redis.hscanStream;
 
-      // Mock Redis error
-      redis.hgetall = vi
-        .fn()
-        .mockRejectedValue(new Error('Redis connection failed'));
+      // Mock Redis hscanStream to fail
+      redis.hscanStream = vi.fn().mockImplementation(() => {
+        throw new Error('Redis connection failed');
+      });
 
       // Execute: Should throw error for BullMQ
       await expect(CleanupJobEntry.expiredMatchesCleanup()).rejects.toThrow(
@@ -202,7 +202,7 @@ describe('MatchMakingJobEntry Integration Tests', () => {
       );
 
       // Restore Redis function
-      redis.hgetall = originalHgetall;
+      redis.hscanStream = originalHscanStream;
     });
   });
 
@@ -298,7 +298,7 @@ describe('MatchMakingJobEntry Integration Tests', () => {
       const expiredAssignment = JSON.stringify({
         roomId: 'room-1',
         partnerSocketId: 'socket-2',
-        createdAt: Date.now() - 15 * 60 * 1000, // 15 minutes ago
+        createdAt: Date.now() - 5 * 60 * 1000, // 5 minutes ago
       });
       await redis.hset(assignmentKey, 'socket-1', expiredAssignment);
 

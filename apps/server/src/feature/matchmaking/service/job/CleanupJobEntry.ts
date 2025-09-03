@@ -8,23 +8,32 @@ const expiredMatchesCleanup = async () => {
   const redis = RedisClient.get();
   const assignmentKey = REDIS_KEY.MATCH_ASSIGNMENT_KEY;
 
-  // Get all current assignments
-  const assignments = await redis.hgetall(assignmentKey);
   const expiredKeys: string[] = [];
+  // Check for assignments older than 3 minutes (matches complete faster)
+  // TODO: Should be configurable
+  const threeMinutesAgo = Date.now() - 3 * 60 * 1000;
 
-  // Check for assignments older than 10 minutes (matches should complete faster)
-  const tenMinutesAgo = Date.now() - 10 * 60 * 1000;
+  // Use hscanStream to safely iterate through potentially large assignments hash
+  const stream = redis.hscanStream(assignmentKey, {
+    count: 100, // Process assignments in batches of 100
+  });
 
-  for (const [socketId, assignmentData] of Object.entries(assignments)) {
-    try {
-      const assignment = JSON.parse(assignmentData);
-      // If assignment doesn't have a timestamp, consider it old
-      if (!assignment.createdAt || assignment.createdAt < tenMinutesAgo) {
+  for await (const resultKeys of stream) {
+    // hscanStream returns arrays of alternating [field1, value1, field2, value2, ...]
+    for (let i = 0; i < resultKeys.length; i += 2) {
+      const socketId = resultKeys[i];
+      const assignmentData = resultKeys[i + 1];
+
+      try {
+        const assignment = JSON.parse(assignmentData);
+        // If assignment doesn't have a timestamp, consider it old
+        if (!assignment.createdAt || assignment.createdAt < threeMinutesAgo) {
+          expiredKeys.push(socketId);
+        }
+      } catch {
+        // Invalid JSON, mark for cleanup
         expiredKeys.push(socketId);
       }
-    } catch {
-      // Invalid JSON, mark for cleanup
-      expiredKeys.push(socketId);
     }
   }
 
@@ -48,8 +57,16 @@ const staleConnectionsCleanup = async () => {
   const queueKey = QueueService.getRegionSpecificQueueKey();
   const processingKey = `${queueKey}:processing`;
 
-  // Find all processing claims
-  const claimKeys = await redis.keys(`${processingKey}:*`);
+  // Use SCAN instead of KEYS for non-blocking iteration
+  const claimKeys: string[] = [];
+  const stream = redis.scanStream({
+    match: `${processingKey}:*`,
+    count: 100,
+  });
+
+  for await (const keys of stream) {
+    claimKeys.push(...keys);
+  }
 
   if (claimKeys.length === 0) {
     return;
@@ -89,8 +106,16 @@ const orphanedClaimsCleanup = async () => {
   const queueKey = QueueService.getRegionSpecificQueueKey();
   const processingKey = `${queueKey}:processing`;
 
-  // Find processing claims that have been expired for a while (orphaned)
-  const claimKeys = await redis.keys(`${processingKey}:*`);
+  // Use SCAN instead of KEYS for non-blocking iteration
+  const claimKeys: string[] = [];
+  const stream = redis.scanStream({
+    match: `${processingKey}:*`,
+    count: 100,
+  });
+
+  for await (const keys of stream) {
+    claimKeys.push(...keys);
+  }
 
   if (claimKeys.length === 0) {
     return;

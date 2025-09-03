@@ -306,6 +306,29 @@ rolling_update() {
                 docker compose up -d backend
             fi
             ;;
+        "redis")
+            # Handle Redis with optional database flush
+            if [[ "${REDIS_FLUSH_DB:-false}" == "true" ]]; then
+                echo -e "     ${RED}⚠${NC} Flushing Redis database before update..."
+                # Try to flush if Redis is running
+                if docker compose exec -T redis redis-cli ping 2>/dev/null | grep -q PONG; then
+                    docker compose exec -T redis redis-cli FLUSHALL
+                    echo -e "     ${GREEN}✓${NC} Redis database flushed"
+                else
+                    echo -e "     ${YELLOW}ℹ${NC} Redis not running, will start fresh"
+                fi
+            fi
+            docker compose up -d "$service"
+            if [[ "${REDIS_FLUSH_DB:-false}" == "true" ]]; then
+                # Wait for Redis to be ready after restart
+                sleep 2
+                # Confirm flush worked (should be empty)
+                if docker compose exec -T redis redis-cli ping 2>/dev/null | grep -q PONG; then
+                    db_size=$(docker compose exec -T redis redis-cli DBSIZE 2>/dev/null || echo "0")
+                    echo -e "     ${GREEN}✓${NC} Redis restarted with clean database (${db_size} keys)"
+                fi
+            fi
+            ;;
         *)
             # Standard update for other services (respecting dependencies)
             docker compose up -d "$service"
@@ -483,6 +506,7 @@ main() {
     echo -e "  • Enter numbers (space-separated, e.g. '1 3 4')"
     echo -e "  • Enter 'all' for all services"
     echo -e "  • Enter 'critical' for backend+redis only"
+    echo -e "  • Enter 'critical-reset-db' for backend+redis with DB flush"
     echo -e "  • Enter 'q' to quit"
     
     read -r selection
@@ -501,6 +525,16 @@ main() {
         "critical")
             services=("redis" "backend")
             echo -e "${CYAN}Updating critical services: ${services[*]}${NC}"
+            ;;
+        "critical-reset-db")
+            services=("redis" "backend")
+            echo -e "${RED}⚠️  WARNING: This will FLUSH ALL Redis data!${NC}"
+            echo -e "${CYAN}Updating critical services with database reset: ${services[*]}${NC}"
+            read -p "Are you absolutely sure? Type 'FLUSH' to confirm: " confirm
+            [[ $confirm != "FLUSH" ]] && exit 0
+            # Set flag for Redis flush
+            export REDIS_FLUSH_DB=true
+            echo -e "${GREEN}✓${NC} Database reset confirmed. Proceeding with deployment..."
             ;;
         *)
             services=()

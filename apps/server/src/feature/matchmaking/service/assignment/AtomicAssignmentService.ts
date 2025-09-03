@@ -10,15 +10,17 @@ import { QueueService } from '../queue/QueueService.js';
 const LUA_REMOVE_MATCHED_USERS = `
 local queueKey = KEYS[1]
 local assignmentKey = KEYS[2]
+local allKnownUsersKey = KEYS[3]
 
 -- Parse arguments: userKey1, socketId1, assignmentData1, userKey2, socketId2, assignmentData2, ...
 for i = 1, #ARGV, 3 do
   local userKey = ARGV[i]
-  local socketId = ARGV[i + 1] 
+  local socketId = ARGV[i + 1]
   local assignmentData = ARGV[i + 2]
-  
+
   -- Remove from queue and set assignment atomically
   redis.call('ZREM', queueKey, userKey)
+  redis.call('SREM', allKnownUsersKey, userKey)
   redis.call('DEL', 'ignore_list:' .. userKey)
   redis.call('HSET', assignmentKey, socketId, assignmentData)
 end
@@ -52,7 +54,8 @@ const processMatchBatchWithLua = async (matches: Match[]): Promise<void> => {
   const assignmentKey = REDIS_KEY.MATCH_ASSIGNMENT_KEY;
 
   // Pre-allocate array with known size for better memory efficiency
-  const args: string[] = new Array(matches.length * 6);
+  const ARGS_PER_MATCH = 6;
+  const args: string[] = new Array(matches.length * ARGS_PER_MATCH);
   let argIndex = 0;
 
   // Prepare arguments for Lua script
@@ -87,9 +90,10 @@ const processMatchBatchWithLua = async (matches: Match[]): Promise<void> => {
   // Execute Lua script atomically
   await redis.eval(
     LUA_REMOVE_MATCHED_USERS,
-    2,
+    3,
     queueKey,
     assignmentKey,
+    REDIS_KEY.ALL_KNOWN_USERS_KEY,
     ...args,
   );
 };

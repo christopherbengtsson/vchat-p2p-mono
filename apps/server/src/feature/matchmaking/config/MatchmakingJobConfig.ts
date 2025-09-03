@@ -7,22 +7,17 @@ import { MATCHMAKING_JOB } from '../model/MatchmakingJob.js';
 // TODO: Needs to be configurable
 // IO-bound workload with 4 workers on 2 vCPUs
 const MATCHMAKING_JOB_CONFIG = {
-  AVERAGE_PROCESSING_TIME_MS: 1600, // Average time to process a matchmaking job in milliseconds when running E2E tests locally
   WORKER_COUNT: 4, // 2x number of CPUs, it's OK given the job is not CPU intensive but rather I/O bound (DB, Redis, etc.)
-  LOAD_FACTOR: 0.85, // Load factor to avoid overloading the system, a bit higher given the job is I/O bound
+  CONCURRENCY_PER_WORKER: 5,
+  INTERVAL: 200,
 } as const;
-
-// (1600 / 4) * 0.85 = 340ms
-const MATCHMAKING_INTERVAL =
-  (MATCHMAKING_JOB_CONFIG.AVERAGE_PROCESSING_TIME_MS /
-    MATCHMAKING_JOB_CONFIG.WORKER_COUNT) *
-  MATCHMAKING_JOB_CONFIG.LOAD_FACTOR;
 
 export const matchmakingConfig: QueueConfig[] = [
   {
     type: 'job',
     queueName: '{matchmaking}',
     workerCount: MATCHMAKING_JOB_CONFIG.WORKER_COUNT,
+    concurrencyPerWorker: MATCHMAKING_JOB_CONFIG.CONCURRENCY_PER_WORKER,
     schedulers: [
       {
         schedulerId: 'matchmaking-processor',
@@ -30,7 +25,7 @@ export const matchmakingConfig: QueueConfig[] = [
           await MatchmakingJobEntry.create(job);
         },
         repeatOptions: {
-          every: MATCHMAKING_INTERVAL,
+          every: MATCHMAKING_JOB_CONFIG.INTERVAL,
         },
         jobTemplate: {
           name: MATCHMAKING_JOB.PROCESS_QUEUE,
@@ -51,6 +46,7 @@ export const matchmakingConfig: QueueConfig[] = [
   {
     type: 'cleanup',
     queueName: '{matchmaking-cleanup}',
+    concurrencyPerWorker: 1,
     schedulers: [
       {
         schedulerId: 'expired-matches-cleanup',
