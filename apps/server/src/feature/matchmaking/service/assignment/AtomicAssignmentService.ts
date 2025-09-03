@@ -54,7 +54,8 @@ const processMatchBatchWithLua = async (matches: Match[]): Promise<void> => {
   const assignmentKey = REDIS_KEY.MATCH_ASSIGNMENT_KEY;
 
   // Pre-allocate array with known size for better memory efficiency
-  const args: string[] = new Array(matches.length * 6);
+  const ARGS_PER_MATCH = 6;
+  const args: string[] = new Array(matches.length * ARGS_PER_MATCH);
   let argIndex = 0;
 
   // Prepare arguments for Lua script

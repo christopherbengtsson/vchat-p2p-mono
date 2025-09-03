@@ -10,6 +10,7 @@ const expiredMatchesCleanup = async () => {
 
   const expiredKeys: string[] = [];
   // Check for assignments older than 3 minutes (matches complete faster)
+  // TODO: Should be configurable
   const threeMinutesAgo = Date.now() - 3 * 60 * 1000;
 
   // Use hscanStream to safely iterate through potentially large assignments hash
