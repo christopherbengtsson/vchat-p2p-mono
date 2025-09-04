@@ -3,15 +3,21 @@ import type { TemplatedApp } from 'uWebSockets.js';
 import { createAdapter } from '@socket.io/redis-streams-adapter';
 import { Server as SocketIoServer } from 'socket.io';
 import { CustomError, type Maybe } from '@mono/common-dto';
+import type { ServerConfig } from '../../../common/config/model/ServerConfig.js';
 import { log } from '../../../common/util/logger.js';
 import { RedisClient } from '../../../common/client/RedisClient.js';
 import { SocketIoBootstrapService } from '../service/SocketIoBoostrapService.js';
 
 let _io: Maybe<SocketIoServer>;
 
-const init = async (uApp: TemplatedApp) => {
+const init = async (uApp: TemplatedApp, serverConfig: ServerConfig) => {
   const io = new SocketIoServer({
     adapter: createAdapter(RedisClient.get()),
+    cors: {
+      origin: serverConfig.config.allowedOrigins.split(','),
+      methods: ['GET', 'POST'],
+      credentials: true,
+    },
   });
 
   io.attachApp(uApp);
