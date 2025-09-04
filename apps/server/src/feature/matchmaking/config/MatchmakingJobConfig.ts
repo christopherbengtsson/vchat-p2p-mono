@@ -9,7 +9,7 @@ import { MATCHMAKING_JOB } from '../model/MatchmakingJob.js';
 const MATCHMAKING_JOB_CONFIG = {
   WORKER_COUNT: 4, // 2x number of CPUs, it's OK given the job is not CPU intensive but rather I/O bound (DB, Redis, etc.)
   CONCURRENCY_PER_WORKER: 5,
-  INTERVAL: 200,
+  INTERVAL: 500,
 } as const;
 
 export const matchmakingConfig: QueueConfig[] = [
