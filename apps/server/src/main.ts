@@ -13,7 +13,7 @@ export const start = async () => {
 
   const uApp = HttpServer.init();
 
-  await SocketServer.init(uApp, serverConfig);
+  await SocketServer.init(uApp);
 
   await BullMQBootstrapService.initialize();
 
