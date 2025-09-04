@@ -18,6 +18,12 @@ const init = async (uApp: TemplatedApp, serverConfig: ServerConfig) => {
       methods: ['GET', 'POST'],
       credentials: true,
     },
+    cookie: {
+      name: 'io',
+      httpOnly: true,
+      sameSite: 'none',
+      secure: true,
+    },
   });
 
   io.attachApp(uApp);
