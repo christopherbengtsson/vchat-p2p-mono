@@ -60,32 +60,54 @@ loki.write "grafana_cloud_loki" {
 
 // NodeJS stuff
 
-discovery.relabel "metrics_integrations_integrations_nodejs" {
-        targets = [{
-                __address__ = "backend:8000",
-                __metrics_path__ = "/api/v1/metrics",
-        }]
+discovery.docker "nodejs_backend" {
+    host = "unix:///var/run/docker.sock"
+    refresh_interval = "10s"
+}
 
-        rule {
-                target_label = "instance"
-                replacement  = sys.env("ALLOY_SERVICE_NAME")
-        }
+discovery.relabel "metrics_integrations_integrations_nodejs" {
+    targets = discovery.docker.nodejs_backend.targets
+
+    // Keep only containers for the 'backend' service
+    rule {
+        source_labels = ["__meta_docker_container_label_com_docker_compose_service"]
+        regex         = "backend"
+        action        = "keep"
+    }
+
+    // Set the metrics path for the target
+    rule {
+        target_label = "__metrics_path__"
+        replacement  = "/api/v1/metrics"
+    }
+
+    // Set the job label
+    rule {
+        target_label = "job"
+        replacement  = "integrations/nodejs"
+    }
+
+    // Set the instance label to the container name for uniqueness
+    rule {
+        source_labels = ["__meta_docker_container_name"]
+        regex         = "/(.*)" // remove leading slash
+        target_label  = "instance"
+    }
 }
 
 prometheus.scrape "metrics_integrations_integrations_nodejs" {
-        targets    = discovery.relabel.metrics_integrations_integrations_nodejs.output
-        forward_to = [prometheus.relabel.metrics_integrations_integrations_nodejs.receiver]
-        job_name   = "integrations/nodejs"
+    targets    = discovery.relabel.metrics_integrations_integrations_nodejs.output
+    forward_to = [prometheus.relabel.metrics_integrations_integrations_nodejs.receiver]
 }
 
 prometheus.relabel "metrics_integrations_integrations_nodejs" {
-        forward_to = [prometheus.remote_write.metrics_service.receiver]
+    forward_to = [prometheus.remote_write.metrics_service.receiver]
 
-        rule {
-                source_labels = ["__name__"]
-                regex         = "up|nodejs_active_handles_total|nodejs_active_requests_total|nodejs_eventloop_lag_p50_seconds|nodejs_eventloop_lag_p99_seconds|nodejs_eventloop_lag_seconds|nodejs_external_memory_bytes|nodejs_gc_duration_seconds_count|nodejs_gc_duration_seconds_sum|nodejs_heap_size_total_bytes|nodejs_heap_size_used_bytes|nodejs_heap_space_size_used_bytes|nodejs_version_info|process_cpu_seconds_total|process_cpu_system_seconds_total|process_cpu_user_seconds_total|process_resident_memory_bytes|process_start_time_seconds|matchmaking_processing_duration_seconds.*|matchmaking_jobs_total.*|matchmaking_matches_created_total.*|matchmaking_queue_entries_total.*|matchmaking_queue_exits_total.*|matchmaking_queue_duration_seconds.*|ignore_cache_health.*|global_ignore_matrix_health.*|ignore_bloom_filter_metrics.*|ignore_system_cleanup_operations_total.*|ignore_system_cleanup_duration_seconds.*|bullmq_job_count.*|captcha_verification_total.*|captcha_verification_duration_seconds.*"
-                action        = "keep"
-        }
+    rule {
+        source_labels = ["__name__"]
+        regex         = "up|nodejs_active_handles_total|nodejs_active_requests_total|nodejs_eventloop_lag_p50_seconds|nodejs_eventloop_lag_p99_seconds|nodejs_eventloop_lag_seconds|nodejs_external_memory_bytes|nodejs_gc_duration_seconds_count|nodejs_gc_duration_seconds_sum|nodejs_heap_size_total_bytes|nodejs_heap_size_used_bytes|nodejs_heap_space_size_used_bytes|nodejs_version_info|process_cpu_seconds_total|process_cpu_system_seconds_total|process_cpu_user_seconds_total|process_resident_memory_bytes|process_start_time_seconds|matchmaking_processing_duration_seconds.*|matchmaking_jobs_total.*|matchmaking_matches_created_total.*|matchmaking_queue_entries_total.*|matchmaking_queue_exits_total.*|matchmaking_queue_duration_seconds.*|ignore_cache_health.*|global_ignore_matrix_health.*|ignore_bloom_filter_metrics.*|ignore_system_cleanup_operations_total.*|ignore_system_cleanup_duration_seconds.*|bullmq_job_count.*|captcha_verification_total.*|captcha_verification_duration_seconds.*"
+        action        = "keep"
+    }
 }
 
 // Docker stuff
@@ -149,36 +171,22 @@ loki.source.docker "logs_integrations_docker" {
 
 // Redis stuff
 
-prometheus.exporter.redis "integrations_redis_exporter" {
-        redis_addr = "redis:6379"
+discovery.relabel "integrations_dragonfly" {
+    targets = [{
+        __address__ = "redis:6379",
+    }]
+
+    rule {
+        target_label = "job"
+        replacement  = "integrations/dragonfly"
+    }
+    rule {
+        target_label = "instance"
+        replacement  = sys.env("ALLOY_SERVICE_NAME")
+    }
 }
 
-discovery.relabel "integrations_redis_exporter" {
-        targets = prometheus.exporter.redis.integrations_redis_exporter.targets
-
-        rule {
-                target_label = "instance"
-                replacement  = sys.env("ALLOY_SERVICE_NAME")
-        }
-
-        rule {
-                target_label = "job"
-                replacement  = "integrations/redis_exporter"
-        }
-}
-
-prometheus.scrape "integrations_redis_exporter" {
-        targets    = discovery.relabel.integrations_redis_exporter.output
-        forward_to = [prometheus.relabel.integrations_redis_exporter.receiver]
-        job_name   = "integrations/redis_exporter"
-}
-
-prometheus.relabel "integrations_redis_exporter" {
-        forward_to = [prometheus.remote_write.metrics_service.receiver]
-
-        rule {
-                source_labels = ["__name__"]
-                regex         = "up|redis_blocked_clients|redis_cluster_slots_fail|redis_cluster_slots_pfail|redis_cluster_state|redis_commands_duration_seconds_total|redis_commands_total|redis_connected_clients|redis_connected_slaves|redis_db_keys|redis_db_keys_expiring|redis_evicted_keys_total|redis_keyspace_hits_total|redis_keyspace_misses_total|redis_master_last_io_seconds_ago|redis_memory_fragmentation_ratio|redis_memory_max_bytes|redis_memory_used_bytes|redis_memory_used_rss_bytes|redis_total_system_memory_bytes|redis_up"
-                action        = "keep"
-        }
+prometheus.scrape "integrations_dragonfly" {
+    targets    = discovery.relabel.integrations_dragonfly.output
+    forward_to = [prometheus.remote_write.metrics_service.receiver]
 }

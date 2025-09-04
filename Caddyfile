@@ -15,29 +15,18 @@
 	}
 }
 
-captcha.{$CADDY_DOMAIN:localhost} {
-	reverse_proxy {$CADDY_CAP_PROXY_ADDRESS}
+(cors_snippet) {
+	header Access-Control-Allow-Origin "{args[0]}"
+	header Access-Control-Allow-Methods "GET, POST, OPTIONS"
+	header Access-Control-Allow-Headers "{header.Access-Control-Request-Headers}"
+	header Access-Control-Allow-Credentials "true"
+
+	# Handle CORS preflight requests
+	@options method OPTIONS
+	respond @options 204
 }
 
-{$CADDY_DOMAIN:localhost} {
-	route {
-		reverse_proxy /socket.io/* {$CADDY_BE_PROXY_ADDRESS} {
-			lb_policy cookie
-		}
-
-
-		reverse_proxy /api/v1/* {$CADDY_BE_PROXY_ADDRESS}
-
-		@not_proxy {
-			not path /socket.io/*
-			not path /api/v1/*
-		}
-
-		respond @not_proxy 404 {
-			close
-		}
-	}
-
+(headers_snippet) {
 	header {
 		# Enforce HTTPS
 		Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
@@ -60,4 +49,36 @@ captcha.{$CADDY_DOMAIN:localhost} {
 		# Omit server information
 		-Server
 	}
+}
+
+captcha.{$CADDY_DOMAIN:localhost} {
+	import headers_snippet
+	import cors_snippet "{$CADDY_FRONTEND_URL}"
+
+	reverse_proxy {$CADDY_CAP_PROXY_ADDRESS}
+}
+
+{$CADDY_DOMAIN:localhost} {
+	import headers_snippet
+
+	route {
+		# Socket.IO handles its own CORS - don't add Caddy CORS headers
+		reverse_proxy /socket.io/* {$CADDY_BE_PROXY_ADDRESS} {
+			lb_policy cookie
+		}
+
+		# API routes need Caddy CORS headers
+		import cors_snippet "{$CADDY_FRONTEND_URL}"
+		reverse_proxy /api/v1/* {$CADDY_BE_PROXY_ADDRESS}
+
+		@not_proxy {
+			not path /socket.io/*
+			not path /api/v1/*
+		}
+
+		respond @not_proxy 404 {
+			close
+		}
+	}
+
 }
