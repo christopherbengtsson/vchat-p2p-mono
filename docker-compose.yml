@@ -9,6 +9,8 @@ services:
       - '6379:6379'
     restart: unless-stopped
     command: --cluster_mode=emulated --lock_on_hashtags --default_lua_flags=allow-undeclared-keys
+    networks:
+      - internal
     healthcheck:
       test: ['CMD', 'redis-cli', 'ping']
       interval: 10s
@@ -31,8 +33,9 @@ services:
 
   backend:
     image: bengostar/vchat-service:latest
-    ports:
-      - '8000'
+    networks:
+      - caddy
+      - internal
     environment:
       - PORT=${PORT}
       - SERVER_REGION=${SERVER_REGION}
@@ -81,30 +84,98 @@ services:
       nofile:
         soft: 65536
         hard: 65536
+    labels:
+      # Main domain
+      caddy: '${CADDY_DOMAIN:-localhost}'
+      # Security headers (applied to all routes)
+      caddy.header.Strict-Transport-Security: 'max-age=31536000; includeSubDomains; preload'
+      caddy.header.X-Content-Type-Options: 'nosniff'
+      caddy.header.X-Frame-Options: 'DENY'
+      caddy.header.Referrer-Policy: 'no-referrer-when-downgrade'
+      caddy.header.Permissions-Policy: 'camera=(), microphone=(), geolocation=()'
+      caddy.header.-Server: ''
+      caddy.header.Content-Security-Policy: "default-src 'self'; connect-src 'self' ${CADDY_FRONTEND_URL} wss://${CADDY_DOMAIN} https://${CADDY_DOMAIN}; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; media-src 'self';"
+
+      # Use route blocks for explicit ordering
+      caddy.route_0: '/socket.io/*'
+      caddy.route_0.reverse_proxy: '{{upstreams 8000}}'
+      caddy.route_0.reverse_proxy.lb_policy: 'cookie'
+
+      # API routes with CORS
+      caddy.route_1: '/api/v1/*'
+      caddy.route_1.header.Access-Control-Allow-Origin: '${CADDY_FRONTEND_URL}'
+      caddy.route_1.header.Access-Control-Allow-Methods: 'GET, POST, OPTIONS'
+      caddy.route_1.header.Access-Control-Allow-Headers: '{header.Access-Control-Request-Headers}'
+      caddy.route_1.header.Access-Control-Allow-Credentials: 'true'
+      caddy.route_1.@options.method: 'OPTIONS'
+      caddy.route_1.respond: '@options 204'
+      caddy.route_1.reverse_proxy: '{{upstreams 8000}}'
+
+      # Catch-all 404 for other paths
+      caddy.@not_proxy.not: 'path /socket.io/* /api/v1/*'
+      caddy.respond: '@not_proxy 404'
+
+  cap:
+    image: tiago2/cap:latest
+    networks:
+      - caddy
+      - internal
+    environment:
+      - ADMIN_KEY=${CAP_ADMIN_KEY}
+      - ENABLE_ASSETS_SERVER=false
+      - CORS_ORIGIN=""
+      - RATELIMIT_IP_HEADER=x-forwarded-for
+    volumes:
+      - cap_data:/usr/src/app/.data
+    restart: unless-stopped
+    logging:
+      driver: 'json-file'
+      options:
+        max-size: '10m'
+        max-file: '3'
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+          cpus: '0.15'
+        reservations:
+          memory: 64M
+          cpus: '0.1'
+    labels:
+      # Captcha subdomain
+      caddy: 'captcha.${CADDY_DOMAIN:-localhost}'
+      caddy.reverse_proxy: '{{upstreams 3000}}'
+      # Security headers
+      caddy.header.Strict-Transport-Security: 'max-age=31536000; includeSubDomains; preload'
+      caddy.header.X-Content-Type-Options: 'nosniff'
+      caddy.header.X-Frame-Options: 'DENY'
+      caddy.header.Referrer-Policy: 'no-referrer-when-downgrade'
+      caddy.header.Permissions-Policy: 'camera=(), microphone=(), geolocation=()'
+      caddy.header.-Server: ''
+      caddy.header.Content-Security-Policy: "default-src 'self'; connect-src 'self' ${CADDY_FRONTEND_URL} wss://${CADDY_DOMAIN} https://${CADDY_DOMAIN}; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; media-src 'self';"
+      # CORS headers
+      caddy.header.Access-Control-Allow-Origin: '${CADDY_FRONTEND_URL}'
+      caddy.header.Access-Control-Allow-Methods: 'GET, POST, OPTIONS'
+      caddy.header.Access-Control-Allow-Headers: '{header.Access-Control-Request-Headers}'
+      caddy.header.Access-Control-Allow-Credentials: 'true'
+      caddy.@options.method: 'OPTIONS'
+      caddy.respond: '@options 204'
 
   caddy:
-    image: caddy:latest
-    restart: unless-stopped
+    image: lucaslorentz/caddy-docker-proxy:ci-alpine
     ports:
-      - '80:80'
-      - '443:443'
-      - '443:443/udp'
+      - 80:80
+      - 443:443
+      - 443:443/udp
     environment:
-      - CADDY_EMAIL=${CADDY_EMAIL}
-      - CADDY_DOMAIN=${CADDY_DOMAIN}
-      - CADDY_FRONTEND_URL=${CADDY_FRONTEND_URL}
-      - CADDY_BE_PROXY_ADDRESS=backend:8000
-      - CADDY_CAP_PROXY_ADDRESS=cap:3000
+      - CADDY_INGRESS_NETWORKS=deployment_caddy
+    networks:
+      - caddy
     volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile
+      - /var/run/docker.sock:/var/run/docker.sock
       - caddy_data:/data
       - caddy_config:/config
-    healthcheck:
-      test: ['CMD', 'caddy', 'validate', '--config', '/etc/caddy/Caddyfile']
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 10s
+    restart: unless-stopped
     logging:
       driver: 'json-file'
       options:
@@ -118,10 +189,23 @@ services:
         reservations:
           memory: 64M
           cpus: '0.1'
+    labels:
+      # Global Caddy configuration
+      caddy.email: '${CADDY_EMAIL}'
+      caddy.log.format: 'filter'
+      caddy.log.format.request>remote_ip: 'ip_mask 16 32'
+      caddy.log.format.request>client_ip: 'ip_mask 16 32'
+      # Optional: Enable staging for testing
+      # caddy.acme_ca: "https://acme-staging-v02.api.letsencrypt.org/directory"
+      # Optional: Enable debug mode
+      # caddy.debug: ""
 
   alloy:
     image: grafana/alloy:latest
     privileged: true
+    networks:
+      - internal
+      - caddy
     volumes:
       - ./alloy/config.alloy:/etc/alloy/config.alloy
       - /:/rootfs:ro
@@ -130,7 +214,6 @@ services:
       - /var/lib/docker/:/var/lib/docker:ro
       - /dev/disk/:/dev/disk:ro
     environment:
-      # pass environment variables for config.alloy
       - ALLOY_SERVICE_NAME=${ALLOY_SERVICE_NAME}
       - ALLOY_METRICS_SERVICE_URL=${ALLOY_METRICS_SERVICE_URL}
       - ALLOY_METRICS_SERVICE_USERNAME=${ALLOY_METRICS_SERVICE_USERNAME}
@@ -156,31 +239,12 @@ services:
           memory: 64M
           cpus: '0.1'
 
-  cap:
-    image: tiago2/cap:latest
-    ports:
-      - '8001:3000'
-    environment:
-      - ADMIN_KEY=${CAP_ADMIN_KEY}
-      - ENABLE_ASSETS_SERVER=false
-      - CORS_ORIGIN=""
-      - RATELIMIT_IP_HEADER=X-Forwarded-For
-    volumes:
-      - cap_data:/usr/src/app/.data
-    restart: unless-stopped
-    logging:
-      driver: 'json-file'
-      options:
-        max-size: '10m'
-        max-file: '3'
-    deploy:
-      resources:
-        limits:
-          memory: 128M
-          cpus: '0.15'
-        reservations:
-          memory: 64M
-          cpus: '0.1'
+networks:
+  caddy:
+    driver: bridge
+  internal:
+    driver: bridge
+    internal: true
 
 volumes:
   redis_data:
