@@ -25,7 +25,7 @@ const createServer = (onToken?: (token: us_listen_socket) => void) => {
   });
 };
 
-const defaultHeaders = (): UndiciHeaders => ({
+const defaultHeaders = () => ({
   'x-forwarded-for': '123',
   'x-api-key': ServerConfigService.getConfig().secrets.server.apiKey,
 });

@@ -9,8 +9,11 @@ vi.mock('../../service/CaptchaService.js');
 describe('CaptchaController', () => {
   let server: TemplatedApp;
 
+  let mockIp: string;
+
   beforeEach(() => {
     server = UwsTestUtils.createServer();
+    mockIp = UwsTestUtils.defaultHeaders()['x-forwarded-for'];
 
     vi.spyOn(CaptchaService, 'verifyCaptchaToken').mockResolvedValue(true);
   });
@@ -37,6 +40,7 @@ describe('CaptchaController', () => {
     expect(statusCode).toBe(200);
     expect(await body.json()).toEqual({ success: true });
     expect(CaptchaService.verifyCaptchaToken).toHaveBeenCalledWith(
+      mockIp,
       'valid-captcha-token',
     );
   });
@@ -61,6 +65,7 @@ describe('CaptchaController', () => {
     expect(statusCode).toBe(200);
     expect(await body.json()).toEqual({ success: false });
     expect(CaptchaService.verifyCaptchaToken).toHaveBeenCalledWith(
+      mockIp,
       'invalid-captcha-token',
     );
   });

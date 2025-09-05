@@ -11,6 +11,8 @@ vi.mock('../../../../common/util/logger.js', () => ({
   },
 }));
 
+const mockIp = '123';
+
 // Mock fetch globally
 const mockFetch = vi.fn();
 global.fetch = mockFetch;
@@ -58,7 +60,10 @@ describe('CaptchaService', () => {
       };
       mockFetch.mockResolvedValue(mockResponse);
 
-      const result = await CaptchaService.verifyCaptchaToken(validToken);
+      const result = await CaptchaService.verifyCaptchaToken(
+        mockIp,
+        validToken,
+      );
 
       expect(result).toBe(true);
       expect(mockFetch).toHaveBeenCalledWith(
@@ -66,7 +71,8 @@ describe('CaptchaService', () => {
         {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json',
+            'content-type': 'application/json',
+            'x-forwarded-for': mockIp,
           },
           body: JSON.stringify({
             secret: 'test-secret-key',
@@ -83,7 +89,10 @@ describe('CaptchaService', () => {
       };
       mockFetch.mockResolvedValue(mockResponse);
 
-      const result = await CaptchaService.verifyCaptchaToken(validToken);
+      const result = await CaptchaService.verifyCaptchaToken(
+        mockIp,
+        validToken,
+      );
 
       expect(result).toBe(false);
     });
@@ -97,11 +106,11 @@ describe('CaptchaService', () => {
       mockFetch.mockResolvedValue(mockResponse);
 
       await expect(
-        CaptchaService.verifyCaptchaToken(validToken),
+        CaptchaService.verifyCaptchaToken(mockIp, validToken),
       ).rejects.toThrow(CustomError);
 
       await expect(
-        CaptchaService.verifyCaptchaToken(validToken),
+        CaptchaService.verifyCaptchaToken(mockIp, validToken),
       ).rejects.toThrow('Captcha verification request failed: 500');
     });
 
@@ -120,7 +129,7 @@ describe('CaptchaService', () => {
 
       // Should still attempt the request but likely fail due to invalid URL
       await expect(
-        CaptchaService.verifyCaptchaToken(validToken),
+        CaptchaService.verifyCaptchaToken(mockIp, validToken),
       ).rejects.toThrow(CustomError);
     });
 
@@ -128,11 +137,11 @@ describe('CaptchaService', () => {
       mockFetch.mockRejectedValue(new Error('Network error'));
 
       await expect(
-        CaptchaService.verifyCaptchaToken(validToken),
+        CaptchaService.verifyCaptchaToken(mockIp, validToken),
       ).rejects.toThrow(CustomError);
 
       await expect(
-        CaptchaService.verifyCaptchaToken(validToken),
+        CaptchaService.verifyCaptchaToken(mockIp, validToken),
       ).rejects.toThrow('Failed to verify captcha token');
     });
 
@@ -144,7 +153,7 @@ describe('CaptchaService', () => {
       mockFetch.mockRejectedValue(customError);
 
       await expect(
-        CaptchaService.verifyCaptchaToken(validToken),
+        CaptchaService.verifyCaptchaToken(mockIp, validToken),
       ).rejects.toThrow(customError);
     });
 
@@ -156,11 +165,11 @@ describe('CaptchaService', () => {
       mockFetch.mockResolvedValue(mockResponse);
 
       await expect(
-        CaptchaService.verifyCaptchaToken(validToken),
+        CaptchaService.verifyCaptchaToken(mockIp, validToken),
       ).rejects.toThrow(CustomError);
 
       await expect(
-        CaptchaService.verifyCaptchaToken(validToken),
+        CaptchaService.verifyCaptchaToken(mockIp, validToken),
       ).rejects.toThrow('Failed to verify captcha token');
     });
 
@@ -171,7 +180,10 @@ describe('CaptchaService', () => {
       };
       mockFetch.mockResolvedValue(mockResponse);
 
-      const result = await CaptchaService.verifyCaptchaToken(validToken);
+      const result = await CaptchaService.verifyCaptchaToken(
+        mockIp,
+        validToken,
+      );
 
       expect(result).toBe(undefined);
     });
@@ -184,7 +196,7 @@ describe('CaptchaService', () => {
       mockFetch.mockResolvedValue(mockResponse);
 
       await expect(
-        CaptchaService.verifyCaptchaToken(validToken),
+        CaptchaService.verifyCaptchaToken(mockIp, validToken),
       ).rejects.toThrow();
     });
   });

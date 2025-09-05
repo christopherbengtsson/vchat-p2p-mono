@@ -12,7 +12,10 @@ interface CaptchaVerificationResponse {
   success: boolean;
 }
 
-const verifyCaptchaToken = async (token: string): Promise<boolean> => {
+const verifyCaptchaToken = async (
+  ip: string,
+  token: string,
+): Promise<boolean> => {
   const startTime = performance.now();
 
   try {
@@ -30,7 +33,8 @@ const verifyCaptchaToken = async (token: string): Promise<boolean> => {
     const response = await fetch(verifyEndpoint, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
+        'content-type': 'application/json',
+        'x-forwarded-for': ip,
       },
       body: JSON.stringify(payload),
     });

@@ -33,7 +33,10 @@ const handleCaptchaVerify = UwsUtil.createHandler((ctx) => {
         return;
       }
 
-      const isVerified = await CaptchaService.verifyCaptchaToken(body.token);
+      const isVerified = await CaptchaService.verifyCaptchaToken(
+        ctx.ip as string,
+        body.token,
+      );
 
       UwsUtil.sendJson(ctx.res, '200 OK', { success: isVerified });
     },
