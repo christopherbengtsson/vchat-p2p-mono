@@ -29,7 +29,7 @@ const shutdown = async (instances: BullMQInstances): Promise<void> => {
       ),
     ]);
   } catch (error) {
-    log.error('Error during BullMQ shutdown:', error);
+    log.error({ error }, 'Error during BullMQ shutdown');
     // Don't rethrow - we want shutdown to be graceful
   }
 };

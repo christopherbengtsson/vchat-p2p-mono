@@ -1,4 +1,5 @@
 import type { HttpResponse, HttpRequest } from 'uWebSockets.js';
+import { CustomError } from '@mono/common-dto';
 import { log } from '../../../common/util/logger.js';
 import { ApiKeyMiddleware } from '../middleware/ApiKeyMiddleware.js';
 import { RateLimiterMiddleware } from '../middleware/RateLimiterMiddleware.js';
@@ -68,7 +69,7 @@ const createHandler = (
     try {
       handler(ctx);
     } catch (error) {
-      log.error('Handler sync error:', error);
+      log.error({ error }, 'Handler sync error');
       if (!safeRes.done && !safeRes.aborted) {
         sendError(safeRes, '500 Internal Server Error', 'Internal error');
       }
@@ -99,7 +100,7 @@ const createSafeResponse = (res: HttpResponse): SafeResponse | null => {
 
     return safeRes;
   } catch (error) {
-    log.error('Failed to create safe response:', error);
+    log.error({ error }, 'Failed to create safe response');
     return null;
   }
 };
@@ -252,7 +253,7 @@ const parseJsonBody = <T>(
 
           await onComplete(parsed);
         } catch (error) {
-          log.error('Body handler error:', error);
+          log.error({ error }, 'Body handler error');
           if (!res.done && !res.aborted) {
             sendError(res, '500 Internal Server Error', 'Internal error');
           }
@@ -289,7 +290,7 @@ const runAsync = (
         timeout > 0
           ? new Promise<never>((_, reject) => {
               timeoutHandle = setTimeout(() => {
-                reject(new Error('Operation timeout'));
+                reject(CustomError.timeout('Operation timeout'));
               }, timeout);
             })
           : null;
