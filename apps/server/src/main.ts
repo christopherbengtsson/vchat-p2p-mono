@@ -18,7 +18,7 @@ export const start = async () => {
   await BullMQBootstrapService.initialize();
 
   const port = serverConfig.config.port;
-  uApp.listen(port, (token) => {
+  uApp.listen('0.0.0.0', port, (token) => {
     if (token) {
       log.info(`Server is running on port ${port}`);
     } else {
