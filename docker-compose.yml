@@ -25,11 +25,11 @@ services:
     deploy:
       resources:
         limits:
-          memory: 1.5G
-          cpus: '1.2'
+          memory: 1.2G
+          cpus: '1.0'
         reservations:
-          memory: 1.0G
-          cpus: '0.6'
+          memory: 768M
+          cpus: '0.5'
 
   backend:
     image: bengostar/vchat-service:latest
@@ -58,7 +58,7 @@ services:
       - CAP_SITE_KEY=${CAP_SITE_KEY}
       - CAP_CORS_ORIGINS=${CAP_CORS_ORIGINS}
       # Docker-specific optimizations
-      - NODE_OPTIONS=--max-old-space-size=1800
+      - NODE_OPTIONS=--max-old-space-size=350
       - UV_THREADPOOL_SIZE=20
     depends_on:
       redis:
@@ -233,11 +233,11 @@ services:
     deploy:
       resources:
         limits:
-          memory: 128M
-          cpus: '0.15'
+          memory: 1G
+          cpus: '0.4'
         reservations:
-          memory: 64M
-          cpus: '0.1'
+          memory: 768M
+          cpus: '0.2'
 
 networks:
   caddy:
