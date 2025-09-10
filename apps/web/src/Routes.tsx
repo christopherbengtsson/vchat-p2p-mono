@@ -6,9 +6,7 @@ import { DevRoutePath, RoutePath } from './RoutePath';
 import { ErrorBoundary } from './common/components/error-boundary/ErrorBoundary';
 import { LayoutContainer } from './common/layout/container/LayoutContainer';
 import { AuthHandlerContainer } from './features/auth/container/AuthHandlerContainer';
-import { TermsOfServicePage } from './features/consent/page/TermsOfServicePage';
 import { AuthPage } from './features/auth/page/AuthPage';
-import { UserBannedPage } from './features/content-moderation/page/UserBannedPage';
 import { HomePage } from './features/home/page/HomePage';
 import { QueuePage } from './features/call/page/QueuePage';
 import { InCallPage } from './features/call/in-call/page/InCallPage';
@@ -27,6 +25,22 @@ const ResultsDialogDev = lazy(() =>
   import('./features/dev/game/ResultDialogsDev').then(
     ({ ResultsDialogDev }) => ({
       default: ResultsDialogDev,
+    }),
+  ),
+);
+
+const TermsOfServicePage = lazy(() =>
+  import('./features/consent/page/TermsOfServicePage').then(
+    ({ TermsOfServicePage }) => ({
+      default: TermsOfServicePage,
+    }),
+  ),
+);
+
+const UserBannedPage = lazy(() =>
+  import('./features/content-moderation/page/UserBannedPage').then(
+    ({ UserBannedPage }) => ({
+      default: UserBannedPage,
     }),
   ),
 );

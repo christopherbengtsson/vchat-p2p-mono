@@ -36,8 +36,8 @@ export const FindMatchButton = observer(function FindMatchButton({
   return (
     <>
       <Button
-        size="lg"
-        className="w-full"
+        size="xl"
+        className="w-full liquid-glass text-foreground"
         onClick={onClick}
         disabled={isLoading || disabled}
       >

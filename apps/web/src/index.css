@@ -51,7 +51,7 @@
   --secondary: oklch(0.274 0.006 286.033);
   --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(0.274 0.006 286.033);
-  --muted-foreground: oklch(0.705 0.015 286.067);
+  --muted-foreground: oklch(0.86 0 0);
   --accent: oklch(0.274 0.006 286.033);
   --accent-foreground: oklch(0.985 0 0);
   --destructive: oklch(0.704 0.191 22.216);
@@ -217,6 +217,37 @@
   padding: inherit;
 }
 
+/* Liquid Glass */
+
+.liquid-glass {
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow:
+    inset 2px 2px 1px 0 rgba(255, 255, 255, 0.3),
+    inset -2px -2px 2px 1px rgba(255, 255, 255, 0.3),
+    0 4px 8px 0 rgba(0, 0, 0, 0.2),
+    0 6px 20px 0 rgba(0, 0, 0, 0.2);
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: url(#filter);
+}
+
+button.liquid-glass:hover {
+  font-size: 100%;
+}
+
+.liquid-glass.control {
+  background: rgba(0, 0, 0, 1);
+  box-shadow: none;
+}
+
+[role='checkbox'].liquid-glass.control:not(:checked) {
+  box-shadow:
+    inset 2px 2px 1px 0 rgba(255, 255, 255, 0.3),
+    inset -2px -2px 2px 1px rgba(255, 255, 255, 0.3),
+    0 4px 8px 0 rgba(0, 0, 0, 0.2),
+    0 6px 20px 0 rgba(0, 0, 0, 0.2);
+  background: rgb(130 129 129 / 35%);
+}
+
 /*
   ---break---
 */
@@ -248,4 +279,38 @@
   border-radius: 50%;
   opacity: 0;
   pointer-events: none;
+}
+
+.bg-conic-gradient {
+  background: conic-gradient(
+    #ff6b6b,
+    #4ecdc4,
+    #45b7d1,
+    #96ceb4,
+    #feca57,
+    #ff9ff3,
+    #54a0ff,
+    #5f27cd,
+    #00d2d3,
+    #ff9f43,
+    #10ac84,
+    #ee5a24,
+    #0abde3,
+    #c44569,
+    #f8b500,
+    #ff6b6b
+  );
+}
+
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 15s linear infinite;
 }

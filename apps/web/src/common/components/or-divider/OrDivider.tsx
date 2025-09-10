@@ -1,5 +1,5 @@
 interface Props {
-  background?: 'bg-card' | 'bg-background';
+  background?: 'bg-card' | 'bg-background' | 'transparent';
 }
 
 export function OrDivider({ background = 'bg-card' }: Props) {

@@ -27,12 +27,19 @@ export const QueueContainer = observer(function QueuePage() {
   };
 
   return (
-    <div className="flex flex-col justify-center items-center gap-16 relative min-h-[400px]">
-      <QueueAnimationContainer />
+    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+      <div className="relative pointer-events-auto">
+        <QueueAnimationContainer />
 
-      <Button variant="link" onClick={handleCancel}>
-        Cancel
-      </Button>
+        <div className="absolute w-full flex justify-center mt-6 top-full">
+          <Button
+            className="liquid-glass text-foreground"
+            onClick={handleCancel}
+          >
+            Cancel
+          </Button>
+        </div>
+      </div>
     </div>
   );
 });

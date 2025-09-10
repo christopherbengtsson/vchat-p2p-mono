@@ -31,7 +31,12 @@ export function AnonymousUpgradeForm({ form, onSubmit, error }: Props) {
           render={({ field }) => (
             <FormItem>
               <FormControl>
-                <Input type="email" placeholder="Email" {...field} />
+                <Input
+                  type="email"
+                  placeholder="Email"
+                  className="liquid-glass control"
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -48,6 +53,7 @@ export function AnonymousUpgradeForm({ form, onSubmit, error }: Props) {
                   type="password"
                   placeholder="Password"
                   autoComplete="on"
+                  className="liquid-glass control"
                   {...field}
                 />
               </FormControl>
@@ -66,6 +72,7 @@ export function AnonymousUpgradeForm({ form, onSubmit, error }: Props) {
                   type="password"
                   placeholder="Confirm password"
                   autoComplete="on"
+                  className="liquid-glass control"
                   {...field}
                 />
               </FormControl>

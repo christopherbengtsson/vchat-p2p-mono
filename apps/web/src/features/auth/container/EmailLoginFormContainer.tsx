@@ -82,7 +82,12 @@ export function EmailLoginFormContainer({
           render={({ field }) => (
             <FormItem>
               <FormControl>
-                <Input type="email" placeholder="Email" {...field} />
+                <Input
+                  type="email"
+                  placeholder="Email"
+                  className="liquid-glass control"
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -99,6 +104,7 @@ export function EmailLoginFormContainer({
                   type="password"
                   placeholder="Password"
                   autoComplete="on"
+                  className="liquid-glass control"
                   {...field}
                 />
               </FormControl>
@@ -113,7 +119,7 @@ export function EmailLoginFormContainer({
         form="profile-form"
         variant="secondary"
         disabled={isSubmitting || loginWithEmailMutation.isPending || isSolving}
-        className="mt-8 w-full"
+        className="mt-8 w-full bg-black"
       >
         {isSubmitting || loginWithEmailMutation.isPending || isSolving ? (
           <LoadingSpinner />

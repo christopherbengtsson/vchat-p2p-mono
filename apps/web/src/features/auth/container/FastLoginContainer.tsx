@@ -86,6 +86,7 @@ export function FastLoginContainer({
               <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                 <FormControl>
                   <Checkbox
+                    className="border-primary w-5 h-5"
                     checked={field.value}
                     onCheckedChange={field.onChange}
                   />

@@ -27,16 +27,5 @@ process.on('uncaughtException', (error) => {
 });
 
 process.on('unhandledRejection', (reason, promise) => {
-  log.fatal({ reason, promise }, 'Unhandled Rejection. Shutting down...');
-  // Attempt a graceful shutdown if possible, otherwise force exit after a timeout
-  gracefulShutdown('unhandledRejection')
-    .catch((error) => {
-      log.error(
-        { error },
-        'Graceful shutdown during unhandledRejection failed.',
-      );
-    })
-    .finally(() => {
-      process.exit(1);
-    });
+  log.error({ reason, promise }, 'Unhandled Rejection. Shutting down...');
 });

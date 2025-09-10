@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { StarColorUtil } from '@/common/utils/StarColorUtil';
 
 export function AnimatedParticle() {
   const { size, tx, ty } = useMemo(() => {
@@ -8,17 +9,18 @@ export function AnimatedParticle() {
     return {
       tx: Math.cos(angle) * radius,
       ty: Math.sin(angle) * radius,
-      size: 1 + Math.random() * 1.5,
+      size: 1 + Math.random() * 5,
     };
   }, []);
 
   return (
     <div
-      className="absolute bg-foreground rounded-full left-1/2 top-1/2 animate-move-to-center"
+      className="absolute rounded-full left-1/2 top-1/2 animate-move-to-center"
       style={
         {
           '--tx': `${tx}px`,
           '--ty': `${ty}px`,
+          backgroundColor: StarColorUtil.getRandom(),
           width: `${size}px`,
           height: `${size}px`,
           animationDelay: `${Math.random() * 3}s`,

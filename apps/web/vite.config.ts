@@ -44,51 +44,60 @@ export default defineConfig(({ mode }) => ({
       output: {
         // TODO: Implement preloading?
         manualChunks: {
-          // React core
-          'react-core': ['react', 'react-dom', 'react-router'],
+          // Critical path - loads first
+          'vendor-core': ['react', 'react-dom'],
+          'vendor-3d': ['three', '@react-three/fiber', '@react-three/drei'],
 
-          // UI components
-          'ui-components': [
+          // Router can be separate if not needed immediately
+          router: ['react-router'],
+
+          // UI layer - frequently used together
+          'ui-system': [
             '@radix-ui/react-alert-dialog',
             '@radix-ui/react-avatar',
-            '@radix-ui/react-checkbox',
-            '@radix-ui/react-dialog',
-            '@radix-ui/react-dropdown-menu',
-            '@radix-ui/react-label',
-            '@radix-ui/react-slot',
+            // ... other Radix components
             'lucide-react',
             'react-icons',
             'sonner',
             'vaul',
+            'class-variance-authority',
+            'clsx',
+            'tailwind-merge',
           ],
 
-          // Game chunks - dynamically generated
+          // Game chunks
           ...generateGameChunks(),
 
-          // Form handling
-          'form-utils': ['react-hook-form', '@hookform/resolvers', 'zod'],
+          // Forms and validation
+          forms: ['react-hook-form', '@hookform/resolvers', 'zod'],
 
-          // Data management
-          'data-management': ['@tanstack/react-query', 'mobx', 'mobx-react'],
+          // State and data
+          'state-management': ['@tanstack/react-query', 'mobx', 'mobx-react'],
 
-          // WebRTC and networking
-          networking: ['socket.io-client', '@supabase/supabase-js'],
+          // Network layer
+          network: ['socket.io-client', '@supabase/supabase-js', 'axios'],
 
-          // Captcha/Security
-          captcha: ['@cap.js/widget'],
+          // Heavy ML libraries (are lazy loaded)
+          'ml-tensorflow': ['@tensorflow/tfjs'],
+          'ml-moderation': ['nsfwjs'],
 
-          // Styling utilities
-          styling: ['class-variance-authority', 'clsx', 'tailwind-merge'],
-
-          // Monitoring
+          // Early-load monitoring
           monitoring: ['@grafana/faro-react', '@grafana/faro-web-tracing'],
 
-          // Content moderation - split into core and models
-          'content-moderation-core': ['nsfwjs'],
-          'content-moderation-tf': ['@tensorflow/tfjs'],
+          // Security
+          security: ['@cap.js/widget'],
+        },
+        chunkFileNames: ({ name }) => {
+          return `assets/${name}-[hash].js`;
+        },
+        assetFileNames: ({ name }) => {
+          const ext = name?.split('.').pop();
+          if (ext === 'css') return 'assets/[name]-[hash].css';
+          return 'assets/[name]-[hash].[ext]';
         },
       },
     },
+    modulePreload: true,
   },
 
   /** Development */
@@ -96,6 +105,18 @@ export default defineConfig(({ mode }) => ({
   server: {
     port: 3000,
     host: true,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+        secure: false,
+      },
+      '/captcha': {
+        target: 'http://localhost:8000/api/v1',
+        changeOrigin: true,
+        secure: false,
+      },
+    },
   },
   test: {
     globals: true,
