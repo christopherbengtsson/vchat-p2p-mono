@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { observer } from 'mobx-react';
 import { useRootStore } from '@/stores/hooks/useRootStore';
@@ -12,6 +12,7 @@ import { ContentModerationUnavailableDialog } from '../../content-moderation/com
 import { useContentModerationAvailability } from '../../content-moderation/hooks/useContentModerationAvailability';
 import { FindMatchLoadingState } from '../model/FindMatchLoadingState';
 import { useFetchUser } from '../hooks/useFetchUser';
+import { Button } from '../../../common/components/ui/button';
 
 const FIND_MATCH_ROUTER_STATE: CallLocation = {
   state: {
@@ -82,6 +83,8 @@ export const FindMatchContainer = observer(function FindMatchContainer() {
     setLoadingState('idle');
   }, [handleContentModerationCancel]);
 
+  const vidRef = useRef<HTMLVideoElement>(null);
+  const [_st, setSt] = useState<MediaStream | null>(null);
   return (
     <>
       <FindMatchButton
@@ -91,6 +94,31 @@ export const FindMatchContainer = observer(function FindMatchContainer() {
         loadingState={isPending ? 'fetchingUser' : loadingState}
         disabled={isError}
       />
+
+      <Button
+        onClick={() => {
+          navigator.mediaDevices
+            .getUserMedia({ video: true, audio: true })
+            .then((stream) => {
+              setSt(stream);
+
+              if (vidRef.current) {
+                vidRef.current.srcObject = stream;
+              }
+
+              console.log('Got stream:', stream);
+            })
+            .catch((err) => {
+              console.error('getUserMedia failed:', err.name, err.message);
+              alert(
+                `name: ${err.name}\nmessage: ${err.message}\ncode: ${err.code ?? 'n/a'}`,
+              );
+            });
+        }}
+      >
+        Debug media
+      </Button>
+      <video ref={vidRef} autoPlay muted playsInline></video>
 
       {isError && (
         <TypographyP className="text-sm text-destructive text-center">

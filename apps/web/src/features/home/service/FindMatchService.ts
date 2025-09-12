@@ -56,6 +56,7 @@ const requestAudioAndVideoStream = async (): Promise<MediaStreamResult> => {
 
     return { stream, errorState: undefined };
   } catch (error) {
+    console.error('Error calling `navigator.mediaDevices.getUserMedia`', error);
     LocalStorageService.set(STORAGE_KEYS.MEDIA_PERMISSIONS, 'error');
     const toastState = _getDomExceptionError(error as DOMException);
     return { errorState: toastState, stream: undefined };
