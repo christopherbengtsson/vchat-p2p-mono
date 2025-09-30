@@ -65,12 +65,11 @@ const _handleNegotiationNeeded = async (
 ) => {
   Assert.isDefined(roomId, 'roomId is not defined');
   Assert.isDefined(partnerSocketId, 'partnerId is not defined');
+  Assert.isDefined(socket, 'socket is not defined');
+
   try {
     setState({ makingOffer: true });
-
     await pc.setLocalDescription();
-
-    Assert.isDefined(socket, 'socket is not defined');
     socket.emit(
       'peer-message',
       { description: pc.localDescription },

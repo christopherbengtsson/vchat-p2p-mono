@@ -20,22 +20,31 @@ const _handleOffer = async (
     return;
   }
 
-  const { makingOffer } = webRTCState.getState();
-  let ignoreOffer = false;
-
   try {
     if (PeerMessage.isDescription(peerMessage) && !!peerMessage.description) {
       const { description } = peerMessage;
-      const offerCollision =
-        description.type === 'offer' &&
-        (makingOffer || peerConnection.signalingState !== 'stable');
+      const { makingOffer, isSettingRemoteAnswerPending } =
+        webRTCState.getState();
 
-      ignoreOffer = !params.observables.isPolite && offerCollision;
+      const readyForOffer =
+        !makingOffer &&
+        (peerConnection.signalingState === 'stable' ||
+          isSettingRemoteAnswerPending);
+
+      const offerCollision = description.type === 'offer' && !readyForOffer;
+
+      const ignoreOffer = !params.observables.isPolite && offerCollision;
       webRTCState.setState({ ignoreOffer });
 
-      if (ignoreOffer) return;
+      if (ignoreOffer) {
+        return;
+      }
 
+      webRTCState.setState({
+        isSettingRemoteAnswerPending: description.type === 'answer',
+      });
       await peerConnection.setRemoteDescription(description); // SRD rolls back as needed
+      webRTCState.setState({ isSettingRemoteAnswerPending: false });
 
       if (description.type === 'offer') {
         await peerConnection.setLocalDescription();
@@ -53,7 +62,10 @@ const _handleOffer = async (
       try {
         await peerConnection.addIceCandidate(peerMessage.candidate);
       } catch (err) {
-        if (!ignoreOffer) throw err; // Suppress ignored offer's candidates
+        const { ignoreOffer } = webRTCState.getState();
+        if (!ignoreOffer) {
+          throw err; // Suppress ignored offer's candidates
+        }
       }
     }
   } catch (error) {

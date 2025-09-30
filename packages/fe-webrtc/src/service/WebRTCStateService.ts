@@ -4,6 +4,7 @@ import type { WebRTCStateHandlers } from '../model/WebRTCStateHandlers.js';
 const initialState: WebRTCStateDto = {
   makingOffer: false,
   ignoreOffer: false,
+  isSettingRemoteAnswerPending: false,
   canvasSender: null,
   remoteVideoChatStreamId: null,
 
