@@ -9,6 +9,7 @@ describe('WebRTCStateService', () => {
     expect(state.getState()).toEqual({
       makingOffer: false,
       ignoreOffer: false,
+      isSettingRemoteAnswerPending: false,
       canvasSender: null,
       remoteVideoChatStreamId: null,
       injectables: null,
@@ -23,6 +24,7 @@ describe('WebRTCStateService', () => {
     expect(state.getState()).toEqual({
       makingOffer: true,
       ignoreOffer: false,
+      isSettingRemoteAnswerPending: false,
       canvasSender: null,
       remoteVideoChatStreamId: null,
       injectables: null,
@@ -42,10 +44,23 @@ describe('WebRTCStateService', () => {
     expect(state.getState()).toEqual({
       makingOffer: true,
       ignoreOffer: true,
+      isSettingRemoteAnswerPending: false,
       canvasSender: mockSender,
       remoteVideoChatStreamId: null,
       injectables: null,
     });
+  });
+
+  it('should update isSettingRemoteAnswerPending for perfect negotiation', () => {
+    const state = WebRTCStateService.create();
+
+    state.setState({ isSettingRemoteAnswerPending: true });
+
+    expect(state.getState().isSettingRemoteAnswerPending).toBe(true);
+
+    state.setState({ isSettingRemoteAnswerPending: false });
+
+    expect(state.getState().isSettingRemoteAnswerPending).toBe(false);
   });
 
   it('should properly initialize and update injectables', () => {
