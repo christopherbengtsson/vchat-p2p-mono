@@ -3,6 +3,7 @@ import { autorun } from 'mobx';
 import { observer } from 'mobx-react';
 import { WebRTCService } from '@mono/fe-webrtc';
 import { mediaStore } from '@/stores/MediaStore';
+import { Assert } from '@/common/utils/Assert';
 import { GameState } from '../../game-engine/model/GameState';
 import { useGameStore } from '../../game-engine/context/useGameStore';
 import { StartGameAlertDialog } from '../../game-engine/component/StartGameAlertDialog';
@@ -45,6 +46,7 @@ export const PutinsPuppetContainer = observer(function PutinsPuppetContainer({
   setGameActive,
 }: Props) {
   const gameStore = useGameStore();
+  Assert.isDefined(gameStore);
 
   const {
     startNewRound,
@@ -141,19 +143,16 @@ export const PutinsPuppetContainer = observer(function PutinsPuppetContainer({
         score={gameStore.latestRoundResult?.score || 0}
       />
 
-      {import.meta.env.DEV ||
-        // TODO: Temp debug
-        // eslint-disable-next-line no-constant-binary-expression
-        (true && (
-          <div className="fixed bottom-0 left-0 p-2 bg-black/70 text-white text-xs z-50">
-            State: {gameStore.state} | Round: {gameStore.currentRound}/
-            {gameStore.maxRounds} | My Turn: {gameStore.isMyTurn ? 'Yes' : 'No'}{' '}
-            | Score: {gameStore.myTotalScore} vs {gameStore.opponentTotalScore}
-            <br />
-            Call Audio: {mediaStore.localAudioEnabled ? '🎤' : '🔇'} | Game
-            Stream: {mediaStore.localAudioGameStream ? '✅' : '❌'}
-          </div>
-        ))}
+      {import.meta.env.DEV && (
+        <div className="fixed bottom-0 left-0 p-2 bg-black/70 text-white text-xs font-mono z-50">
+          State: {gameStore.state} | Round: {gameStore.currentRound}/
+          {gameStore.maxRounds} | My Turn: {gameStore.isMyTurn ? 'Yes' : 'No'} |
+          Score: {gameStore.myTotalScore} vs {gameStore.opponentTotalScore}
+          <br />
+          Call Audio: {mediaStore.localAudioEnabled ? '🎤' : '🔇'} | Game
+          Stream: {mediaStore.localAudioGameStream ? '✅' : '❌'}
+        </div>
+      )}
     </>
   );
 });

@@ -86,7 +86,7 @@ services:
         hard: 65536
     labels:
       # Main domain
-      caddy: '${CADDY_DOMAIN:-localhost}'
+      caddy: '${CADDY_API_DOMAIN:-localhost}'
       # Security headers (applied to all routes)
       caddy.header.Strict-Transport-Security: 'max-age=31536000; includeSubDomains; preload'
       caddy.header.X-Content-Type-Options: 'nosniff'
@@ -94,7 +94,7 @@ services:
       caddy.header.Referrer-Policy: 'no-referrer-when-downgrade'
       caddy.header.Permissions-Policy: 'camera=(), microphone=(), geolocation=()'
       caddy.header.-Server: ''
-      caddy.header.Content-Security-Policy: "default-src 'self'; connect-src 'self' ${CADDY_FRONTEND_URL} wss://${CADDY_DOMAIN} https://${CADDY_DOMAIN}; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; media-src 'self';"
+      caddy.header.Content-Security-Policy: "default-src 'self'; connect-src 'self' ${CADDY_FRONTEND_URL} wss://${CADDY_API_DOMAIN} https://${CADDY_API_DOMAIN}; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; media-src 'self';"
 
       # Use route blocks for explicit ordering
       caddy.route_0: '/socket.io/*'
@@ -143,7 +143,7 @@ services:
           cpus: '0.1'
     labels:
       # Captcha subdomain
-      caddy: 'captcha.${CADDY_DOMAIN:-localhost}'
+      caddy: '${CADDY_CAPTCHA_DOMAIN:-localhost}'
       caddy.reverse_proxy: '{{upstreams 3000}}'
       # Security headers
       caddy.header.Strict-Transport-Security: 'max-age=31536000; includeSubDomains; preload'
@@ -152,7 +152,7 @@ services:
       caddy.header.Referrer-Policy: 'no-referrer-when-downgrade'
       caddy.header.Permissions-Policy: 'camera=(), microphone=(), geolocation=()'
       caddy.header.-Server: ''
-      caddy.header.Content-Security-Policy: "default-src 'self'; connect-src 'self' ${CADDY_FRONTEND_URL} wss://${CADDY_DOMAIN} https://${CADDY_DOMAIN}; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; media-src 'self';"
+      caddy.header.Content-Security-Policy: "default-src 'self'; connect-src 'self' ${CADDY_FRONTEND_URL} wss://${CADDY_API_DOMAIN} https://${CADDY_API_DOMAIN}; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; media-src 'self';"
       # CORS headers
       caddy.header.Access-Control-Allow-Origin: '${CADDY_FRONTEND_URL}'
       caddy.header.Access-Control-Allow-Methods: 'GET, POST, OPTIONS'

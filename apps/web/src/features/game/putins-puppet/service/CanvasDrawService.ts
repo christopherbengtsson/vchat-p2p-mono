@@ -26,6 +26,7 @@ const drawCanvas = ({
   velocity,
   pipeSpeed,
   frameCount,
+  deltaTime,
   isDead = false,
   deathFrames = 0,
   playerSize,
@@ -53,6 +54,7 @@ const drawCanvas = ({
     logicalHeight,
     scaleFactor,
     backgroundSpeed,
+    deltaTime,
   );
 
   // Generate and update clouds
@@ -65,6 +67,7 @@ const drawCanvas = ({
       frameCount,
       pipeSpeed,
       scaleFactor,
+      deltaTime,
     );
   }
 

@@ -4,6 +4,7 @@ import { FeatureFlagUtil } from '@/common/utils/FeatureFlagUtil';
 import { useRootStore } from '@/stores/hooks/useRootStore';
 import { ReportContainer } from '@/features/content-moderation/container/ReportContainer';
 import { GameInitiatorContainer } from '@/features/game/game-invite/container/GameInitiatorContainer';
+import { useGameStore } from '@/features/game/game-engine/context/useGameStore';
 import { useCallStore } from '../../context/useCallStore';
 import { Video } from '../component/Video';
 import { useVideoStreams } from '../hooks/useVideoStreams';
@@ -20,6 +21,9 @@ export const InCallContainer = observer(function InCallPage() {
   const { endCall } = useCallActions(socketStore, callStore, mediaStore);
 
   const isGameEnabled = FeatureFlagUtil.isGamesEnabled();
+
+  const gameStore = useGameStore();
+
   const { localVideoRef, remoteVideoRef } = useVideoStreams({
     localStream: mediaStore.localCallStream,
     remoteStream: callStore.remoteStream,
@@ -57,6 +61,8 @@ export const InCallContainer = observer(function InCallPage() {
         contentModerationEnabled={contentModerationStore.config.enabled}
         modelStatus={contentModerationStore.modelStatus}
         onEndCall={endCall}
+        gameActive={callStore.gameActive}
+        gameState={gameStore?.state}
       />
 
       <CallActionContainer />

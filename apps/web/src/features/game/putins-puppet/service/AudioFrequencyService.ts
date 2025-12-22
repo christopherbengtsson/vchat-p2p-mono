@@ -1,6 +1,7 @@
 import { PitchDetector } from 'pitchy';
+import { DEVICE_PROFILE } from '../config/PerformanceConfig';
 
-const FTT_SIZE = 2048;
+const FTT_SIZE = DEVICE_PROFILE.fftSize;
 const SMOOTHING_FACTOR = 0.85;
 const MIN_VOLUME_DECIBELS = -30;
 

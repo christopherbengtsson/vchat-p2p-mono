@@ -67,13 +67,14 @@ const movePipes = (
   pipesPassedRef: React.RefObject<number>,
   scaleFactor: ScaleFactor,
   canvasWidth: number,
+  deltaTime: number,
 ) => {
   const speed = getPipeSpeed(pipesPassedRef, scaleFactor);
   const playerX = canvasWidth * PLAYER_X_POS_MULTIPLIER;
   const activePipes = PipePoolService.getActivePipes();
 
   for (const pipe of activePipes) {
-    pipe.x -= speed;
+    pipe.x -= speed * deltaTime;
 
     // Check if pipe has passed the player - only count upper pipes to avoid double counting
     if (

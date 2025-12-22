@@ -14,6 +14,7 @@ export interface DrawProps {
   velocity: number;
   pipeSpeed: number;
   frameCount: number;
+  deltaTime: number;
 
   isDead: boolean;
   deathFrames: number;

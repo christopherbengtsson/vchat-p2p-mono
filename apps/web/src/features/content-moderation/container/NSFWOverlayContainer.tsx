@@ -1,23 +1,27 @@
 import { useCallback } from 'react';
 import { observer } from 'mobx-react';
+import { Maybe } from '@mono/common-dto';
 import { useRootStore } from '@/stores/hooks/useRootStore';
 import { TypographyP } from '@/common/components/typography/Typography';
 import { OrDivider } from '@/common/components/or-divider/OrDivider';
 import { Button } from '@/common/components/ui/button';
 import { DrawerDialog } from '@/common/components/drawer-dialog/DrawerDialog';
+import { GameState } from '@/features/game/game-engine/model/GameState';
 import { BackdropBlur } from '../component/BackdropBlur';
 import { useNSFWDetection } from '../hooks/useNSFWDetection';
+import { useGameAwareNSFWControl } from '../hooks/useGameAwareNSFWControl';
 import { ReportContainer } from './ReportContainer';
 
 interface Props {
   videoRef: React.RefObject<HTMLVideoElement | null>;
   videoEnabled: boolean;
-
   onEndCall: VoidFunction;
+  gameActive: boolean;
+  gameState: Maybe<GameState>;
 }
 
 export const NSFWOverlayContainer = observer(
-  ({ videoRef, videoEnabled, onEndCall }: Props) => {
+  ({ videoRef, videoEnabled, onEndCall, gameActive, gameState }: Props) => {
     const { contentModerationStore } = useRootStore();
     const {
       config,
@@ -30,11 +34,17 @@ export const NSFWOverlayContainer = observer(
       handleNSFWDetection,
     } = contentModerationStore;
 
+    const effectiveNSFWEnabled = useGameAwareNSFWControl({
+      gameActive,
+      gameState,
+      enableNSFW: config.enabled,
+    });
+
     useNSFWDetection({
       videoRef,
       videoEnabled,
       modelStatus,
-      nsfwEnabled: config.enabled,
+      nsfwEnabled: effectiveNSFWEnabled,
       intervalMs: config.analysisIntervalMs,
       detectionThreshold: config.threshold,
       remoteStreamNSFW,

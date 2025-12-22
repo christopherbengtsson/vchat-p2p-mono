@@ -37,38 +37,42 @@ export const useDeathAnimation = ({
     endAudioRef.current?.play();
   }, [scaleFactor.heightScale, endAudioRef, velocityRef]);
 
-  const animateDeath = useCallback(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return true;
+  const animateDeath = useCallback(
+    (deltaTime: number) => {
+      const canvas = canvasRef.current;
+      if (!canvas) return true;
 
-    const canvasWidth = canvas.width / scaleFactor.devicePixelRatio;
-    const canvasHeight = canvas.height / scaleFactor.devicePixelRatio;
+      const canvasWidth = canvas.width / scaleFactor.devicePixelRatio;
+      const canvasHeight = canvas.height / scaleFactor.devicePixelRatio;
 
-    deathAnimationFramesRef.current++;
+      deathAnimationFramesRef.current++;
 
-    CanvasPlayerService.updateDeathAnimation(
-      playerXRef,
-      playerYRef,
-      velocityRef,
-      scaleFactor,
-    );
+      CanvasPlayerService.updateDeathAnimation(
+        playerXRef,
+        playerYRef,
+        velocityRef,
+        scaleFactor,
+        deltaTime,
+      );
 
-    // Check if player has fallen off the screen
-    const playerSizePercent = CanvasUtil.getScaledValue(
-      BASE_PLAYER_SIZE_PERCENT,
-      scaleFactor,
-    );
-    const playerSize = canvasWidth * playerSizePercent;
+      // Check if player has fallen off the screen
+      const playerSizePercent = CanvasUtil.getScaledValue(
+        BASE_PLAYER_SIZE_PERCENT,
+        scaleFactor,
+      );
+      const playerSize = canvasWidth * playerSizePercent;
 
-    if (
-      playerYRef.current > canvasHeight + playerSize ||
-      playerXRef.current < -playerSize
-    ) {
-      return true;
-    }
+      if (
+        playerYRef.current > canvasHeight + playerSize ||
+        playerXRef.current < -playerSize
+      ) {
+        return true;
+      }
 
-    return false;
-  }, [canvasRef, playerXRef, playerYRef, scaleFactor, velocityRef]);
+      return false;
+    },
+    [canvasRef, playerXRef, playerYRef, scaleFactor, velocityRef],
+  );
 
   return {
     isDeadRef,

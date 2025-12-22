@@ -21,6 +21,7 @@ const updatePlayerPosition = (
   playerYRef: React.RefObject<number>,
   velocityRef: React.RefObject<number>,
   scaleFactor: ScaleFactor,
+  deltaTime: number,
 ) => {
   const maxY = canvasHeight - playerSize;
   const scaledGravity = GRAVITY * scaleFactor.heightScale;
@@ -50,9 +51,9 @@ const updatePlayerPosition = (
   }
 
   if (!voiceInputDetected) {
-    // Apply gravity to make the player fall
-    velocityRef.current += scaledGravity;
-    playerYRef.current += velocityRef.current;
+    // Apply gravity to make the player fall (frame-rate independent)
+    velocityRef.current += scaledGravity * deltaTime;
+    playerYRef.current += velocityRef.current * deltaTime;
   }
 
   // Apply boundaries
@@ -77,14 +78,15 @@ const updateDeathAnimation = (
   playerYRef: React.RefObject<number>,
   velocityRef: React.RefObject<number>,
   scaleFactor: ScaleFactor,
+  deltaTime: number,
 ) => {
   const scaledGravity =
     GRAVITY * DEATH_PHYSICS.GRAVITY_MULTIPLIER * scaleFactor.heightScale;
-  velocityRef.current += scaledGravity;
+  velocityRef.current += scaledGravity * deltaTime;
 
-  playerYRef.current += velocityRef.current;
+  playerYRef.current += velocityRef.current * deltaTime;
   playerXRef.current +=
-    DEATH_PHYSICS.HORIZONTAL_VELOCITY * scaleFactor.widthScale;
+    DEATH_PHYSICS.HORIZONTAL_VELOCITY * scaleFactor.widthScale * deltaTime;
 
   // No boundary checking during death animation (player should fall off the screen)
 };

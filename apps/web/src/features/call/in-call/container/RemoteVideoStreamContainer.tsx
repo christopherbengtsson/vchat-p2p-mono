@@ -1,5 +1,7 @@
 import { observer } from 'mobx-react';
+import { Maybe } from '@mono/common-dto';
 import { NSFWModelStatus } from '@/stores/model/NSFWModelStatus';
+import { GameState } from '@/features/game/game-engine/model/GameState';
 import { Video } from '../component/Video';
 import { NSFWOverlayContainer } from '../../../content-moderation/container/NSFWOverlayContainer';
 
@@ -10,6 +12,8 @@ interface Props {
   modelStatus: NSFWModelStatus;
   contentModerationEnabled: boolean;
   shouldUseObjectCover: boolean;
+  gameActive: boolean;
+  gameState: Maybe<GameState>;
 }
 
 export const RemoteVideoStreamContainer = observer(
@@ -20,6 +24,8 @@ export const RemoteVideoStreamContainer = observer(
     onEndCall,
     contentModerationEnabled,
     shouldUseObjectCover,
+    gameActive,
+    gameState,
   }: Props) => {
     return (
       <>
@@ -28,6 +34,8 @@ export const RemoteVideoStreamContainer = observer(
             videoRef={remoteVideoRef}
             videoEnabled={remoteVideoEnabled}
             onEndCall={onEndCall}
+            gameActive={gameActive}
+            gameState={gameState}
           />
         )}
 

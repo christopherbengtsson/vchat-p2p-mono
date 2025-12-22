@@ -6,6 +6,7 @@ import {
   BASE_PLAYER_SIZE_PERCENT,
   PLAYER_X_POS_MULTIPLIER,
   PERFORMANCE,
+  TARGET_FRAME_TIME,
 } from '../model/constants';
 import { CanvasUtil } from '../util/CanvasUtil';
 import { AssetService } from '../service/AssetService';
@@ -43,6 +44,7 @@ export const useCanvasAnimate = ({
 
   const lastPitchTimeRef = useRef<number>(0);
   const cachedPitchRef = useRef<Maybe<[number, number]>>(null);
+  const lastFrameTimeRef = useRef<number>(performance.now());
 
   // Cache frequently calculated values per frame
   const frameDataRef = useRef<{
@@ -107,6 +109,13 @@ export const useCanvasAnimate = ({
   }, [onGameOver]);
 
   const animate = useCallback(() => {
+    const frameStart = performance.now();
+
+    // Calculate delta time for frame-rate independent movement
+    const elapsedTime = frameStart - lastFrameTimeRef.current;
+    const deltaTime = elapsedTime / TARGET_FRAME_TIME;
+    lastFrameTimeRef.current = frameStart;
+
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d', { alpha: false });
@@ -156,6 +165,7 @@ export const useCanvasAnimate = ({
           playerYRef,
           velocityRef,
           scaleFactor,
+          deltaTime,
         );
       }
 
@@ -172,6 +182,7 @@ export const useCanvasAnimate = ({
         pipesPassedRef,
         scaleFactor,
         frameDataRef.current.canvasWidth,
+        deltaTime,
       );
 
       CanvasPipeService.removePipes();
@@ -199,7 +210,7 @@ export const useCanvasAnimate = ({
       }
     } else {
       // Skip expensive frame data calculations when dead - only animate death
-      const animationFinished = animateDeath();
+      const animationFinished = animateDeath(deltaTime);
       const soundFinished = !endAudioRef.current
         ? true
         : endAudioRef.current.ended;
@@ -220,6 +231,7 @@ export const useCanvasAnimate = ({
       velocity: velocityRef.current,
       pipeSpeed: CanvasPipeService.getPipeSpeed(pipesPassedRef, scaleFactor),
       frameCount: frameCountRef.current,
+      deltaTime,
       isDead: isDeadRef.current,
       deathFrames: deathAnimationFramesRef.current,
       playerSize: frameData?.playerSize,

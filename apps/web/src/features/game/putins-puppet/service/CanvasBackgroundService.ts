@@ -15,6 +15,7 @@ const drawBackground = (
   height: number,
   scaleFactor: ScaleFactor,
   speed: number,
+  deltaTime: number,
 ) => {
   const tilesImage = ASSETS.TILES;
   if (!tilesImage.complete) return;
@@ -63,9 +64,10 @@ const drawBackground = (
     MAX_CACHE_SIZE.BACKGROUND,
   );
 
-  // Update scrolling position
+  // Update scrolling position (frame-rate independent)
   const roundedScaledWidth = Math.round(scaledWidth);
-  backgroundPosition = (backgroundPosition + speed) % roundedScaledWidth;
+  backgroundPosition =
+    (backgroundPosition + speed * deltaTime) % roundedScaledWidth;
 
   // Draw repeating background tiles
   const numTiles = Math.ceil(width / roundedScaledWidth) + 1;

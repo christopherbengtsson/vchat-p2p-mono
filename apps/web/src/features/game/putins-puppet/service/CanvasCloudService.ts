@@ -109,6 +109,7 @@ const updateClouds = (
   frameCount: number,
   pipeSpeed: number,
   scaleFactor: ScaleFactor,
+  deltaTime: number,
 ) => {
   // Generate new cloud occasionally
   if (
@@ -119,11 +120,11 @@ const updateClouds = (
     clouds.push(createCloud(width, height, width, scaleFactor));
   }
 
-  // Move clouds with individual speeds based on their size
+  // Move clouds with individual speeds based on their size (frame-rate independent)
   clouds = clouds.filter((cloud) => {
     // Each cloud moves at its own speed, based on its size
     const cloudSpeed = pipeSpeed * cloud.speedMultiplier;
-    cloud.x -= cloudSpeed * scaleFactor.widthScale;
+    cloud.x -= cloudSpeed * scaleFactor.widthScale * deltaTime;
     return cloud.x > -cloud.width; // Remove clouds that are off-screen
   });
 };
