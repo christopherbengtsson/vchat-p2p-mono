@@ -1,6 +1,10 @@
-import { InviteData, RoundData } from '@mono/common-dto';
+import { InviteData, RoundData, ChatData } from '@mono/common-dto';
 
 export type DataChannelMessage =
+  | {
+      type: 'CHAT';
+      data: ChatData;
+    }
   | {
       type: 'INVITE';
       data: InviteData;

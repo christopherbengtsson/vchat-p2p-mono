@@ -28,6 +28,7 @@ export const PutinsPuppetDev = observer(function PutinsPuppetDev() {
       callbacks: {
         handlePartnerVideoToggle: noop,
         handlePartnerAudioToggle: noop,
+        handleIncomingChatMessage: noop,
       },
       setters: {
         setRemoteStream: noop,

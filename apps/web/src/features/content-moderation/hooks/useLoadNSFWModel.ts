@@ -8,6 +8,7 @@ export const useLoadNSFWModel = () => {
     try {
       const contentModerationConfig = contentModerationStore.config;
       if (contentModerationConfig.enabled) {
+        contentModerationStore.setModelStatus('loading');
         await NSFWModelService.load();
       }
       contentModerationStore.setModelStatus('ready');

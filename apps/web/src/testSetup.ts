@@ -50,6 +50,9 @@ Object.defineProperty(window, 'matchMedia', {
   })),
 });
 
+// Mock scrollIntoView
+Element.prototype.scrollIntoView = vi.fn();
+
 /** UI lib JSDom issues */
 window.HTMLElement.prototype.setPointerCapture = vi.fn();
 

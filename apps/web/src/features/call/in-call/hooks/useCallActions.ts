@@ -16,20 +16,22 @@ export const useCallActions = (
 
   const toggleVideo = useCallback(() => {
     const toggle = !mediaStore.localVideoEnabled;
-    WebRTCService.get()?.sendMessage({
+    const success = WebRTCService.get()?.sendMessage({
       type: 'VIDEO_TOGGLE',
       toggle,
     });
-    mediaStore.setLocalVideoEnabled(toggle);
+
+    if (success) mediaStore.setLocalVideoEnabled(toggle);
   }, [mediaStore]);
 
   const toggleAudio = useCallback(() => {
     const toggle = !mediaStore.localAudioEnabled;
-    mediaStore.setLocalAudioEnabled(toggle);
-    WebRTCService.get()?.sendMessage({
+    const success = WebRTCService.get()?.sendMessage({
       type: 'AUDIO_TOGGLE',
       toggle,
     });
+
+    if (success) mediaStore.setLocalAudioEnabled(toggle);
   }, [mediaStore]);
 
   const endCall = useCallback(() => {

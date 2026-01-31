@@ -28,6 +28,11 @@ const ResultsDialogDev = lazy(() =>
     }),
   ),
 );
+const GlassDev = lazy(() =>
+  import('./features/dev/glass/GlassDev').then(({ GlassDev }) => ({
+    default: GlassDev,
+  })),
+);
 
 const TermsOfServicePage = lazy(() =>
   import('./features/consent/page/TermsOfServicePage').then(
@@ -58,6 +63,10 @@ const devRoutes: RouteObject[] = import.meta.env.DEV
           {
             path: DevRoutePath.RESULTS_DIALOG,
             element: <ResultsDialogDev />,
+          },
+          {
+            path: DevRoutePath.GLASS,
+            element: <GlassDev />,
           },
         ],
       },

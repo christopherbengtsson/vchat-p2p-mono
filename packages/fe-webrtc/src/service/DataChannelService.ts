@@ -1,18 +1,40 @@
 import type { Maybe } from '@mono/common-dto';
+import { TokenBucket } from '@mono/common-util';
 import type { DataChannelMessage } from '../model/DataChannelMessage.js';
 import type { WebRTCParams } from '../model/WebRTCParams.js';
 import { WebRTCStateHandlers } from '../model/WebRTCStateHandlers.js';
 
 let _dataChannel: Maybe<RTCDataChannel>;
+let _chatRateLimiter: Maybe<TokenBucket>;
 
 const sendMessage = (
   dataChannel: Maybe<RTCDataChannel>,
   message: DataChannelMessage,
+  onError?: VoidFunction,
+  onRateLimited?: VoidFunction,
 ) => {
-  if (dataChannel && dataChannel.readyState === 'open') {
+  if (!dataChannel || dataChannel.readyState !== 'open') {
+    console.warn('Data channel not open:', message.type);
+    return false;
+  }
+
+  // Apply rate limiting to CHAT messages
+  if (message.type === 'CHAT' && _chatRateLimiter) {
+    if (!_chatRateLimiter.tryConsume(1)) {
+      console.warn('Chat message rate limit exceeded');
+      onRateLimited?.();
+      return false;
+    }
+  }
+
+  // Send the message
+  try {
     dataChannel.send(JSON.stringify(message));
-  } else {
-    console.warn('Data channel is not open. Cannot send message:', message);
+    return true;
+  } catch (error) {
+    console.error(`Failed to send ${message.type}:`, error);
+    onError?.();
+    return false;
   }
 };
 
@@ -25,6 +47,10 @@ const _handleDataChannelMessage = (
   const { injectables } = state.getState();
 
   switch (message.type) {
+    case 'CHAT':
+      callbacks.handleIncomingChatMessage(message.data);
+      break;
+
     case 'INVITE':
       injectables?.handleIncomingInviteMessage?.forEach((callback) => {
         callback(message.data);
@@ -45,7 +71,6 @@ const _handleDataChannelMessage = (
       callbacks.handlePartnerAudioToggle(message.toggle);
       break;
 
-    // TODO: Add cases for other message types (e.g., chat messages)
     default:
       console.warn('Unknown message:', message);
   }
@@ -67,6 +92,9 @@ const _setup = (
 ) => {
   _dataChannel = dataChannel;
 
+  // Initialize rate limiter: 10 messages per second
+  _chatRateLimiter = new TokenBucket(10, 10);
+
   dataChannel.onopen = () => {
     // Send the initial state for stream enabled status
     sendMessage(dataChannel, {
@@ -85,6 +113,7 @@ const get = () => _dataChannel;
 const close = (dataChannel: Maybe<RTCDataChannel>) => {
   dataChannel?.close();
   _dataChannel = undefined;
+  _chatRateLimiter = undefined;
 };
 
 const create = (

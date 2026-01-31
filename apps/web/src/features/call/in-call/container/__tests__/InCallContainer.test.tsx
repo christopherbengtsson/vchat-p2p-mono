@@ -90,7 +90,7 @@ describe('InCallContainer', () => {
       getAudioTracks: vi.fn().mockReturnValue([{ enabled: true }]),
       getTracks: vi.fn().mockReturnValue([{ stop: vi.fn() }]),
     } as any;
-    rootStore.contentModerationStore.modelStatus = 'ready';
+    rootStore.contentModerationStore.modelStatus = 'loading';
 
     callStore = new CallStore(routerState);
 
@@ -98,7 +98,7 @@ describe('InCallContainer', () => {
     mockWebRTCInstance = {
       isConnecting: vi.fn().mockReturnValue(false),
       isConnected: vi.fn().mockReturnValue(true),
-      sendMessage: vi.fn(),
+      sendMessage: vi.fn().mockReturnValue(true),
       addCanvasStream: vi.fn(),
       removeCanvasStream: vi.fn(),
       addInjectable: vi.fn(),
@@ -138,6 +138,7 @@ describe('InCallContainer', () => {
       screen.getByRole('button', { name: 'Invite to game' }),
     ).toBeVisible();
     expect(screen.getByRole('button', { name: 'End call' })).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Open Chat' })).toBeVisible();
   });
 
   it('should visualize video and microphone toggles', async () => {
@@ -279,6 +280,10 @@ describe('InCallContainer', () => {
   });
 
   describe('content moderation', () => {
+    beforeEach(() => {
+      rootStore.contentModerationStore.modelStatus = 'ready';
+    });
+
     it('should show dialog when partner sends NSFW content', async () => {
       renderTestee();
 
@@ -414,6 +419,272 @@ describe('InCallContainer', () => {
           screen.queryByTestId('nsfw-warning-overlay'),
         ).not.toBeInTheDocument(),
       );
+    });
+  });
+
+  describe('in-call chat', () => {
+    it('should toggle chat open and closed when clicking chat button', async () => {
+      const user = userEvent.setup();
+      renderTestee();
+
+      // Initially chat is closed
+      const openChatButton = screen.getByRole('button', { name: 'Open Chat' });
+      expect(openChatButton).toBeVisible();
+
+      // Open chat
+      await user.click(openChatButton);
+
+      // Verify input is visible and focused
+      const input = screen.getByPlaceholderText('Type a message...');
+      expect(input).toBeVisible();
+      expect(input).toHaveFocus();
+
+      // Close chat by clicking the same button
+      await user.click(openChatButton);
+
+      // Verify chat is closed (input no longer has focus)
+      expect(input).not.toHaveFocus();
+    });
+
+    it('should focus input when opening chat', async () => {
+      const user = userEvent.setup();
+      renderTestee();
+
+      const chatButton = screen.getByRole('button', { name: 'Open Chat' });
+
+      // Open chat
+      await user.click(chatButton);
+
+      const input = screen.getByPlaceholderText('Type a message...');
+      expect(input).toHaveFocus();
+
+      // Close and reopen
+      await user.click(chatButton);
+      await user.click(chatButton);
+
+      // Focus should be restored
+      expect(input).toHaveFocus();
+    });
+
+    it('should send a message when clicking send button', async () => {
+      const user = userEvent.setup();
+      renderTestee();
+
+      // Open chat
+      await user.click(screen.getByRole('button', { name: 'Open Chat' }));
+
+      const input = screen.getByPlaceholderText('Type a message...');
+      const sendButton = screen.getByRole('button', { name: 'Send Message' });
+
+      // Type message
+      await user.type(input, 'Hello partner!');
+
+      // Send message
+      await user.click(sendButton);
+
+      // Verify WebRTC sendMessage was called with correct data
+      expect(mockWebRTCInstance.sendMessage).toHaveBeenCalledWith(
+        {
+          type: 'CHAT',
+          data: {
+            message: 'Hello partner!',
+            senderSocketId: 'socketId',
+            senderUserId: 'userId',
+            timestamp: expect.any(Number),
+          },
+        },
+        expect.any(Function),
+      );
+
+      // Verify message appears in chat
+      expect(screen.getByText('Hello partner!')).toBeVisible();
+
+      // Verify input is cleared
+      expect(input).toHaveValue('');
+    });
+
+    it('should send a message when pressing Enter key', async () => {
+      const user = userEvent.setup();
+      renderTestee();
+
+      await user.click(screen.getByRole('button', { name: 'Open Chat' }));
+
+      const input = screen.getByPlaceholderText('Type a message...');
+      await user.type(input, 'Quick message{Enter}');
+
+      expect(mockWebRTCInstance.sendMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'CHAT',
+          data: expect.objectContaining({
+            message: 'Quick message',
+          }),
+        }),
+        expect.any(Function),
+      );
+
+      expect(screen.getByText('Quick message')).toBeVisible();
+      expect(input).toHaveValue('');
+    });
+
+    it('should trim whitespace from messages before sending', async () => {
+      const user = userEvent.setup();
+      renderTestee();
+
+      await user.click(screen.getByRole('button', { name: 'Open Chat' }));
+
+      const input = screen.getByPlaceholderText('Type a message...');
+      await user.type(input, '  Trimmed message  {Enter}');
+
+      expect(mockWebRTCInstance.sendMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'CHAT',
+          data: expect.objectContaining({
+            message: 'Trimmed message',
+          }),
+        }),
+        expect.any(Function),
+      );
+    });
+
+    it('should disable send button when message is empty or whitespace only', async () => {
+      const user = userEvent.setup();
+      renderTestee();
+
+      await user.click(screen.getByRole('button', { name: 'Open Chat' }));
+
+      const sendButton = screen.getByRole('button', { name: 'Send Message' });
+
+      // Initially disabled (empty)
+      expect(sendButton).toBeDisabled();
+
+      const input = screen.getByPlaceholderText('Type a message...');
+
+      // Type whitespace only
+      await user.type(input, '   ');
+      expect(sendButton).toBeDisabled();
+
+      // Clear and type actual message
+      await user.clear(input);
+      await user.type(input, 'Real message');
+      expect(sendButton).toBeEnabled();
+
+      // Clear again
+      await user.clear(input);
+      expect(sendButton).toBeDisabled();
+    });
+
+    it('should not send message when pressing Enter with empty input', async () => {
+      const user = userEvent.setup();
+      renderTestee();
+
+      await user.click(screen.getByRole('button', { name: 'Open Chat' }));
+
+      const input = screen.getByPlaceholderText('Type a message...');
+
+      // Press Enter with empty input
+      await user.click(input);
+      await user.keyboard('{Enter}');
+
+      expect(mockWebRTCInstance.sendMessage).not.toHaveBeenCalled();
+    });
+
+    it('should enforce maximum message length of 1000 characters', async () => {
+      const user = userEvent.setup();
+      renderTestee();
+
+      await user.click(screen.getByRole('button', { name: 'Open Chat' }));
+
+      const input = screen.getByPlaceholderText(
+        'Type a message...',
+      ) as HTMLInputElement;
+
+      // Verify maxLength attribute is set
+      expect(input).toHaveAttribute('maxLength', '1000');
+
+      // Try to paste more than 1000 characters
+      const longMessage = 'a'.repeat(1500);
+      await user.click(input);
+      await user.paste(longMessage);
+
+      // Input should be truncated to 1000
+      expect(input.value.length).toBe(1000);
+    });
+
+    it('should show error toast when message fails to send', async () => {
+      const user = userEvent.setup();
+
+      // Mock sendMessage to return false (failure)
+      mockWebRTCInstance.sendMessage.mockReturnValue(false);
+
+      renderTestee();
+
+      await user.click(screen.getByRole('button', { name: 'Open Chat' }));
+
+      const input = screen.getByPlaceholderText('Type a message...');
+      await user.type(input, 'Failed message{Enter}');
+
+      // Message should NOT be added to chat
+      expect(screen.queryByText('Failed message')).not.toBeInTheDocument();
+
+      // Input should still contain the message (not cleared)
+      expect(input).toHaveValue('Failed message');
+    });
+
+    it('should call onError callback when WebRTC reports error', async () => {
+      const user = userEvent.setup();
+      const toastErrorSpy = vi.spyOn(toast, 'error');
+
+      // Mock sendMessage to call onError callback
+      mockWebRTCInstance.sendMessage.mockImplementation(
+        (_message: any, onError: () => void) => {
+          onError();
+          return true;
+        },
+      );
+
+      renderTestee();
+
+      await user.click(screen.getByRole('button', { name: 'Open Chat' }));
+
+      const input = screen.getByPlaceholderText('Type a message...');
+      await user.type(input, 'Error message{Enter}');
+
+      // Verify error callback triggers toast
+      expect(toastErrorSpy).toHaveBeenCalledWith('Failed to send message');
+    });
+
+    it('should clear notifications when opening chat', async () => {
+      const user = userEvent.setup();
+      renderTestee();
+
+      // Add some notification messages
+      act(() => {
+        callStore.addChatMessage({
+          message: 'Notification 1',
+          senderSocketId: 'socket-123',
+          senderUserId: 'user-123',
+          timestamp: Date.now(),
+        });
+        callStore.addChatMessage({
+          message: 'Notification 2',
+          senderSocketId: 'socket-123',
+          senderUserId: 'user-123',
+          timestamp: Date.now() + 1,
+        });
+      });
+
+      expect(callStore.notificationMessages).toHaveLength(2);
+
+      // Open chat
+      await user.click(screen.getByRole('button', { name: 'Open Chat' }));
+
+      // Notification messages should be cleared
+      await waitFor(() => {
+        expect(callStore.notificationMessages).toHaveLength(0);
+      });
+
+      // But chat messages should still be there
+      expect(callStore.chatMessages).toHaveLength(2);
     });
   });
 });

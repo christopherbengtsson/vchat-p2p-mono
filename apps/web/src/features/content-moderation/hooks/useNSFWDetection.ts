@@ -52,8 +52,6 @@ export const useNSFWDetection = ({
         detectionThreshold,
       );
 
-      console.debug(result);
-
       if (result.nsfw) {
         handleNSFWDetection({
           probability: result.highestNSFWProbability,

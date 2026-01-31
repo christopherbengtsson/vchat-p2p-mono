@@ -3,6 +3,7 @@ import { observer } from 'mobx-react';
 import { Globe } from 'lucide-react';
 import { Button } from '@/common/components/ui/button';
 import { LoadingSpinner } from '@/common/components/loading-spinner/LoadingSpinner';
+import { GlassElement } from '@/common/components/liquid-glass/GlassElement';
 import { FindMatchLoadingState } from '../model/FindMatchLoadingState';
 
 interface Props {
@@ -34,10 +35,10 @@ export const FindMatchButton = observer(function FindMatchButton({
   }, [connecting, loadingState, startingMedia]);
 
   return (
-    <>
+    <GlassElement maxWidth={400} maxHeight={52} radius={12} ripple>
       <Button
         size="xl"
-        className="w-full liquid-glass text-foreground"
+        className="bg-transparent border-0 w-full text-foreground hover:bg-transparent"
         onClick={onClick}
         disabled={isLoading || disabled}
       >
@@ -53,6 +54,6 @@ export const FindMatchButton = observer(function FindMatchButton({
           </>
         )}
       </Button>
-    </>
+    </GlassElement>
   );
 });

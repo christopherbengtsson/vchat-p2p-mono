@@ -18,3 +18,4 @@ export * from './socket-io/model/SocketNamespace.js';
 export * from './user-ban/model/BanDuration.js';
 export * from './user-ban/model/BanReason.js';
 export * from './webrtc/model/PeerMessage.js';
+export * from './webrtc/model/ChatData.js';
