@@ -1,5 +1,6 @@
 import { Assert, InviteData } from '@mono/common-dto';
 import { DataChannelMessage, WebRTCService } from '@mono/fe-webrtc';
+import { toast } from 'sonner';
 
 const _getWebRTCInstance = () => {
   const webRTCInstance = WebRTCService.get();
@@ -26,7 +27,10 @@ const sendInvite = () => {
       type: 'INVITE',
     },
   };
-  sendMessage(payload);
+
+  const onError = () => toast.error('Failed to send game invite');
+
+  sendMessage(payload, onError);
 };
 
 const answerInvite = (accept: boolean) => {
@@ -40,7 +44,9 @@ const answerInvite = (accept: boolean) => {
     },
   };
 
-  sendMessage(payload);
+  const onError = () => toast.error('Failed to send invite response');
+
+  sendMessage(payload, onError);
 };
 
 const playerReady = (playerId: string, initiator: boolean) => {
@@ -53,7 +59,10 @@ const playerReady = (playerId: string, initiator: boolean) => {
       initiator,
     },
   };
-  sendMessage(payload);
+
+  const onError = () => toast.error('Failed to send player ready status');
+
+  sendMessage(payload, onError);
 };
 
 export const GameInviteService = {

@@ -1,4 +1,5 @@
 import { observer } from 'mobx-react';
+import { useCallback, useState } from 'react';
 import clsx from 'clsx';
 import { FeatureFlagUtil } from '@/common/utils/FeatureFlagUtil';
 import { useRootStore } from '@/stores/hooks/useRootStore';
@@ -12,6 +13,7 @@ import { useVideoAspectRatio } from '../hooks/useVideoAspectRatio';
 import { useCallActions } from '../hooks/useCallActions';
 import { CallActionContainer } from './CallActionContainer';
 import { RemoteVideoStreamContainer } from './RemoteVideoStreamContainer';
+import { ChatContainer } from './ChatContainer';
 
 export const InCallContainer = observer(function InCallPage() {
   const rootStore = useRootStore();
@@ -19,6 +21,7 @@ export const InCallContainer = observer(function InCallPage() {
     rootStore;
   const callStore = useCallStore();
   const { endCall } = useCallActions(socketStore, callStore, mediaStore);
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
   const isGameEnabled = FeatureFlagUtil.isGamesEnabled();
 
@@ -32,6 +35,15 @@ export const InCallContainer = observer(function InCallPage() {
   const { isPortrait, isSquare } = useVideoAspectRatio(localVideoRef);
   const { shouldUseObjectCover: remoteShouldUseObjectCover } =
     useVideoAspectRatio(remoteVideoRef);
+
+  const handleChatToggle = useCallback(() => {
+    const shouldOpen = !isChatOpen;
+    if (shouldOpen) {
+      callStore.hideMessageNotification();
+    }
+
+    setIsChatOpen(shouldOpen);
+  }, [callStore, isChatOpen]);
 
   return (
     <>
@@ -65,7 +77,10 @@ export const InCallContainer = observer(function InCallPage() {
         gameState={gameStore?.state}
       />
 
-      <CallActionContainer />
+      <CallActionContainer
+        isChatOpen={isChatOpen}
+        handleChatToggle={handleChatToggle}
+      />
 
       {isGameEnabled && (
         <GameInitiatorContainer
@@ -74,6 +89,8 @@ export const InCallContainer = observer(function InCallPage() {
           setGameActive={callStore.setGameActive}
         />
       )}
+
+      <ChatContainer isOpen={isChatOpen} onToggle={handleChatToggle} />
     </>
   );
 });

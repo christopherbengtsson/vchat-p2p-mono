@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@mono/common-dto": "workspace:*",
+    "@mono/common-util": "workspace:^",
     "@mono/fe-dto": "workspace:*"
   },
   "devDependencies": {

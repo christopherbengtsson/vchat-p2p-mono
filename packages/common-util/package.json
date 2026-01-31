@@ -9,10 +9,17 @@
     "dist"
   ],
   "scripts": {
-    "build": "rm -rf dist && tsc",
+    "build": "rm -rf dist && tsc -p tsconfig.build.json",
+    "test": "vitest",
     "typecheck": "tsc --noEmit"
   },
+  "dependencies": {
+    "@mono/common-dto": "workspace:*",
+    "lodash.intersection": "^4.4.0"
+  },
   "devDependencies": {
-    "typescript": "^5.8.3"
+    "@types/lodash.intersection": "^4.4.9",
+    "typescript": "^5.8.3",
+    "vitest": "^3.1.1"
   }
 }

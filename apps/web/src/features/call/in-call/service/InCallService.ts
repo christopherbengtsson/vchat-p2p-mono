@@ -33,6 +33,11 @@ const initNewCall = ({
     callbacks: {
       handlePartnerVideoToggle: callStore.setPartnerVideoEnabled,
       handlePartnerAudioToggle: callStore.setPartnerAudioEnabled,
+      handleIncomingChatMessage: callStore.addChatMessage,
+      onMessageRateLimited: () =>
+        toast.error("Slow down! You're sending messages too quickly", {
+          id: 'message-rate-limited',
+        }),
     },
     setters: {
       setRemoteStream: callStore.setRemoteStream,

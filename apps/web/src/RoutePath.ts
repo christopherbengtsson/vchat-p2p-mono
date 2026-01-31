@@ -2,6 +2,7 @@ export enum DevRoutePath {
   DEV = '/dev',
   PUTINS_PUPPET = '/dev/putins-puppet',
   RESULTS_DIALOG = '/dev/results-dialogs',
+  GLASS = '/dev/glass',
 }
 
 export enum RoutePath {

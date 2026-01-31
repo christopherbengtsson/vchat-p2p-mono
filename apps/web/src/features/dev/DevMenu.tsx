@@ -15,6 +15,8 @@ export function DevMenu() {
         <Link to={DevRoutePath.PUTINS_PUPPET}>Putin's Puppet Falsetto</Link>
         <span>|</span>
         <Link to={DevRoutePath.RESULTS_DIALOG}>Result dialogs</Link>
+        <span>|</span>
+        <Link to={DevRoutePath.GLASS}>Glass Effect</Link>
       </header>
 
       <Outlet />

@@ -21,12 +21,12 @@ const toggleLocalMicrophone = (micEnabled: boolean) => {
     return;
   }
 
-  mediaStore.setLocalAudioEnabled(micEnabled);
-
-  WebRTCService.get()?.sendMessage({
+  const success = WebRTCService.get()?.sendMessage({
     type: 'AUDIO_TOGGLE',
     toggle: micEnabled,
   });
+
+  if (success) mediaStore.setLocalAudioEnabled(micEnabled);
 };
 
 const toggleLocalVideo = (videoEnabled: boolean) => {
@@ -34,12 +34,12 @@ const toggleLocalVideo = (videoEnabled: boolean) => {
     return;
   }
 
-  mediaStore.setLocalVideoEnabled(videoEnabled);
-
-  WebRTCService.get()?.sendMessage({
+  const success = WebRTCService.get()?.sendMessage({
     type: 'VIDEO_TOGGLE',
     toggle: videoEnabled,
   });
+
+  if (success) mediaStore.setLocalVideoEnabled(videoEnabled);
 };
 
 export const PutinsPuppetContainer = observer(function PutinsPuppetContainer({

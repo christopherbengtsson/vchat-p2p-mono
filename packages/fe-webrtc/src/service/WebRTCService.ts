@@ -18,7 +18,11 @@ interface WebRTCInstance {
   isConnecting: () => boolean;
   isConnected: () => boolean;
 
-  sendMessage: (msg: DataChannelMessage) => void;
+  sendMessage: (
+    msg: DataChannelMessage,
+    onError?: VoidFunction,
+    onRateLimited?: VoidFunction,
+  ) => boolean;
 
   addCanvasStream: (stream: MediaStream) => void;
   removeCanvasStream: () => void;
@@ -72,8 +76,8 @@ const create = (params: WebRTCParams, override = true) => {
     isConnecting: () => peerConnection.connectionState === 'connecting',
     isConnected: () => peerConnection.connectionState === 'connected',
 
-    sendMessage: (msg) =>
-      DataChannelService.sendMessage(DataChannelService.get(), msg),
+    sendMessage: (...args) =>
+      DataChannelService.sendMessage(DataChannelService.get(), ...args),
     addCanvasStream: (stream) =>
       AdHocService.addCanvasStream(peerConnection, webRTCState, stream),
     removeCanvasStream: () =>

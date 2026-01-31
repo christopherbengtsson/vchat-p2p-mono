@@ -1,4 +1,4 @@
-import { Assert, RoundData } from '@mono/common-dto';
+import { Assert, CustomError, RoundData } from '@mono/common-dto';
 import { DataChannelMessage, WebRTCService } from '@mono/fe-webrtc';
 
 // Map to track callbacks for proper removal
@@ -50,7 +50,11 @@ const notifyRoundStart = (playerId: string) => {
         playerId,
       },
     };
-    webRTCInstance.sendMessage(payload);
+    const success = webRTCInstance.sendMessage(payload);
+
+    if (!success) {
+      throw CustomError.httpCommunication('Failed to send start round message');
+    }
   } catch (error) {
     console.error('Failed to start round', error);
     throw error;
@@ -73,7 +77,13 @@ const notifyPlayerTurnComplete = (roundData: {
         score: roundData.score,
       },
     };
-    webRTCInstance.sendMessage(payload);
+    const success = webRTCInstance.sendMessage(payload);
+
+    if (!success) {
+      throw CustomError.httpCommunication(
+        'Failed to send turn complete message',
+      );
+    }
   } catch (error) {
     console.error('Failed to notify player turn complete', error);
     throw error;
@@ -89,7 +99,11 @@ const notifyTurnSwitch = () => {
         state: 'SWITCH_TURNS',
       },
     };
-    webRTCInstance.sendMessage(payload);
+    const success = webRTCInstance.sendMessage(payload);
+
+    if (!success) {
+      throw CustomError.httpCommunication('Failed to send turn switch message');
+    }
   } catch (error) {
     console.error('Failed to end round', error);
     throw error;
